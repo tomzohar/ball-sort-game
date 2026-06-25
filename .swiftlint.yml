@@ -1,0 +1,49 @@
+# SwiftLint config — Ball Sort Game (E1.3)
+included:
+  - BallSortCore/Sources
+  - BallSortCore/Tests
+  - BallSortApp
+  - BallSortAppTests
+excluded:
+  - "**/.build"
+  - DerivedData
+  - "*.xcodeproj"
+
+# Opt-in rules worth having on a fresh codebase.
+opt_in_rules:
+  - empty_count
+  - first_where
+  - contains_over_first_not_nil
+  - sorted_first_last
+  - last_where
+  - redundant_nil_coalescing
+  - closure_spacing
+  - explicit_init
+  - force_unwrapping
+  - toggle_bool
+  - unneeded_parentheses_in_closure_argument
+  - vertical_whitespace_closing_braces
+  - yoda_condition
+
+# Allow short names common in math/game code (x, y, r, c, i).
+identifier_name:
+  min_length: 1
+  excluded: [id, x, y, r, c, i, n, a, b]
+
+line_length:
+  warning: 120
+  error: 160
+  ignores_comments: true
+
+type_body_length:
+  warning: 300
+  error: 400
+
+file_length:
+  warning: 500
+  error: 700
+
+# #Preview / SwiftUI bodies push nesting; keep this humane.
+function_body_length:
+  warning: 60
+  error: 100

@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    name: Build & Test
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Versions
+        run: swift --version && xcodebuild -version
+
+      - name: Install tools
+        run: brew install xcodegen swiftlint
+
+      - name: SwiftLint
+        run: swiftlint lint --strict
+
+      - name: Core tests (swift test)
+        working-directory: BallSortCore
+        run: swift test
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: App tests (xcodebuild)
+        run: |
+          set -eo pipefail
+          # Pick any available iPhone simulator on the runner — robust to image changes.
+          DEVICE_ID=$(xcrun simctl list devices available --json \
+            | python3 -c "import json,sys; d=json.load(sys.stdin)['devices']; print(next(x['udid'] for r in d.values() for x in r if 'iPhone' in x['name']))")
+          echo "Simulator UDID: $DEVICE_ID"
+          xcodebuild test \
+            -project BallSort.xcodeproj \
+            -scheme BallSortApp \
+            -destination "platform=iOS Simulator,id=$DEVICE_ID" \
+            -quiet
