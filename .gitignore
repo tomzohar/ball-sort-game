@@ -1,6 +1,9 @@
 # macOS
 .DS_Store
 
+# Claude Code agent worktrees / local state
+.claude/
+
 # Swift Package Manager
 .build/
 .swiftpm/
