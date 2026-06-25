@@ -1,0 +1,78 @@
+{
+  "project": "Ball Sort Game",
+  "updated": "2026-06-25",
+  "memories": [
+    {
+      "id": "m1",
+      "title": "Classic move rule, not the prototype's lenient rule",
+      "type": "decision",
+      "hook": "Drop only onto empty tube or same-color top.",
+      "body": "The shipped game uses the classic ball-sort rule: a ball may move only onto an empty tube or onto a tube whose top ball is the same color (and not full). The ballsortgame.html prototype used a lenient any-ball-any-space rule — do NOT carry that over. Classic is the proven, strategic, monetizable formula and is what requires the solver/generator.",
+      "created": "2026-06-25"
+    },
+    {
+      "id": "m2",
+      "title": "Levels are infinite + generated, and must be guaranteed solvable",
+      "type": "decision",
+      "hook": "Generator + solver; every level provably winnable.",
+      "body": "No hand-authored level packs in v1. A generator produces endless levels on a rising difficulty curve. Because the classic rule makes random shuffles often impossible, generation must guarantee solvability (reverse-move scrambling and/or BFS/A* verification). The solver doubles as the hints engine.",
+      "created": "2026-06-25"
+    },
+    {
+      "id": "m3",
+      "title": "Stack: native SwiftUI, universal iPhone+iPad, portrait-only",
+      "type": "decision",
+      "hook": "SwiftUI, no cross-platform, portrait-locked universal app.",
+      "body": "Native SwiftUI (no Flutter/RN/Unity). Universal app targeting iPhone and iPad, locked to portrait orientation. Faithful port of the prototype's wooden-tray + glossy-ball aesthetic. Claude builds, Tom reviews.",
+      "created": "2026-06-25"
+    },
+    {
+      "id": "m4",
+      "title": "v1 is free, no ads, no SDKs",
+      "type": "decision",
+      "hook": "Free launch, monetize later.",
+      "body": "v1 ships free with zero ad/analytics SDKs — cleanest build, fastest to store, trivial privacy nutrition label. Monetization (ads + remove-ads IAP, or paid, or skins-as-IAP) is deferred post-launch.",
+      "created": "2026-06-25"
+    },
+    {
+      "id": "m5",
+      "title": "'Full TDD' on SwiftUI means MVVM + tested ViewModels, not view-equivalent web tests",
+      "type": "risk",
+      "hook": "No renderToStaticMarkup equivalent; weight is on logic core + ViewModels.",
+      "body": "Tom wants full TDD (carried from know-the-night). SwiftUI has no cheap markup-assertion equivalent. Honest plan: a pure, exhaustively-tested logic core (model/rules/solver) + MVVM ViewModels carry the testable weight; views are checked via snapshot tests or ViewInspector, which are weaker/flakier than web SSR assertions. View-test tooling is an early ADR (E0).",
+      "created": "2026-06-25"
+    },
+    {
+      "id": "m6",
+      "title": "Apple Developer enrollment is the long-pole external blocker — Tom owns it",
+      "type": "risk",
+      "hook": "Not enrolled yet; gates Game Center, TestFlight, submission. Start now.",
+      "body": "No Apple Developer account yet (~$99/yr, payment + Apple ID, approval can take a day+). It blocks Game Center, TestFlight, and submission. Per how we work, prod/account/payment actions are Tom's to run. Game Center (E10) and Release (E11) are intentionally late, isolated epics so the playable core is never blocked — but enrollment should start day one to overlap the build.",
+      "created": "2026-06-25"
+    },
+    {
+      "id": "m7",
+      "title": "Genre is saturated — pick a differentiator before store assets",
+      "type": "risk",
+      "hook": "A faithful clone risks invisibility; differentiation deferred but mandatory to revisit.",
+      "body": "Ball-sort/water-sort is a crowded genre. v1 scope is intentionally a clean classic build, but a 1:1 clone risks zero discoverability. Before spending on store screenshots/metadata (E11), decide on a hook: signature theme/skin identity, a twist mechanic, or a daily shared puzzle. Flagged, not yet scoped.",
+      "created": "2026-06-25"
+    },
+    {
+      "id": "m8",
+      "title": "v1 feature scope",
+      "type": "context",
+      "hook": "Undo/restart/hints, sound+haptics, Game Center, stats+streaks, persistence.",
+      "body": "In v1: classic board with tap-lift/tap-drop + animation; infinite solvable levels; undo, restart, solver-powered hints; sound + haptics; Game Center leaderboards/achievements (gated on enrollment); stats + streaks; persistence (resume level + stats survive relaunch). Deferred: themes/skins, daily puzzle, monetization, any twist mechanic.",
+      "created": "2026-06-25"
+    },
+    {
+      "id": "m9",
+      "title": "Dev machine has only Command Line Tools — SwiftPM is broken, no Swift builds/tests until full Xcode",
+      "type": "risk",
+      "hook": "CLT-only: even `swift package init` fails to link its manifest. Install Xcode to unblock all Swift work.",
+      "body": "As of 2026-06-25 this Mac has Swift 6.1.2 via Command Line Tools but NOT full Xcode (xcode-select -p = /Library/Developer/CommandLineTools). The CLT PackageDescription ManifestAPI is missing the Package.__allocating_init symbol, so SwiftPM cannot link ANY package manifest — even a stock `swift package init` library fails. Consequence: no local compile/test of the BallSortCore logic core, gutting the TDD loop, and no iOS app target/simulator. Fix is Tom installing full Xcode from the App Store (multi-GB). Swift source can still be authored as text; CI (full-Xcode runners) can build/test before the local machine is fixed. Tracked as backlog E1.0.",
+      "created": "2026-06-25"
+    }
+  ]
+}

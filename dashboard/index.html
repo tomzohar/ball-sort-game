@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ball Sort Game — Project Dashboard</title>
+<style>
+  :root {
+    --bg-top: #5a4634; --bg-mid: #3a2c20; --bg-bot: #241a12;
+    --tray: #c98a4b; --tray-dark: #8a5a2b; --edge: #5e3c1c;
+    --ink: #f5efe4; --muted: rgba(245,239,228,.6);
+    --panel: rgba(0,0,0,.28); --line: rgba(255,255,255,.10);
+    --todo: #8a7d6b; --in_progress: #ffb02e; --blocked: #ff5d5d; --done: #36d44a;
+    --crit: #ff7a18;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; color: var(--ink);
+    font-family: "Trebuchet MS","Segoe UI",system-ui,sans-serif;
+    background: radial-gradient(1400px 700px at 50% -10%, var(--bg-top) 0%, var(--bg-mid) 45%, var(--bg-bot) 100%) fixed;
+    padding: 28px 18px 80px;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; }
+  header.top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px; margin-bottom: 6px; }
+  h1 { margin: 0; font-size: clamp(22px, 4vw, 32px); text-shadow: 0 2px 0 rgba(0,0,0,.4); }
+  .updated { font-size: 12px; color: var(--muted); }
+  .overall { margin: 14px 0 26px; }
+  .bar { height: 14px; border-radius: 8px; background: rgba(0,0,0,.35); overflow: hidden; border: 1px solid var(--line); }
+  .bar > span { display: block; height: 100%; background: linear-gradient(90deg,#36d44a,#9be36b); }
+  .overall .meta { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); margin-top: 6px; }
+
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin: 18px 0; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+  h2.section { font-size: 18px; margin: 30px 0 14px; letter-spacing: .3px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+
+  .epics { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px,1fr)); gap: 16px; }
+  .epic {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px 16px 12px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+  }
+  .epic.crit { border-color: rgba(255,122,24,.45); }
+  .epic h3 { margin: 0 0 2px; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+  .epic .id { font-size: 12px; font-weight: bold; background: rgba(255,255,255,.1); padding: 2px 8px; border-radius: 8px; }
+  .crit-tag { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--crit); border: 1px solid var(--crit); border-radius: 6px; padding: 1px 6px; }
+  .epic .summary { font-size: 12px; color: var(--muted); margin: 4px 0 10px; }
+  .epic .ebar { height: 6px; border-radius: 4px; background: rgba(0,0,0,.35); overflow: hidden; margin-bottom: 10px; }
+  .epic .ebar > span { display: block; height: 100%; background: linear-gradient(90deg,#36d44a,#9be36b); }
+  ul.tasks { list-style: none; margin: 0; padding: 0; }
+  ul.tasks li { display: flex; gap: 9px; align-items: flex-start; padding: 5px 0; font-size: 13px; border-top: 1px solid rgba(255,255,255,.05); }
+  ul.tasks li:first-child { border-top: none; }
+  li .tid { color: var(--muted); font-size: 11px; min-width: 34px; padding-top: 2px; }
+  li .tt { flex: 1; }
+  li.s-done .tt { color: var(--muted); text-decoration: line-through; }
+  li .note { display: block; font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .mem { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px,1fr)); gap: 14px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px; border-left: 4px solid var(--line); }
+  .card.t-decision { border-left-color: #36d44a; }
+  .card.t-risk { border-left-color: #ff5d5d; }
+  .card.t-reference { border-left-color: #2196f3; }
+  .card.t-context { border-left-color: #a855f7; }
+  .card .tag { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+  .card h4 { margin: 4px 0 6px; font-size: 15px; }
+  .card .hook { font-size: 13px; color: var(--ink); opacity: .9; margin-bottom: 8px; font-style: italic; }
+  .card .body { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  .err { background: rgba(255,93,93,.12); border: 1px solid rgba(255,93,93,.4); border-radius: 14px; padding: 18px 20px; font-size: 14px; line-height: 1.6; }
+  .err code { background: rgba(0,0,0,.4); padding: 2px 6px; border-radius: 6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>🎯 Ball Sort Game</h1>
+    <span class="updated" id="updated"></span>
+  </header>
+  <div id="root"></div>
+</div>
+
+<script>
+const STATUS = ["todo","in_progress","blocked","done"];
+const LABEL = { todo:"To do", in_progress:"In progress", blocked:"Blocked", done:"Done" };
+
+async function load(path) {
+  const res = await fetch(path, { cache: "no-store" });
+  if (!res.ok) throw new Error(res.status + " " + path);
+  return res.json();
+}
+
+function el(html) { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstChild; }
+function esc(s) { return String(s).replace(/[&<>]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;" }[c])); }
+
+function render(backlog, memory) {
+  document.getElementById("updated").textContent =
+    "backlog updated " + backlog.updated + " · memory updated " + memory.updated;
+
+  const allTasks = backlog.epics.flatMap(e => e.tasks);
+  const done = allTasks.filter(t => t.status === "done").length;
+  const pct = allTasks.length ? Math.round(done / allTasks.length * 100) : 0;
+  const counts = STATUS.map(s => allTasks.filter(t => t.status === s).length);
+
+  const root = document.getElementById("root");
+  root.innerHTML = "";
+
+  // overall progress
+  root.appendChild(el(`
+    <div class="overall">
+      <div class="bar"><span style="width:${pct}%"></span></div>
+      <div class="meta"><span>${done} / ${allTasks.length} tasks done</span><span>${pct}%</span></div>
+    </div>`));
+
+  // legend with live counts
+  root.appendChild(el(`
+    <div class="legend">
+      ${STATUS.map((s,i)=>`<span><i class="dot" style="background:var(--${s})"></i>${LABEL[s]} · ${counts[i]}</span>`).join("")}
+      <span><i class="dot" style="background:var(--crit)"></i>Critical path</span>
+    </div>`));
+
+  // backlog
+  root.appendChild(el(`<h2 class="section">Backlog — ${backlog.epics.length} epics</h2>`));
+  const grid = el(`<div class="epics"></div>`);
+  for (const e of backlog.epics) {
+    const ed = e.tasks.filter(t => t.status === "done").length;
+    const ep = e.tasks.length ? Math.round(ed / e.tasks.length * 100) : 0;
+    const card = el(`
+      <div class="epic ${e.criticalPath ? "crit" : ""}">
+        <h3><span class="id">${esc(e.id)}</span> ${esc(e.title)} ${e.criticalPath ? '<span class="crit-tag">crit</span>' : ""}</h3>
+        <div class="summary">${esc(e.summary || "")}</div>
+        <div class="ebar"><span style="width:${ep}%"></span></div>
+        <ul class="tasks">
+          ${e.tasks.map(t => `
+            <li class="s-${t.status}">
+              <i class="dot" style="background:var(--${t.status});margin-top:5px"></i>
+              <span class="tid">${esc(t.id)}</span>
+              <span class="tt">${esc(t.title)}${t.note ? `<span class="note">${esc(t.note)}</span>` : ""}</span>
+            </li>`).join("")}
+        </ul>
+      </div>`);
+    grid.appendChild(card);
+  }
+  root.appendChild(grid);
+
+  // memory
+  root.appendChild(el(`<h2 class="section">Memory — ${memory.memories.length} entries</h2>`));
+  const mem = el(`<div class="mem"></div>`);
+  for (const m of memory.memories) {
+    mem.appendChild(el(`
+      <div class="card t-${esc(m.type)}">
+        <div class="tag">${esc(m.type)} · ${esc(m.id)}</div>
+        <h4>${esc(m.title)}</h4>
+        <div class="hook">${esc(m.hook || "")}</div>
+        <div class="body">${esc(m.body || "")}</div>
+      </div>`));
+  }
+  root.appendChild(mem);
+}
+
+(async () => {
+  try {
+    const [backlog, memory] = await Promise.all([
+      load("../backlog/backlog.json"),
+      load("../memory/memory.json"),
+    ]);
+    render(backlog, memory);
+  } catch (err) {
+    document.getElementById("root").appendChild(el(`
+      <div class="err">
+        <strong>Couldn't load the JSON files.</strong><br>
+        Browsers block <code>fetch()</code> over <code>file://</code>. Serve the project folder instead:
+        <br><br>
+        <code>cd ~/projects/ball-sort-game &amp;&amp; python3 -m http.server 8000</code><br>
+        then open <code>http://localhost:8000/dashboard/</code>
+        <br><br><span style="opacity:.6">(${esc(err.message)})</span>
+      </div>`));
+  }
+})();
+</script>
+</body>
+</html>

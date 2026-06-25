@@ -1,0 +1,157 @@
+{
+  "project": "Ball Sort Game",
+  "updated": "2026-06-25",
+  "statuses": ["todo", "in_progress", "blocked", "done"],
+  "epics": [
+    {
+      "id": "E0",
+      "title": "Foundations & architecture spine",
+      "criticalPath": true,
+      "summary": "Lock engineering ADRs before code.",
+      "tasks": [
+        { "id": "E0.1", "title": "ADR: MVVM boundaries (logic core ↔ ViewModel ↔ View)", "status": "todo", "note": "" },
+        { "id": "E0.2", "title": "ADR: persistence tech (SwiftData vs UserDefaults vs Codable-to-disk)", "status": "todo", "note": "" },
+        { "id": "E0.3", "title": "ADR: view-test tooling (ViewInspector vs snapshot testing)", "status": "todo", "note": "Resolves the 'full TDD on SwiftUI' risk (m5)." },
+        { "id": "E0.4", "title": "Module / folder layout doc", "status": "todo", "note": "" }
+      ]
+    },
+    {
+      "id": "E1",
+      "title": "Project scaffold + TDD harness + CI",
+      "criticalPath": true,
+      "summary": "Universal portrait app that builds, tests, and is CI-green.",
+      "tasks": [
+        { "id": "E1.0", "title": "Install full Xcode", "status": "todo", "note": "TOM'S TASK — HARD BLOCKER. Only Command Line Tools are installed; SwiftPM's manifest won't even link, so NO Swift code can be built or tested (not even the pure logic core). Gates E1.1–E1.4, E2, E3 verification, and all UI." },
+        { "id": "E1.1", "title": "Xcode universal (iPhone+iPad) portrait-locked project", "status": "blocked", "note": "Blocked on E1.0 (full Xcode)." },
+        { "id": "E1.2", "title": "Test target + first red→green trace", "status": "blocked", "note": "Swift package + first test (BallColor) are scaffolded but UNVERIFIED — can't run `swift test` until E1.0." },
+        { "id": "E1.3", "title": "SwiftLint + formatting", "status": "todo", "note": "" },
+        { "id": "E1.4", "title": "GitHub Actions CI (xcodebuild test on simulator)", "status": "todo", "note": "CI runners have full Xcode, so tests run there even before E1.0 locally." },
+        { "id": "E1.5", "title": "Git repo + .gitignore", "status": "done", "note": "Initialized; scaffold committed on main." }
+      ]
+    },
+    {
+      "id": "E2",
+      "title": "Domain core: model + classic move rules (pure Swift, full TDD)",
+      "criticalPath": true,
+      "summary": "The puzzle logic, no UI.",
+      "tasks": [
+        { "id": "E2.1", "title": "GameState model (tubes, balls, capacity, color count)", "status": "todo", "note": "BallColor primitive scaffolded in BallSortCore (unverified until E1.0)." },
+        { "id": "E2.2", "title": "Legal-move validation (classic: empty or same-color top, not full)", "status": "todo", "note": "" },
+        { "id": "E2.3", "title": "Apply-move + win detection", "status": "todo", "note": "" },
+        { "id": "E2.4", "title": "Equality / hashing for search", "status": "todo", "note": "Needed by solver." },
+        { "id": "E2.5", "title": "Exhaustive unit tests", "status": "todo", "note": "" }
+      ]
+    },
+    {
+      "id": "E3",
+      "title": "Level generator + solver",
+      "criticalPath": true,
+      "summary": "Guaranteed-solvable levels + difficulty grading. The hard algorithmic epic.",
+      "tasks": [
+        { "id": "E3.1", "title": "Solver (BFS/A*) → move sequence or nil", "status": "todo", "note": "Also powers hints (E6)." },
+        { "id": "E3.2", "title": "Generator via reverse-move scrambling", "status": "todo", "note": "" },
+        { "id": "E3.3", "title": "Solvability-guarantee test harness", "status": "todo", "note": "Every generated level must pass the solver in tests." },
+        { "id": "E3.4", "title": "Difficulty grading (colors, tubes, min-moves)", "status": "todo", "note": "Feeds the rising curve." }
+      ]
+    },
+    {
+      "id": "E4",
+      "title": "Game board UI (wooden-tray look, adaptive portrait)",
+      "criticalPath": true,
+      "summary": "SwiftUI port of the prototype aesthetic.",
+      "tasks": [
+        { "id": "E4.1", "title": "BoardViewModel (tested)", "status": "todo", "note": "" },
+        { "id": "E4.2", "title": "Tube + ball SwiftUI views (wooden tray, glossy balls)", "status": "todo", "note": "" },
+        { "id": "E4.3", "title": "Adaptive sizing iPhone ↔ iPad, portrait", "status": "todo", "note": "" },
+        { "id": "E4.4", "title": "Tap-lift / tap-drop interaction", "status": "todo", "note": "" },
+        { "id": "E4.5", "title": "Lift + drop animations", "status": "todo", "note": "" },
+        { "id": "E4.6", "title": "Snapshot tests", "status": "todo", "note": "" }
+      ]
+    },
+    {
+      "id": "E5",
+      "title": "Core gameplay loop",
+      "criticalPath": true,
+      "summary": "First fully playable build.",
+      "tasks": [
+        { "id": "E5.1", "title": "Select / move / win wiring", "status": "todo", "note": "" },
+        { "id": "E5.2", "title": "Undo (move history) + restart", "status": "todo", "note": "" },
+        { "id": "E5.3", "title": "HUD (moves, time, sorted count)", "status": "todo", "note": "" },
+        { "id": "E5.4", "title": "Win overlay + next level", "status": "todo", "note": "" },
+        { "id": "E5.5", "title": "Difficulty-curve advancement", "status": "todo", "note": "" }
+      ]
+    },
+    {
+      "id": "E6",
+      "title": "Hints",
+      "criticalPath": false,
+      "summary": "Solver-powered next-best-move.",
+      "tasks": [
+        { "id": "E6.1", "title": "Hint = solver next-best-move", "status": "todo", "note": "Clean seam for future rewarded-ad sink." },
+        { "id": "E6.2", "title": "Hint UI (highlight source/dest)", "status": "todo", "note": "" }
+      ]
+    },
+    {
+      "id": "E7",
+      "title": "Progression, persistence & stats",
+      "criticalPath": false,
+      "summary": "State survives relaunch; streaks.",
+      "tasks": [
+        { "id": "E7.1", "title": "Persist in-progress level", "status": "todo", "note": "" },
+        { "id": "E7.2", "title": "Persist stats across relaunch", "status": "todo", "note": "" },
+        { "id": "E7.3", "title": "Stats + streaks model (levels solved, best moves/time, daily streak)", "status": "todo", "note": "" },
+        { "id": "E7.4", "title": "Stats screen", "status": "todo", "note": "" }
+      ]
+    },
+    {
+      "id": "E8",
+      "title": "Juice: sound + haptics",
+      "criticalPath": false,
+      "summary": "Makes it feel native.",
+      "tasks": [
+        { "id": "E8.1", "title": "SFX (drop / click / win)", "status": "todo", "note": "" },
+        { "id": "E8.2", "title": "Haptics (lift / drop / complete)", "status": "todo", "note": "" },
+        { "id": "E8.3", "title": "Animation polish", "status": "todo", "note": "" }
+      ]
+    },
+    {
+      "id": "E9",
+      "title": "App identity & store-readiness",
+      "criticalPath": false,
+      "summary": "Looks like a real app.",
+      "tasks": [
+        { "id": "E9.1", "title": "App icon", "status": "todo", "note": "" },
+        { "id": "E9.2", "title": "Launch screen", "status": "todo", "note": "" },
+        { "id": "E9.3", "title": "Settings screen (sound / haptics toggles)", "status": "todo", "note": "" },
+        { "id": "E9.4", "title": "Accessibility (VoiceOver, Dynamic Type, color-blind-safe ball cues)", "status": "todo", "note": "" },
+        { "id": "E9.5", "title": "Localization scaffold", "status": "todo", "note": "Even if English-only." }
+      ]
+    },
+    {
+      "id": "E10",
+      "title": "Game Center (gated on enrollment)",
+      "criticalPath": false,
+      "summary": "Leaderboards/achievements, no backend.",
+      "tasks": [
+        { "id": "E10.1", "title": "Game Center auth + entitlement", "status": "blocked", "note": "Blocked on E11.1 enrollment." },
+        { "id": "E10.2", "title": "Leaderboards (best moves/time, levels solved)", "status": "blocked", "note": "Blocked on E11.1." },
+        { "id": "E10.3", "title": "Achievements", "status": "blocked", "note": "Blocked on E11.1." }
+      ]
+    },
+    {
+      "id": "E11",
+      "title": "Release engineering (parallel external track — START NOW)",
+      "criticalPath": false,
+      "summary": "Enrollment → signing → TestFlight → submission.",
+      "tasks": [
+        { "id": "E11.1", "title": "Apple Developer enrollment", "status": "todo", "note": "TOM'S TASK. ~$99/yr, payment + Apple ID. Long pole — start day one." },
+        { "id": "E11.2", "title": "Signing & provisioning", "status": "blocked", "note": "Blocked on E11.1." },
+        { "id": "E11.3", "title": "App Store Connect setup", "status": "blocked", "note": "Blocked on E11.1." },
+        { "id": "E11.4", "title": "Privacy nutrition label", "status": "todo", "note": "Trivial — no SDKs/data collection in v1." },
+        { "id": "E11.5", "title": "Screenshots + metadata", "status": "todo", "note": "Revisit differentiation (m7) FIRST." },
+        { "id": "E11.6", "title": "TestFlight beta", "status": "blocked", "note": "Blocked on E11.1." },
+        { "id": "E11.7", "title": "Submission & review", "status": "blocked", "note": "Needs E9 + E11.1–E11.6." }
+      ]
+    }
+  ]
+}
