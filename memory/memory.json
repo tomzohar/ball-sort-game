@@ -70,8 +70,8 @@
       "id": "m9",
       "title": "Dev machine has only Command Line Tools — SwiftPM is broken, no Swift builds/tests until full Xcode",
       "type": "risk",
-      "hook": "CLT-only: even `swift package init` fails to link its manifest. Install Xcode to unblock all Swift work.",
-      "body": "As of 2026-06-25 this Mac has Swift 6.1.2 via Command Line Tools but NOT full Xcode (xcode-select -p = /Library/Developer/CommandLineTools). The CLT PackageDescription ManifestAPI is missing the Package.__allocating_init symbol, so SwiftPM cannot link ANY package manifest — even a stock `swift package init` library fails. Consequence: no local compile/test of the BallSortCore logic core, gutting the TDD loop, and no iOS app target/simulator. Fix is Tom installing full Xcode from the App Store (multi-GB). Swift source can still be authored as text; CI (full-Xcode runners) can build/test before the local machine is fixed. Tracked as backlog E1.0.",
+      "hook": "RESOLVED 2026-06-25 — full Xcode 26.5 installed; `swift test` + `xcodebuild test` both green.",
+      "body": "RESOLVED. Earlier on 2026-06-25 the Mac had only Command Line Tools (Swift 6.1.2), whose PackageDescription ManifestAPI was missing Package.__allocating_init, so SwiftPM couldn't link ANY manifest (even `swift package init` failed) — blocking all Swift build/test. Tom then installed full Xcode 26.5 (17F42); xcode-select now points at /Applications/Xcode.app. Verified working: `swift test` passes BallColor in BallSortCore, and `xcodegen generate` + `xcodebuild test -scheme BallSortApp` on the iPhone 17 Pro simulator passes the app SmokeTests. Keep for the lesson: a CLT-only Mac cannot build SwiftPM; full Xcode is required.",
       "created": "2026-06-25"
     },
     {

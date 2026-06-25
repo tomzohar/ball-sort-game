@@ -29,6 +29,24 @@ python3 -m http.server 8000
 
 (Double-clicking the HTML shows a help banner instead of data — that's the `file://` restriction, not a bug.)
 
+## Building & testing
+
+Requires full Xcode (not just Command Line Tools — see memory m9) and XcodeGen (`brew install xcodegen`).
+
+```bash
+# Logic core — fast, no simulator:
+cd BallSortCore && swift test
+
+# Generate the Xcode project from project.yml (after any project.yml change):
+xcodegen generate
+
+# Build + test the app on a simulator:
+xcodebuild test -project BallSort.xcodeproj -scheme BallSortApp \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
+```
+
+The `.xcodeproj` is generated and gitignored; `project.yml` is the source of truth (ADR-0004).
+
 ## How the systems are maintained
 
 - **Backlog:** edit `backlog/backlog.json`. Each task has `status`: `todo` | `in_progress` | `blocked` | `done`. Add tasks under their epic; keep ids stable (`E3.2` etc.).

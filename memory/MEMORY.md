@@ -10,5 +10,5 @@ One line per memory. Full content lives in [memory.json](memory.json).
 - **m6 · risk · Apple Developer enrollment is the long pole** — not enrolled; gates Game Center/TestFlight/submission; Tom owns it; start now.
 - **m7 · risk · Genre saturated** — pick a differentiator (theme/twist/daily) before spending on store assets.
 - **m8 · context · v1 feature scope** — undo/restart/hints, sound+haptics, Game Center, stats+streaks, persistence.
-- **m9 · risk · CLT-only, SwiftPM broken** — no local Swift build/test until Tom installs full Xcode; even `swift package init` won't link. Tracked as backlog E1.0.
+- **m9 · risk · CLT-only, SwiftPM broken (RESOLVED)** — was: no Swift build/test on CLT-only Mac. Fixed by installing full Xcode 26.5; `swift test` + `xcodebuild test` now green. Lesson: CLT alone can't build SwiftPM.
 - **m10 · decision · E0 architecture locked** — layered MVVM (@Observable, iOS 17) over pure Core; Codable-to-disk persistence; snapshot+VM tests; XcodeGen. Full ADRs in docs/TECHNICAL_DECISIONS.md; don't re-litigate.

@@ -21,9 +21,9 @@
       "criticalPath": true,
       "summary": "Universal portrait app that builds, tests, and is CI-green.",
       "tasks": [
-        { "id": "E1.0", "title": "Install full Xcode", "status": "todo", "note": "TOM'S TASK — HARD BLOCKER. Only Command Line Tools are installed; SwiftPM's manifest won't even link, so NO Swift code can be built or tested (not even the pure logic core). Gates E1.1–E1.4, E2, E3 verification, and all UI." },
-        { "id": "E1.1", "title": "Xcode app target via XcodeGen project.yml (universal, portrait-locked, consumes BallSortCore)", "status": "blocked", "note": "Blocked on E1.0. Per ADR-0004: Claude authors project.yml; Tom runs `brew install xcodegen && xcodegen generate`." },
-        { "id": "E1.2", "title": "Test target + first red→green trace", "status": "blocked", "note": "Swift package + first test (BallColor) are scaffolded but UNVERIFIED — can't run `swift test` until E1.0." },
+        { "id": "E1.0", "title": "Install full Xcode", "status": "done", "note": "DONE — Xcode 26.5 (17F42) installed, toolchain switched (xcode-select -p → /Applications/Xcode.app). iOS 26.5 SDK + simulator runtime (26.5 / 23F77) installed; iPhone 17/17 Pro/Pro Max/17e/Air + iPad Pro/Air/mini/A16 simulators all available. xcodebuild + simctl verified working." },
+        { "id": "E1.1", "title": "Xcode app target via XcodeGen project.yml (universal, portrait-locked, consumes BallSortCore)", "status": "done", "note": "VERIFIED. xcodegen 2.45.4 generates BallSort.xcodeproj from project.yml; app builds on iPhone 17 Pro sim. .xcodeproj is gitignored (project.yml is source of truth)." },
+        { "id": "E1.2", "title": "Test target + first red→green trace", "status": "done", "note": "VERIFIED GREEN. `swift test` passes BallColor in Core; `xcodebuild test` passes 2 SmokeTests (Core linked + color mapping) on iPhone 17 Pro sim." },
         { "id": "E1.3", "title": "SwiftLint + formatting", "status": "todo", "note": "" },
         { "id": "E1.4", "title": "GitHub Actions CI (xcodebuild test on simulator)", "status": "todo", "note": "CI runners have full Xcode, so tests run there even before E1.0 locally." },
         { "id": "E1.5", "title": "Git repo + .gitignore", "status": "done", "note": "Initialized; scaffold committed on main." }
@@ -35,7 +35,7 @@
       "criticalPath": true,
       "summary": "The puzzle logic, no UI.",
       "tasks": [
-        { "id": "E2.1", "title": "GameState model (tubes, balls, capacity, color count)", "status": "todo", "note": "BallColor primitive scaffolded in BallSortCore (unverified until E1.0)." },
+        { "id": "E2.1", "title": "GameState model (tubes, balls, capacity, color count)", "status": "todo", "note": "BallColor primitive in BallSortCore, swift-test green. Next: Tube, GameState, Move." },
         { "id": "E2.2", "title": "Legal-move validation (classic: empty or same-color top, not full)", "status": "todo", "note": "" },
         { "id": "E2.3", "title": "Apply-move + win detection", "status": "todo", "note": "" },
         { "id": "E2.4", "title": "Equality / hashing for search", "status": "todo", "note": "Needed by solver." },

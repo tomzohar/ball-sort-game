@@ -1,0 +1,59 @@
+# XcodeGen spec for the Ball Sort iOS app (ADR-0004).
+# Authored as code so the project is diffable and editable without opening Xcode.
+# Regenerate after installing Xcode:  brew install xcodegen && xcodegen generate
+name: BallSort
+options:
+  bundleIdPrefix: com.tomzohar.ballsort
+  deploymentTarget:
+    iOS: "17.0"          # ADR-0001
+  createIntermediateGroups: true
+
+packages:
+  # The pure logic core, consumed as a local Swift package.
+  BallSortCore:
+    path: BallSortCore
+  # Targeted view snapshot tests (ADR-0003).
+  SnapshotTesting:
+    url: https://github.com/pointfreeco/swift-snapshot-testing
+    from: "1.17.0"
+
+targets:
+  BallSortApp:
+    type: application
+    platform: iOS
+    sources:
+      - path: BallSortApp
+    dependencies:
+      - package: BallSortCore
+        product: BallSortCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.tomzohar.ballsort
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "5.0"               # Swift 5 language mode for the app; can raise to 6 later. Core stays tools-6.
+        TARGETED_DEVICE_FAMILY: "1,2"       # 1 = iPhone, 2 = iPad (universal)
+        GENERATE_INFOPLIST_FILE: YES
+        # Portrait-only (PROJECT_BRIEF). iPhone strictly portrait; iPad allows both portrait orientations.
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait"
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown"
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+
+  BallSortAppTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: BallSortAppTests
+    dependencies:
+      - target: BallSortApp              # sets the test host
+      - package: BallSortCore
+        product: BallSortCore
+      - package: SnapshotTesting
+        product: SnapshotTesting
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.tomzohar.ballsort.tests
+        SWIFT_VERSION: "5.0"
+        GENERATE_INFOPLIST_FILE: YES

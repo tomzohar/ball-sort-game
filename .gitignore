@@ -5,7 +5,8 @@
 .build/
 .swiftpm/
 
-# Xcode
+# Xcode — project is generated from project.yml (ADR-0004), so don't track it
+*.xcodeproj
 DerivedData/
 xcuserdata/
 *.xcuserstate
