@@ -93,20 +93,20 @@
         {
           "id": "E2.1",
           "title": "GameState model (tubes, balls, capacity, color count)",
-          "status": "todo",
-          "note": "BallColor primitive in BallSortCore, swift-test green. Next: Tube, GameState, Move."
+          "status": "done",
+          "note": "Tube/Move/GameState public value types (Equatable/Hashable/Sendable) in BallSortCore. Tube exposes top/isEmpty/isFull/count/isComplete; GameState holds tubes+capacity. Swift Testing suites green (swift test, 24 tests)."
         },
         {
           "id": "E2.2",
           "title": "Legal-move validation (classic: empty or same-color top, not full)",
-          "status": "todo",
-          "note": ""
+          "status": "done",
+          "note": "GameState.isLegal(_:) enforces the classic rule (bounds, from!=to, non-empty source, non-full dest, dest empty OR top color match) + legalMoves() enumerates all legal moves. Full legality matrix covered by Swift Testing; swift test green."
         },
         {
           "id": "E2.3",
           "title": "Apply-move + win detection",
-          "status": "todo",
-          "note": ""
+          "status": "done",
+          "note": "GameState.apply(_:) is pure (returns new state or nil, never mutates self) and isWon = every tube empty-or-complete. Apply/win/purity covered by Swift Testing; swift test green."
         },
         {
           "id": "E2.4",
