@@ -74,7 +74,7 @@
           "id": "E1.4",
           "title": "GitHub Actions CI (xcodebuild test on simulator)",
           "status": "done",
-          "note": ".github/workflows/ci.yml: macos-15, SwiftLint + core swift test + xcodegen + xcodebuild test on a dynamically-picked iPhone sim. Unverified until first push triggers it."
+          "note": ".github/workflows/ci.yml (macos-15): SwiftLint + core swift test + xcodegen + xcodebuild test on a dynamically-picked iPhone sim. VERIFIED GREEN — first run passed in 3m0s. Pushed to private repo tomzohar/ball-sort-game."
         },
         {
           "id": "E1.5",
