@@ -6,7 +6,7 @@ import PackageDescription
 // and is consumed by the iOS app target as a local package once Xcode is installed.
 let package = Package(
     name: "BallSortCore",
-    platforms: [.macOS(.v13), .iOS(.v16)],
+    platforms: [.macOS(.v13), .iOS(.v17)], // iOS 17 floor per ADR-0001 (@Observable). macOS 13 only so the core tests run from the CLI.
     products: [
         .library(name: "BallSortCore", targets: ["BallSortCore"]),
     ],

@@ -73,6 +73,14 @@
       "hook": "CLT-only: even `swift package init` fails to link its manifest. Install Xcode to unblock all Swift work.",
       "body": "As of 2026-06-25 this Mac has Swift 6.1.2 via Command Line Tools but NOT full Xcode (xcode-select -p = /Library/Developer/CommandLineTools). The CLT PackageDescription ManifestAPI is missing the Package.__allocating_init symbol, so SwiftPM cannot link ANY package manifest — even a stock `swift package init` library fails. Consequence: no local compile/test of the BallSortCore logic core, gutting the TDD loop, and no iOS app target/simulator. Fix is Tom installing full Xcode from the App Store (multi-GB). Swift source can still be authored as text; CI (full-Xcode runners) can build/test before the local machine is fixed. Tracked as backlog E1.0.",
       "created": "2026-06-25"
+    },
+    {
+      "id": "m10",
+      "title": "E0 architecture is decided — see docs/TECHNICAL_DECISIONS.md; don't re-litigate",
+      "type": "decision",
+      "hook": "Layered MVVM (@Observable, iOS 17) over pure Core; Codable-to-disk persistence; snapshot+VM tests; XcodeGen.",
+      "body": "ADRs 0001–0004 lock: (1) Views→ViewModels(@Observable, Observation)→Core(BallSortCore, pure value types), DI via LevelGenerating/Solving/PersistenceStore protocols, min iOS 17. (2) Persistence = Codable JSON in Application Support behind a PersistenceStore protocol, + @AppStorage for settings; SwiftData rejected. (3) Testing = exhaustive Core+ViewModel unit tests primary, targeted swift-snapshot-testing for ball/tube/board primitives, PR screenshot rule; ViewInspector rejected. (4) Xcode app target defined as code via XcodeGen project.yml (Claude authors, Tom runs xcodegen), app consumes local ./BallSortCore package. Full rationale + rejected alternatives in docs/TECHNICAL_DECISIONS.md.",
+      "created": "2026-06-25"
     }
   ]
 }

@@ -9,10 +9,10 @@
       "criticalPath": true,
       "summary": "Lock engineering ADRs before code.",
       "tasks": [
-        { "id": "E0.1", "title": "ADR: MVVM boundaries (logic core ↔ ViewModel ↔ View)", "status": "todo", "note": "" },
-        { "id": "E0.2", "title": "ADR: persistence tech (SwiftData vs UserDefaults vs Codable-to-disk)", "status": "todo", "note": "" },
-        { "id": "E0.3", "title": "ADR: view-test tooling (ViewInspector vs snapshot testing)", "status": "todo", "note": "Resolves the 'full TDD on SwiftUI' risk (m5)." },
-        { "id": "E0.4", "title": "Module / folder layout doc", "status": "todo", "note": "" }
+        { "id": "E0.1", "title": "ADR: MVVM boundaries (logic core ↔ ViewModel ↔ View)", "status": "done", "note": "ADR-0001. Layered MVVM, @Observable, iOS 17 floor, protocol DI." },
+        { "id": "E0.2", "title": "ADR: persistence tech (SwiftData vs UserDefaults vs Codable-to-disk)", "status": "done", "note": "ADR-0002. Codable-to-disk behind PersistenceStore + @AppStorage for settings; SwiftData rejected." },
+        { "id": "E0.3", "title": "ADR: view-test tooling (ViewInspector vs snapshot testing)", "status": "done", "note": "ADR-0003. Core/VM unit tests primary; targeted swift-snapshot-testing for primitives; PR screenshots. ViewInspector rejected. Resolves m5." },
+        { "id": "E0.4", "title": "Module / folder layout doc", "status": "done", "note": "ADR-0004. Layout + XcodeGen-generated app target consuming local BallSortCore package." }
       ]
     },
     {
@@ -22,7 +22,7 @@
       "summary": "Universal portrait app that builds, tests, and is CI-green.",
       "tasks": [
         { "id": "E1.0", "title": "Install full Xcode", "status": "todo", "note": "TOM'S TASK — HARD BLOCKER. Only Command Line Tools are installed; SwiftPM's manifest won't even link, so NO Swift code can be built or tested (not even the pure logic core). Gates E1.1–E1.4, E2, E3 verification, and all UI." },
-        { "id": "E1.1", "title": "Xcode universal (iPhone+iPad) portrait-locked project", "status": "blocked", "note": "Blocked on E1.0 (full Xcode)." },
+        { "id": "E1.1", "title": "Xcode app target via XcodeGen project.yml (universal, portrait-locked, consumes BallSortCore)", "status": "blocked", "note": "Blocked on E1.0. Per ADR-0004: Claude authors project.yml; Tom runs `brew install xcodegen && xcodegen generate`." },
         { "id": "E1.2", "title": "Test target + first red→green trace", "status": "blocked", "note": "Swift package + first test (BallColor) are scaffolded but UNVERIFIED — can't run `swift test` until E1.0." },
         { "id": "E1.3", "title": "SwiftLint + formatting", "status": "todo", "note": "" },
         { "id": "E1.4", "title": "GitHub Actions CI (xcodebuild test on simulator)", "status": "todo", "note": "CI runners have full Xcode, so tests run there even before E1.0 locally." },
