@@ -111,14 +111,14 @@
         {
           "id": "E2.4",
           "title": "Equality / hashing for search",
-          "status": "todo",
-          "note": "Needed by solver."
+          "status": "done",
+          "note": "GameState.canonical (GameState+Canonical.swift) sorts tubes into a deterministic total order so permutation-symmetric states collapse to one representative; synthesized Hashable/Equatable on the canonical form is the BFS/A* visited-set dedup key. swift test green."
         },
         {
           "id": "E2.5",
           "title": "Exhaustive unit tests",
-          "status": "todo",
-          "note": ""
+          "status": "done",
+          "note": "GameStateInvariantTests sweeps representative states x all legal moves: ball-multiset conservation, legality<=>apply, win soundness, and canonical properties (idempotent, permutation-stable, multiset/isWon preserving). swift test green."
         }
       ]
     },
