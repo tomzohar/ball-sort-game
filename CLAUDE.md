@@ -10,6 +10,7 @@ Native iOS (SwiftUI) **ball-sort puzzle** game, built up from the `ballsortgame.
 
 - `docs/PROJECT_BRIEF.md` — locked decisions, scope (in/out), raised risks. The contract.
 - `docs/EPICS.md` — E0–E11 narrative, dependencies, critical path.
+- `docs/GAME_RULES.md` — the game mechanic spec (move rule, win condition, generation, difficulty).
 - `docs/TECHNICAL_DECISIONS.md` — binding engineering ADRs (architecture, persistence, testing, project layout).
 - `backlog/backlog.json` — tracked work, source of truth for **status**. `dashboard/index.html` renders it.
 - `memory/memory.json` (+ `MEMORY.md` index) — durable project knowledge across sessions.
@@ -31,13 +32,9 @@ One line each; rationale in `docs/TECHNICAL_DECISIONS.md`.
 
 Forbidden without an ADR amendment: SwiftData, third-party auth/analytics/ad SDKs (v1 is SDK-free), `ObservableObject` for new ViewModels (use `@Observable`), hardcoding the BallColor palette outside the App-layer mapping.
 
-## Game rules (the mechanic — get this right)
+## Game rules
 
-**Classic ball-sort, not the prototype's lenient rule** (memory m1). A ball may move **only** onto:
-- an **empty** tube, or
-- a tube whose **top ball is the same color** — and which is **not full**.
-
-Only the **top** ball of a tube can move. A tube is **complete** when full of one color. The level is **solved** when every tube is empty or a full single-color stack. Levels are **infinite, generated, and must be guaranteed solvable** (generator + solver, E3 / memory m2).
+The mechanic is specified in `docs/GAME_RULES.md` — that doc is authoritative. The one rule worth repeating because it's the most likely to be silently broken: this is **classic ball-sort** (move onto an empty tube or a same-color, non-full top — top ball only), **not** the prototype's lenient any-ball-any-space rule (memory m1). Don't reintroduce the lenient rule.
 
 ## Development approach: TDD
 

@@ -9,6 +9,7 @@ Native iOS (SwiftUI) ball-sort puzzle. Sort colored balls so each tube holds one
 | [CLAUDE.md](CLAUDE.md) | Operating rules for AI agents working in this repo (load every session). |
 | [docs/PROJECT_BRIEF.md](docs/PROJECT_BRIEF.md) | **Locked decisions** + scope + raised risks. The contract. |
 | [docs/EPICS.md](docs/EPICS.md) | Narrative epic breakdown, dependencies, critical path. |
+| [docs/GAME_RULES.md](docs/GAME_RULES.md) | Authoritative game mechanic spec (move rule, win condition, generation, difficulty). |
 | [docs/TECHNICAL_DECISIONS.md](docs/TECHNICAL_DECISIONS.md) | Binding engineering ADRs (architecture, persistence, testing, project layout). |
 | [backlog/backlog.json](backlog/backlog.json) | **Tracked work** — epics → tasks → status. Source of truth for *status*. |
 | [memory/memory.json](memory/memory.json) | Project memory — decisions, risks, references, context. |
