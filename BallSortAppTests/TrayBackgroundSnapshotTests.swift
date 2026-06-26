@@ -4,7 +4,8 @@ import SwiftUI
 @testable import BallSortApp
 
 /// Targeted snapshot test for the wooden-tray container + dark backdrop visual primitives (ADR-0003).
-/// Baselines are pinned to the iPhone 17 Pro simulator on the CI runner; record intentionally.
+/// Snapshots `host.view` at an explicit fixed frame so the baseline is device-independent
+/// (the controller-level `.image` renders at the host window size, which differs across simulators).
 final class TrayBackgroundSnapshotTests: XCTestCase {
     /// Fixed placeholder content so the snapshot is deterministic (no game logic).
     private var fixture: some View {
@@ -28,6 +29,15 @@ final class TrayBackgroundSnapshotTests: XCTestCase {
         let host = UIHostingController(rootView: fixture)
         host.view.frame = CGRect(x: 0, y: 0, width: 390, height: 400)
 
-        assertSnapshot(of: host, as: .image)
+        // Snapshot the view at its fixed frame (not the controller, which renders at window size).
+        // precision/perceptualPrecision absorb sub-pixel gradient-rendering diffs across OS versions.
+        assertSnapshot(
+            of: host.view,
+            as: .image(
+                precision: 0.98,
+                perceptualPrecision: 0.97,
+                traits: .init(userInterfaceStyle: .light)
+            )
+        )
     }
 }
