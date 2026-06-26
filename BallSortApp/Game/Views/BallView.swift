@@ -1,0 +1,104 @@
+import SwiftUI
+import BallSortCore
+
+/// A single glossy gradient ball, ported from the HTML prototype's `.ball` styling.
+///
+/// Dumb view (ADR-0001): renders a `BallColor` at a given size; no game logic.
+/// The look is stacked `RadialGradient`s over a `Circle`, mirroring the prototype's
+/// CSS layers (specular highlight, color body, lower-right shading) plus a drop
+/// shadow, and an optional lift treatment when the ball is picked up.
+struct BallView: View {
+    /// The ball's color; mapped to a SwiftUI `Color` via the App-layer palette.
+    let color: BallColor
+    /// The ball's diameter in points. Gradient radii scale off this so the look
+    /// is identical at any size.
+    let size: CGFloat
+    /// When `true`, the ball is "picked up": it scales up slightly and gains a
+    /// white glow ring (prototype's `.ball.lifted`).
+    var isLifted: Bool = false
+
+    var body: some View {
+        Circle()
+            .fill(color.swiftUIColor)
+            .overlay { bodyShading }       // color body, darkening to the rim
+            .overlay { lowerRightShading } // shadow in the lower-right
+            .overlay { specularHighlight } // bright spot, upper-left
+            .overlay { liftRing }          // white ring when lifted
+            .frame(width: size, height: size)
+            .scaleEffect(isLifted ? 1.06 : 1.0)
+            // Prototype drop shadow: `0 4px 6px rgba(0,0,0,.45)`.
+            .shadow(color: .black.opacity(0.45), radius: 3, x: 0, y: 4)
+            // Prototype `.ball.lifted` outer glow: `0 0 16px 4px rgba(255,255,255,.55)`.
+            .shadow(color: isLifted ? .white.opacity(0.55) : .clear, radius: 8)
+    }
+
+    /// Body: ball color held to 55%, then darkening to `black .25` at the rim.
+    private var bodyShading: some View {
+        Circle().fill(
+            RadialGradient(
+                gradient: Gradient(stops: [
+                    .init(color: color.swiftUIColor, location: 0.0),
+                    .init(color: color.swiftUIColor, location: 0.55),
+                    .init(color: .black.opacity(0.25), location: 1.0)
+                ]),
+                center: .center,
+                startRadius: 0,
+                endRadius: size / 2
+            )
+        )
+    }
+
+    /// Shading: a soft black blob in the lower-right (`~70%,75%`), gone by ~45%.
+    private var lowerRightShading: some View {
+        Circle().fill(
+            RadialGradient(
+                gradient: Gradient(stops: [
+                    .init(color: .black.opacity(0.45), location: 0.0),
+                    .init(color: .clear, location: 1.0)
+                ]),
+                center: UnitPoint(x: 0.70, y: 0.75),
+                startRadius: 0,
+                endRadius: size * 0.45
+            )
+        )
+    }
+
+    /// Specular highlight: bright white spot at the upper-left (`~32%,28%`).
+    private var specularHighlight: some View {
+        Circle().fill(
+            RadialGradient(
+                gradient: Gradient(stops: [
+                    .init(color: .white.opacity(0.95), location: 0.0),
+                    .init(color: .white.opacity(0.25), location: 0.40),
+                    .init(color: .clear, location: 1.0)
+                ]),
+                center: UnitPoint(x: 0.32, y: 0.28),
+                startRadius: 0,
+                endRadius: size * 0.30
+            )
+        )
+    }
+
+    /// Lift treatment: solid white ring hugging the ball (`box-shadow: 0 0 0 4px #fff`).
+    @ViewBuilder private var liftRing: some View {
+        if isLifted {
+            Circle().strokeBorder(Color.white, lineWidth: max(2, size * 0.05))
+        }
+    }
+}
+
+#Preview {
+    VStack(spacing: 24) {
+        HStack(spacing: 16) {
+            ForEach(BallColor.allCases, id: \.self) { color in
+                BallView(color: color, size: 56)
+            }
+        }
+        HStack(spacing: 16) {
+            BallView(color: .blue, size: 56, isLifted: true)
+            BallView(color: .pink, size: 56, isLifted: true)
+        }
+    }
+    .padding(40)
+    .background(Color(white: 0.15))
+}
