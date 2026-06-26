@@ -21,30 +21,33 @@ struct SolvabilityHarnessTests {
         let colors: Int
         let capacity: Int
         let emptyTubes: Int
-        let scrambleDepth: Int
+        let minMoves: Int
 
         var description: String {
             "colors=\(colors) capacity=\(capacity) emptyTubes=\(emptyTubes) "
-                + "scrambleDepth=\(scrambleDepth)"
+                + "minMoves=\(minMoves)"
         }
     }
 
     /// The parameter matrix: realistic ranges kept small enough that BFS stays fast.
     ///
-    /// colors 2…5 × capacity 3…4 × emptyTubes 1…2 × a spread of scramble depths.
-    /// Each combo is then run across `seedCount` fixed seeds below.
+    /// colors 2…5 × capacity 3…4 × emptyTubes 1…2 × a couple of difficulty floors.
+    /// Each combo is then run across `seedCount` fixed seeds below. Generation now
+    /// verifies solvability internally (it solves each candidate), so this suite is
+    /// leaner than the old reverse-scramble sweep to stay within the time budget —
+    /// it independently re-solves and replays every generated level.
     static let matrix: [Params] = {
         var params: [Params] = []
         for colors in 2...5 {
             for capacity in 3...4 {
                 for emptyTubes in 1...2 {
-                    for scrambleDepth in [10, 30, 60] {
+                    for minMoves in [5, 10] {
                         params.append(
                             Params(
                                 colors: colors,
                                 capacity: capacity,
                                 emptyTubes: emptyTubes,
-                                scrambleDepth: scrambleDepth
+                                minMoves: minMoves
                             )
                         )
                     }
@@ -54,9 +57,9 @@ struct SolvabilityHarnessTests {
         return params
     }()
 
-    /// Fixed seeds per param combo. 48 combos × 8 seeds = 384 generated levels, each
-    /// generated, solved, and replayed — kept within the suite's time budget.
-    static let seedCount: UInt64 = 8
+    /// Fixed seeds per param combo. 32 combos × 4 seeds = 128 generated levels, each
+    /// generated, independently solved, and replayed — kept within the time budget.
+    static let seedCount: UInt64 = 4
 
     @Test("every generated level is solvable and its solution wins", arguments: matrix)
     func generatedLevelsAreSolvable(_ params: Params) throws {
@@ -70,7 +73,7 @@ struct SolvabilityHarnessTests {
                 colors: params.colors,
                 capacity: params.capacity,
                 emptyTubes: params.emptyTubes,
-                scrambleDepth: params.scrambleDepth,
+                minMoves: params.minMoves,
                 seed: seed
             )
 

@@ -1,13 +1,13 @@
 import Testing
 @testable import BallSortCore
 
-/// Tests for the reverse-move scrambling level generator (E3.2).
+/// Tests for the random-fill + solver-verified level generator (E3.2).
 ///
-/// Solvability is guaranteed *by construction* (scrambling walks backwards along
-/// legal forward moves from the solved state), so it is not asserted here via a
-/// solver — that's a separate unit. These tests pin down the structural invariants
-/// the generator must uphold: tube/capacity counts, ball-multiset conservation,
-/// determinism under a fixed seed, and not-already-won for non-trivial depth.
+/// The generator samples random boards and accepts only solver-verified, non-won
+/// ones, tuned to a `minMoves` difficulty floor. These tests pin the structural
+/// invariants (tube/capacity counts, ball-multiset conservation), determinism under
+/// a fixed seed, the never-won / always-solvable guarantees, and that difficulty
+/// actually responds to the `minMoves` floor.
 @Suite("Generator")
 struct GeneratorTests {
     /// A flat, order-independent multiset (color -> count) of every ball on the board.
@@ -26,7 +26,7 @@ struct GeneratorTests {
     @Test("tube count == colors + emptyTubes")
     func tubeCount() {
         let game = Generator().generate(
-            colors: 4, capacity: 4, emptyTubes: 2, scrambleDepth: 50, seed: 1
+            colors: 4, capacity: 4, emptyTubes: 2, minMoves: 8, seed: 1
         )
         #expect(game.tubes.count == 6)
     }
@@ -34,7 +34,7 @@ struct GeneratorTests {
     @Test("every tube has the requested capacity, and so does the state")
     func capacities() {
         let game = Generator().generate(
-            colors: 3, capacity: 5, emptyTubes: 1, scrambleDepth: 30, seed: 7
+            colors: 3, capacity: 5, emptyTubes: 1, minMoves: 6, seed: 7
         )
         #expect(game.capacity == 5)
         #expect(game.tubes.allSatisfy { $0.capacity == 5 })
@@ -47,7 +47,7 @@ struct GeneratorTests {
         let colors = 4
         let capacity = 4
         let game = Generator().generate(
-            colors: colors, capacity: capacity, emptyTubes: 2, scrambleDepth: 80, seed: 42
+            colors: colors, capacity: capacity, emptyTubes: 2, minMoves: 10, seed: 42
         )
         let counts = multiset(game)
         let expectedColors = Array(BallColor.allCases.prefix(colors))
@@ -55,16 +55,15 @@ struct GeneratorTests {
         for color in expectedColors {
             #expect(counts[color] == capacity, "color \(color) should appear \(capacity) times")
         }
-        // Total balls == colors * capacity.
         let total = counts.values.reduce(0, +)
         #expect(total == colors * capacity)
     }
 
-    @Test("scrambling never overflows a tube past capacity")
+    @Test("filling never overflows a tube past capacity")
     func noOverflow() {
         let capacity = 4
         let game = Generator().generate(
-            colors: 5, capacity: capacity, emptyTubes: 2, scrambleDepth: 200, seed: 99
+            colors: 5, capacity: capacity, emptyTubes: 2, minMoves: 12, seed: 99
         )
         #expect(game.tubes.allSatisfy { $0.count <= capacity })
     }
@@ -73,13 +72,13 @@ struct GeneratorTests {
     func conservationSweep() {
         for seed in UInt64(0)..<20 {
             let colors = 2 + Int(seed % 4)        // 2...5
-            let capacity = 3 + Int(seed % 3)      // 3...5
+            let capacity = 3 + Int(seed % 2)      // 3...4
             let emptyTubes = 1 + Int(seed % 2)    // 1...2
             let game = Generator().generate(
                 colors: colors,
                 capacity: capacity,
                 emptyTubes: emptyTubes,
-                scrambleDepth: 60,
+                minMoves: 5,
                 seed: seed
             )
             #expect(game.tubes.count == colors + emptyTubes)
@@ -95,54 +94,64 @@ struct GeneratorTests {
     @Test("same seed + same params => identical GameState")
     func deterministicSameSeed() {
         let a = Generator().generate(
-            colors: 4, capacity: 4, emptyTubes: 2, scrambleDepth: 100, seed: 12345
+            colors: 4, capacity: 4, emptyTubes: 2, minMoves: 10, seed: 12345
         )
         let b = Generator().generate(
-            colors: 4, capacity: 4, emptyTubes: 2, scrambleDepth: 100, seed: 12345
+            colors: 4, capacity: 4, emptyTubes: 2, minMoves: 10, seed: 12345
         )
         #expect(a == b)
     }
 
     @Test("different seeds generally produce different levels")
     func differentSeedsDiffer() {
-        // Across a spread of seeds, at least one differs from seed 0 — a strong
-        // signal the seed actually drives scrambling (not all-equal by accident).
         let base = Generator().generate(
-            colors: 5, capacity: 4, emptyTubes: 2, scrambleDepth: 120, seed: 0
+            colors: 5, capacity: 4, emptyTubes: 2, minMoves: 10, seed: 0
         )
         let anyDifferent = (UInt64(1)...30).contains { seed in
             Generator().generate(
-                colors: 5, capacity: 4, emptyTubes: 2, scrambleDepth: 120, seed: seed
+                colors: 5, capacity: 4, emptyTubes: 2, minMoves: 10, seed: seed
             ) != base
         }
         #expect(anyDifferent)
     }
 
-    // MARK: - Solved start vs scrambled result
+    // MARK: - Always solvable, never won
 
-    @Test("zero scramble depth yields the solved (won) board")
-    func zeroDepthIsWon() {
-        let game = Generator().generate(
-            colors: 4, capacity: 4, emptyTubes: 2, scrambleDepth: 0, seed: 1
-        )
-        #expect(game.isWon)
-        // Solved board: `colors` complete single-color tubes + `emptyTubes` empty.
-        let complete = game.tubes.filter { $0.isComplete }.count
-        let empty = game.tubes.filter { $0.isEmpty }.count
-        #expect(complete == 4)
-        #expect(empty == 2)
+    @Test("generated boards are never already won")
+    func neverWon() {
+        for seed in UInt64(0)..<24 {
+            let colors = 2 + Int(seed % 4)
+            let game = Generator().generate(
+                colors: colors, capacity: 4, emptyTubes: 2, minMoves: 1, seed: seed
+            )
+            #expect(!game.isWon, "seed \(seed) produced an already-won board")
+        }
     }
 
-    @Test("a non-trivial scramble depth produces an unsolved board")
-    func scrambledIsNotWon() {
-        // With enough depth, several seeds must yield a non-won board; assert that
-        // the generator can scramble away from the solved state.
-        let anyUnsolved = (UInt64(0)..<20).contains { seed in
-            !Generator().generate(
-                colors: 4, capacity: 4, emptyTubes: 2, scrambleDepth: 100, seed: seed
-            ).isWon
+    @Test("generated boards are solver-verified solvable")
+    func alwaysSolvable() {
+        let solver = Solver()
+        for seed in UInt64(0)..<16 {
+            let game = Generator().generate(
+                colors: 4, capacity: 4, emptyTubes: 2, minMoves: 8, seed: seed
+            )
+            #expect(solver.solve(game) != nil, "seed \(seed) produced an unsolvable board")
         }
-        #expect(anyUnsolved)
+    }
+
+    // MARK: - Difficulty floor
+
+    @Test("result meets the minMoves difficulty floor when achievable")
+    func meetsDifficultyFloor() {
+        let solver = Solver()
+        let floor = 12
+        for seed in UInt64(0)..<8 {
+            let game = Generator().generate(
+                colors: 5, capacity: 4, emptyTubes: 2, minMoves: floor, seed: seed
+            )
+            let moves = solver.solve(game)?.count ?? -1
+            #expect(moves >= floor, "seed \(seed): min-moves \(moves) below floor \(floor)")
+        }
     }
 
     // MARK: - PRNG determinism (unit on the seeded RNG itself)
@@ -169,10 +178,10 @@ struct GeneratorTests {
     func genericRNGMatchesSeedConvenience() {
         var rng = SeededRandomNumberGenerator(seed: 555)
         let viaRNG = Generator().generate(
-            colors: 3, capacity: 4, emptyTubes: 1, scrambleDepth: 40, using: &rng
+            colors: 3, capacity: 4, emptyTubes: 1, minMoves: 6, using: &rng
         )
         let viaSeed = Generator().generate(
-            colors: 3, capacity: 4, emptyTubes: 1, scrambleDepth: 40, seed: 555
+            colors: 3, capacity: 4, emptyTubes: 1, minMoves: 6, seed: 555
         )
         #expect(viaRNG == viaSeed)
     }

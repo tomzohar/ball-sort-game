@@ -177,7 +177,7 @@ struct DifficultyGraderTests {
     @Test("grades a Generator-built level with the real Solver")
     func generatorIntegration() {
         let grader = DifficultyGrader()
-        let game = Generator().generate(colors: 3, capacity: 4, emptyTubes: 2, scrambleDepth: 20, seed: 42)
+        let game = Generator().generate(colors: 3, capacity: 4, emptyTubes: 2, minMoves: 10, seed: 42)
         let graded = grader.grade(game, using: Solver())
         #expect(graded.score > 0)
     }
