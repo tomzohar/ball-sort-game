@@ -1,57 +1,55 @@
 import SwiftUI
 import BallSortCore
 
-/// The game screen: the wooden tray + board over the dark backdrop, with a
-/// minimal moves/restart bar. The full HUD (time, sorted count) and win overlay
-/// land in E5; this screen exists so the E4 board is playable end to end.
+/// The game screen: the wooden tray + board over the dark backdrop, with the HUD,
+/// difficulty badge, per-level controls, and the win overlay. This view stays dumb
+/// — it maps `BoardViewModel` state onto value-driven child views and routes their
+/// callbacks back to the model.
 struct RootView: View {
-    /// The board state machine, injected by the composition root.
+    /// The game-loop state machine, injected by the composition root.
     let model: BoardViewModel
 
     var body: some View {
         ZStack {
             GameBackground()
 
-            VStack(spacing: 20) {
-                header
+            VStack(spacing: 16) {
+                DifficultyBadgeView(level: model.level, band: model.difficultyBand)
+
+                // The HUD's clock ticks live via a TimelineView re-reading `elapsed`.
+                TimelineView(.periodic(from: .now, by: 1)) { _ in
+                    GameHUDView(
+                        moves: model.moveCount,
+                        elapsed: model.elapsed,
+                        sortedCount: model.sortedCount,
+                        tubeCount: model.tubeCount
+                    )
+                }
+
                 WoodenTray { BoardView(model: model) }
                     .padding(.horizontal, 12)
+
+                BoardControlsView(
+                    canUndo: model.canUndo,
+                    onUndo: { withAnimation(.easeInOut) { model.undo() } },
+                    onRestart: { withAnimation(.easeInOut) { model.restart() } }
+                )
+
                 Spacer(minLength: 0)
             }
             .padding(.top, 12)
 
             if model.isWon {
-                wonBanner
+                Color.black.opacity(0.35).ignoresSafeArea()
+                WinOverlayView(
+                    moves: model.moveCount,
+                    elapsed: model.elapsed,
+                    onNextLevel: { withAnimation(.easeInOut) { model.nextLevel() } },
+                    onReplay: { withAnimation(.easeInOut) { model.restart() } }
+                )
             }
         }
-    }
-
-    private var header: some View {
-        HStack {
-            Text("Moves: \(model.moveCount)")
-                .font(.headline)
-                .foregroundStyle(.white)
-            Spacer()
-            Button("Restart") {
-                withAnimation(.easeInOut) { model.restart() }
-            }
-            .font(.headline)
-            .foregroundStyle(.white)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 6)
-            .background(Color.white.opacity(0.15), in: Capsule())
-        }
-        .padding(.horizontal, 20)
-    }
-
-    private var wonBanner: some View {
-        Text("Solved!")
-            .font(.largeTitle.bold())
-            .foregroundStyle(.white)
-            .padding(.horizontal, 28)
-            .padding(.vertical, 16)
-            .background(Color.black.opacity(0.55), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-            .transition(.scale.combined(with: .opacity))
+        .animation(.easeInOut, value: model.isWon)
     }
 }
 
