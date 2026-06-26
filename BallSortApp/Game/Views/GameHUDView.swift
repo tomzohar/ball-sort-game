@@ -4,7 +4,9 @@ import SwiftUI
 /// tubes are finished. A dumb view driven by plain values — `RootView` wraps it in
 /// a `TimelineView` so `elapsed` ticks live.
 ///
-/// Foundation stub (E5): minimal layout; the polished HUD lands in the E5 fan-out.
+/// Three stat pills sit on the dark warm backdrop, styled to match the prototype's
+/// wooden-tray theme (PROJECT_BRIEF, m3). Numbers use monospaced digits so the row
+/// doesn't jitter as values change. Dumb styling only — renders the passed values.
 struct GameHUDView: View {
     let moves: Int
     let elapsed: TimeInterval
@@ -12,18 +14,63 @@ struct GameHUDView: View {
     let tubeCount: Int
 
     var body: some View {
-        HStack(spacing: 24) {
-            stat("Moves", "\(moves)")
-            stat("Time", formatClock(elapsed))
-            stat("Sorted", "\(sortedCount)/\(tubeCount)")
+        HStack(spacing: 10) {
+            statPill("Moves", value: "\(moves)")
+            statPill("Time", value: formatClock(elapsed))
+            statPill("Sorted", value: "\(sortedCount)/\(tubeCount)")
         }
-        .foregroundStyle(.white)
+        .frame(maxWidth: .infinity)
     }
 
-    private func stat(_ label: String, _ value: String) -> some View {
+    /// A single rounded stat pill: large monospaced value over an uppercase label,
+    /// on a translucent dark capsule with a thin warm border and soft drop shadow.
+    private func statPill(_ label: String, value: String) -> some View {
         VStack(spacing: 2) {
-            Text(value).font(.headline.monospacedDigit())
-            Text(label).font(.caption2).foregroundStyle(.white.opacity(0.7))
+            Text(value)
+                .font(.title3.weight(.bold).monospacedDigit())
+                .foregroundStyle(.white)
+            Text(label.uppercased())
+                .font(.caption2.weight(.semibold))
+                .tracking(0.8)
+                .foregroundStyle(.white.opacity(0.6))
         }
+        .lineLimit(1)
+        .minimumScaleFactor(0.7)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8)
+        .padding(.horizontal, 12)
+        .background(pillBackground)
+    }
+
+    private var pillBackground: some View {
+        let shape = RoundedRectangle(cornerRadius: 14, style: .continuous)
+        return shape
+            .fill(Color.black.opacity(0.28))
+            // Subtle top highlight so the pill reads as raised, echoing the tray.
+            .overlay(
+                LinearGradient(
+                    colors: [Color.white.opacity(0.10), Color.clear],
+                    startPoint: .top,
+                    endPoint: .center
+                )
+                .clipShape(shape)
+                .allowsHitTesting(false)
+            )
+            .overlay(
+                shape.strokeBorder(Color.white.opacity(0.12), lineWidth: 1)
+            )
+            .shadow(color: .black.opacity(0.35), radius: 6, x: 0, y: 3)
+    }
+}
+
+#Preview {
+    ZStack {
+        GameBackground()
+        VStack {
+            GameHUDView(moves: 12, elapsed: 83, sortedCount: 2, tubeCount: 6)
+                .padding(.horizontal, 20)
+            Spacer()
+        }
+        .padding(.top, 24)
     }
 }
