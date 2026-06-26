@@ -6,9 +6,9 @@ import BallSortCore
 /// the game never gets easier as the player advances (E5.5).
 final class DifficultyCurveTests: XCTestCase {
 
-    func testLevelOneMatchesShippedDefaults() {
+    func testLevelOneIsTheGentleStart() {
         let params = DifficultyCurve.default.parameters(forLevel: 1)
-        XCTAssertEqual(params, LevelParameters(colors: 5, capacity: 4, emptyTubes: 2, scrambleDepth: 80))
+        XCTAssertEqual(params, LevelParameters(colors: 4, capacity: 4, emptyTubes: 2, minMoves: 10))
     }
 
     func testLevelClampsBelowOne() {
@@ -17,13 +17,20 @@ final class DifficultyCurveTests: XCTestCase {
         XCTAssertEqual(curve.parameters(forLevel: -5), curve.parameters(forLevel: 1))
     }
 
-    func testScrambleDepthStrictlyIncreases() {
+    func testMinMovesFloorIsNonDecreasingAndCapped() {
         let curve = DifficultyCurve.default
-        for level in 1..<30 {
-            let here = curve.parameters(forLevel: level).scrambleDepth
-            let next = curve.parameters(forLevel: level + 1).scrambleDepth
-            XCTAssertGreaterThan(next, here, "scramble must strictly rise at level \(level)")
+        var previous = 0
+        for level in 1...40 {
+            let minMoves = curve.parameters(forLevel: level).minMoves
+            XCTAssertGreaterThanOrEqual(minMoves, previous, "min-moves dropped at level \(level)")
+            XCTAssertLessThanOrEqual(minMoves, curve.maxMinMoves)
+            previous = minMoves
         }
+        // The floor actually rises over the early game (lever is not flat).
+        XCTAssertGreaterThan(
+            curve.parameters(forLevel: 5).minMoves,
+            curve.parameters(forLevel: 1).minMoves
+        )
     }
 
     func testColorsAreNonDecreasingAndCapped() {
@@ -32,8 +39,19 @@ final class DifficultyCurveTests: XCTestCase {
         for level in 1...50 {
             let colors = curve.parameters(forLevel: level).colors
             XCTAssertGreaterThanOrEqual(colors, previous)
-            XCTAssertLessThanOrEqual(colors, BallColor.allCases.count)
+            XCTAssertLessThanOrEqual(colors, curve.maxColors)
             previous = colors
+        }
+    }
+
+    func testEmptyTubesAreNonIncreasingAndFloored() {
+        let curve = DifficultyCurve.default
+        var previous = Int.max
+        for level in 1...50 {
+            let empties = curve.parameters(forLevel: level).emptyTubes
+            XCTAssertLessThanOrEqual(empties, previous, "empty tubes rose at level \(level)")
+            XCTAssertGreaterThanOrEqual(empties, curve.minEmptyTubes)
+            previous = empties
         }
     }
 

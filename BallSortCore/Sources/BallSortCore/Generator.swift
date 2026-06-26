@@ -1,25 +1,40 @@
-/// Generates guaranteed-solvable ball-sort levels by **reverse-move scrambling**.
+/// Generates guaranteed-solvable ball-sort levels by **random fill + solver
+/// verification** (rejection sampling).
 ///
-/// The level starts solved — `colors` tubes each full of one distinct color, plus
-/// `emptyTubes` empty tubes — and is then walked *backwards* along legal classic
-/// moves. Each scramble step picks a legal forward move and applies its inverse, so
-/// reversing the applied steps is always a valid solution: solvability is guaranteed
-/// **by construction**, with no solver involved.
+/// A candidate board is produced by shuffling the exact ball multiset (`capacity`
+/// of each of `colors` colors) across the color tubes, leaving `emptyTubes` empty.
+/// The candidate is then checked with the injected `Solving`: only **solvable,
+/// non-won** boards are eligible, and the generator keeps sampling until it finds
+/// one meeting the requested `minMoves` difficulty floor (or returns the hardest it
+/// found within its attempt budget).
 ///
-/// Scrambling preserves the ball multiset (it only relocates balls) and never
-/// overflows a tube, so the structural invariants of the solved board are maintained.
+/// This replaces the earlier reverse-move scramble, which — though solvable by
+/// construction — equilibrated near the solved state and produced trivial (~2-move)
+/// levels regardless of depth. Verifying solvability directly lets difficulty be
+/// driven by the actual solver min-moves, which is what a rising curve needs.
+///
+/// Determinism: the shuffle is the only randomness, so a given seed + parameters
+/// always yields the same level. Because verification runs the solver, generation
+/// is bounded to solver-feasible board sizes (small color counts / capacities).
 public struct Generator: LevelGenerating, Sendable {
-    public init() {}
+    private let solver: any Solving
+    private let maxAttempts: Int
 
-    /// Generates a level by scrambling a solved board, driven by `generator`.
-    ///
-    /// See `LevelGenerating.generate` for the parameter contract. Inputs are validated
-    /// with `precondition` — callers are expected to pass sane difficulty parameters.
+    /// - Parameters:
+    ///   - solver: Used to verify candidate solvability and measure difficulty.
+    ///   - maxAttempts: How many random fills to sample before giving up on the
+    ///     `minMoves` floor and returning the hardest solvable board found.
+    public init(solver: some Solving = Solver(), maxAttempts: Int = 80) {
+        precondition(maxAttempts >= 1, "need at least one sampling attempt")
+        self.solver = solver
+        self.maxAttempts = maxAttempts
+    }
+
     public func generate<R: RandomNumberGenerator>(
         colors: Int,
         capacity: Int,
         emptyTubes: Int,
-        scrambleDepth: Int,
+        minMoves: Int,
         using generator: inout R
     ) -> GameState {
         precondition(colors >= 1, "a level needs at least one color")
@@ -29,47 +44,51 @@ public struct Generator: LevelGenerating, Sendable {
         )
         precondition(capacity >= 1, "tube capacity must be at least 1")
         precondition(emptyTubes >= 1, "classic ball-sort needs at least one empty tube")
-        precondition(scrambleDepth >= 0, "scramble depth cannot be negative")
+        precondition(minMoves >= 0, "minMoves cannot be negative")
 
-        var state = solvedState(colors: colors, capacity: capacity, emptyTubes: emptyTubes)
+        var best: GameState?
+        var bestMoves = -1
 
-        // Walk backwards along legal forward moves. Applying a legal forward move IS
-        // an inverse scramble step from the solver's perspective; the picked moves,
-        // reversed, form a valid solution — so the state stays solvable throughout.
-        // Guard against immediately undoing the previous step to keep scrambling
-        // making progress instead of churning on a single pair of tubes.
-        var previous: Move?
-        for _ in 0..<scrambleDepth {
-            let candidates = state.legalMoves().filter { move in
-                guard let previous else { return true }
-                return !(move.from == previous.to && move.to == previous.from)
+        for _ in 0..<maxAttempts {
+            let candidate = randomFill(
+                colors: colors, capacity: capacity, emptyTubes: emptyTubes, using: &generator
+            )
+            if candidate.isWon { continue }
+            guard let solution = solver.solve(candidate) else { continue } // unsolvable fill
+
+            let moves = solution.count
+            if moves >= minMoves { return candidate } // meets the difficulty floor
+            if moves > bestMoves {
+                bestMoves = moves
+                best = candidate
             }
-            guard let move = candidates.randomElement(using: &generator) else { break }
-            guard let next = state.apply(move) else { break }
-            state = next
-            previous = move
         }
 
-        return state
+        if let best { return best }
+
+        // Vanishingly unlikely (every sample was won or unsolvable): keep sampling
+        // for a solvable non-won board, then fall back to a one-move-off-solved board
+        // (always solvable) so generation always terminates with a valid level.
+        for _ in 0..<(maxAttempts * 4) {
+            let candidate = randomFill(
+                colors: colors, capacity: capacity, emptyTubes: emptyTubes, using: &generator
+            )
+            if !candidate.isWon, solver.isSolvable(candidate) { return candidate }
+        }
+        return oneMoveOffSolved(colors: colors, capacity: capacity, emptyTubes: emptyTubes)
     }
 
     /// Seeded convenience: deterministic generation from a `UInt64` seed.
-    ///
-    /// Same seed + same parameters always yields an identical level — used by tests.
     public func generate(
         colors: Int,
         capacity: Int,
         emptyTubes: Int,
-        scrambleDepth: Int,
+        minMoves: Int,
         seed: UInt64
     ) -> GameState {
         var rng = SeededRandomNumberGenerator(seed: seed)
         return generate(
-            colors: colors,
-            capacity: capacity,
-            emptyTubes: emptyTubes,
-            scrambleDepth: scrambleDepth,
-            using: &rng
+            colors: colors, capacity: capacity, emptyTubes: emptyTubes, minMoves: minMoves, using: &rng
         )
     }
 
@@ -78,21 +97,46 @@ public struct Generator: LevelGenerating, Sendable {
         colors: Int,
         capacity: Int,
         emptyTubes: Int,
-        scrambleDepth: Int
+        minMoves: Int
     ) -> GameState {
         var rng = SystemRandomNumberGenerator()
         return generate(
-            colors: colors,
-            capacity: capacity,
-            emptyTubes: emptyTubes,
-            scrambleDepth: scrambleDepth,
-            using: &rng
+            colors: colors, capacity: capacity, emptyTubes: emptyTubes, minMoves: minMoves, using: &rng
         )
     }
 
-    /// The solved board: `colors` full single-color tubes (a prefix of the palette)
-    /// followed by `emptyTubes` empty tubes, every tube of the given `capacity`.
-    private func solvedState(colors: Int, capacity: Int, emptyTubes: Int) -> GameState {
+    /// A random board: the exact ball multiset shuffled across `colors` full tubes,
+    /// followed by `emptyTubes` empty tubes. Conserves the multiset and never
+    /// overflows a tube (each color tube gets exactly `capacity` balls).
+    private func randomFill<R: RandomNumberGenerator>(
+        colors: Int,
+        capacity: Int,
+        emptyTubes: Int,
+        using generator: inout R
+    ) -> GameState {
+        let palette = Array(BallColor.allCases.prefix(colors))
+        var balls: [BallColor] = []
+        balls.reserveCapacity(colors * capacity)
+        for color in palette {
+            balls.append(contentsOf: repeatElement(color, count: capacity))
+        }
+        balls.shuffle(using: &generator)
+
+        var tubes: [Tube] = []
+        tubes.reserveCapacity(colors + emptyTubes)
+        for index in 0..<colors {
+            let slice = Array(balls[(index * capacity)..<((index + 1) * capacity)])
+            tubes.append(Tube(balls: slice, capacity: capacity))
+        }
+        tubes.append(
+            contentsOf: (0..<emptyTubes).map { _ in Tube(balls: [], capacity: capacity) }
+        )
+        return GameState(tubes: tubes, capacity: capacity)
+    }
+
+    /// The solved board with a single ball lifted into an empty tube — always
+    /// solvable (reverse the one move) and never won. Last-resort fallback only.
+    private func oneMoveOffSolved(colors: Int, capacity: Int, emptyTubes: Int) -> GameState {
         let palette = Array(BallColor.allCases.prefix(colors))
         var tubes = palette.map { color in
             Tube(balls: Array(repeating: color, count: capacity), capacity: capacity)
@@ -100,15 +144,20 @@ public struct Generator: LevelGenerating, Sendable {
         tubes.append(
             contentsOf: (0..<emptyTubes).map { _ in Tube(balls: [], capacity: capacity) }
         )
-        return GameState(tubes: tubes, capacity: capacity)
+        var state = GameState(tubes: tubes, capacity: capacity)
+        // Move the top ball of the first color tube into the first empty tube.
+        if let moved = state.apply(Move(from: 0, to: colors)) {
+            state = moved
+        }
+        return state
     }
 }
 
 /// A small, fast deterministic PRNG (SplitMix64) for reproducible level generation.
 ///
-/// Conforms to `RandomNumberGenerator`, so it drops into any `randomElement(using:)`
-/// or `.random(in:using:)` call. A given seed always produces the same sequence,
-/// which is what makes seeded generation reproducible in tests.
+/// Conforms to `RandomNumberGenerator`, so it drops into any `shuffle(using:)` or
+/// `.random(in:using:)` call. A given seed always produces the same sequence, which
+/// is what makes seeded generation reproducible in tests.
 public struct SeededRandomNumberGenerator: RandomNumberGenerator, Sendable {
     private var state: UInt64
 

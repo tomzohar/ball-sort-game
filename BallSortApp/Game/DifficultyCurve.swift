@@ -1,72 +1,74 @@
 import BallSortCore
 
 /// The generator inputs for a single level. Mirrors `Generator.generate`'s
-/// difficulty parameters so the composition can hand them straight through.
+/// parameters so the composition can hand them straight through.
 struct LevelParameters: Equatable, Sendable {
     var colors: Int
     var capacity: Int
     var emptyTubes: Int
-    var scrambleDepth: Int
+    /// The difficulty floor in solver min-moves (the real difficulty lever).
+    var minMoves: Int
 }
 
 /// Maps a 1-based level number onto the generator parameters for that level,
 /// rising monotonically so the game gets harder as the player advances (E5.5).
 ///
-/// The curve is a pure, deterministic formula (no solver) — generation stays
-/// cheap and solvable-by-construction. It also supplies a coarse `estimatedBand`
-/// for the HUD badge, since running the BFS `DifficultyGrader` on deep boards is
-/// too expensive to do synchronously at runtime.
+/// Difficulty climbs on three fronts, each monotonic: more colors, fewer empty
+/// tubes, and a higher min-moves floor. Colors are capped at the solver-feasible
+/// ceiling (the generator verifies solvability, so deep palettes are out of reach).
 struct DifficultyCurve: Equatable, Sendable {
-    /// Colors at level 1.
     var baseColors: Int
-    /// Palette ceiling — colors never exceed this (the available `BallColor` count).
     var maxColors: Int
-    /// Add one color every this many levels.
     var colorsEveryLevels: Int
     var capacity: Int
-    var emptyTubes: Int
-    /// Reverse-scramble depth at level 1.
-    var baseScramble: Int
-    /// Extra scramble depth added per level — the primary difficulty lever.
-    var scramblePerLevel: Int
+    var baseEmptyTubes: Int
+    var minEmptyTubes: Int
+    var emptyDropEveryLevels: Int
+    var baseMinMoves: Int
+    var minMovesPerLevel: Int
+    var maxMinMoves: Int
 
-    /// Generator parameters for `level` (clamped to ≥ 1). Scramble depth strictly
-    /// increases with level and color count is non-decreasing, so difficulty never
-    /// drops as the player advances.
+    /// Generator parameters for `level` (clamped to ≥ 1). Colors are non-decreasing,
+    /// empty tubes non-increasing, and the min-moves floor non-decreasing — so the
+    /// difficulty never drops as the player advances.
     func parameters(forLevel level: Int) -> LevelParameters {
         let lvl = max(1, level)
         let colors = min(maxColors, baseColors + (lvl - 1) / colorsEveryLevels)
-        let scramble = baseScramble + (lvl - 1) * scramblePerLevel
+        let empties = max(minEmptyTubes, baseEmptyTubes - (lvl - 1) / emptyDropEveryLevels)
+        let minMoves = min(maxMinMoves, baseMinMoves + (lvl - 1) * minMovesPerLevel)
         return LevelParameters(
             colors: colors,
             capacity: capacity,
-            emptyTubes: emptyTubes,
-            scrambleDepth: scramble
+            emptyTubes: empties,
+            minMoves: minMoves
         )
     }
 
     /// A coarse, solver-free difficulty label for `level`, used by the HUD badge so
-    /// it always has a value instantly. The exact `DifficultyGrader` may refine it
-    /// later for levels small enough to grade. Non-decreasing in `level`.
+    /// it always has a value instantly. The exact `DifficultyGrader` may refine it.
+    /// Non-decreasing in `level`.
     func estimatedBand(forLevel level: Int) -> Difficulty.Band {
         switch max(1, level) {
         case ...2: return .easy
-        case ...4: return .medium
-        case ...7: return .hard
+        case ...5: return .medium
+        case ...8: return .hard
         default: return .expert
         }
     }
 
-    /// The default rising curve. Level 1 matches E4's shipped board (5 colors,
-    /// capacity 4, 2 empty tubes, 80 scramble); colors rise to the 6-color palette
-    /// ceiling and scramble depth climbs 20 per level.
+    /// The default rising curve. Starts gentle (4 colors, 2 empty tubes, a 10-move
+    /// floor), grows to the 5-color solver-feasible ceiling, drops to a single empty
+    /// tube past level 5, and raises the min-moves floor toward 24.
     static let `default` = DifficultyCurve(
-        baseColors: 5,
-        maxColors: BallColor.allCases.count,
-        colorsEveryLevels: 3,
+        baseColors: 4,
+        maxColors: 5,
+        colorsEveryLevels: 2,
         capacity: 4,
-        emptyTubes: 2,
-        baseScramble: 80,
-        scramblePerLevel: 20
+        baseEmptyTubes: 2,
+        minEmptyTubes: 1,
+        emptyDropEveryLevels: 5,
+        baseMinMoves: 10,
+        minMovesPerLevel: 2,
+        maxMinMoves: 24
     )
 }
