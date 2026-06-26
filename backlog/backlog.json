@@ -1,6 +1,6 @@
 {
   "project": "Ball Sort Game",
-  "updated": "2026-06-26",
+  "updated": "2026-06-26 (E5 done)",
   "statuses": [
     "todo",
     "in_progress",
@@ -136,9 +136,9 @@
         },
         {
           "id": "E3.2",
-          "title": "Generator via reverse-move scrambling",
+          "title": "Generator (random-fill + solver-verification)",
           "status": "done",
-          "note": "PR #4. LevelGenerating protocol + Generator struct. Reverse-move scrambling from the solved board (solvable BY CONSTRUCTION — no solver call). generate(colors:capacity:emptyTubes:scrambleDepth:using: inout R); seeded (UInt64) + system-RNG conveniences; SeededRandomNumberGenerator (SplitMix64) for reproducible levels. Inputs validated via precondition."
+          "note": "PR #4 (reverse-move scramble), REPLACED in PR #17. Reverse-move scrambling produced trivial ~2-move levels at any depth (random walk equilibrates near solved), so it was replaced with random-fill + solver verification (rejection sampling) tuned to a minMoves difficulty floor. New API generate(colors:capacity:emptyTubes:minMoves:using:); Generator takes a Solving; bounded to ≤5 colors (solver-feasible). SeededRandomNumberGenerator (SplitMix64) retained. See memory m11."
         },
         {
           "id": "E3.3",
@@ -207,32 +207,32 @@
         {
           "id": "E5.1",
           "title": "Select / move / win wiring",
-          "status": "todo",
-          "note": ""
+          "status": "done",
+          "note": "Foundation PR #17. BoardViewModel tap state machine (lift/drop) + isWon delegate to Core; RootView composes the board. Built hybrid-batch (foundation logic, then parallel presentational fan-out)."
         },
         {
           "id": "E5.2",
           "title": "Undo (move history) + restart",
-          "status": "todo",
-          "note": ""
+          "status": "done",
+          "note": "Logic in BoardViewModel — snapshot-stack history + undo()/canUndo, restart() clears it (PR #17). Controls UI in BoardControlsView (PR #20)."
         },
         {
           "id": "E5.3",
           "title": "HUD (moves, time, sorted count)",
-          "status": "todo",
-          "note": ""
+          "status": "done",
+          "note": "VM exposes moveCount, sortedCount/tubeCount, injectable-clock elapsed (freezes on win) (PR #17). GameHUDView renders it live via TimelineView (PR #19)."
         },
         {
           "id": "E5.4",
           "title": "Win overlay + next level",
-          "status": "todo",
-          "note": ""
+          "status": "done",
+          "note": "VM nextLevel() + win flow (PR #17). WinOverlayView celebratory card with Next Level/Replay (PR #18)."
         },
         {
           "id": "E5.5",
           "title": "Difficulty-curve advancement",
-          "status": "todo",
-          "note": ""
+          "status": "done",
+          "note": "DifficultyCurve (App layer) drives generator-verified levels by a rising minMoves floor (PR #17); DifficultyBadgeView shows band (PR #21). NOTE: required fixing the E3 generator — reverse-move scramble produced trivial ~2-move levels; now random-fill + solver-verification (see memory m11)."
         }
       ]
     },

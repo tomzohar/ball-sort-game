@@ -1,6 +1,6 @@
 {
   "project": "Ball Sort Game",
-  "updated": "2026-06-25",
+  "updated": "2026-06-26",
   "memories": [
     {
       "id": "m1",
@@ -15,7 +15,7 @@
       "title": "Levels are infinite + generated, and must be guaranteed solvable",
       "type": "decision",
       "hook": "Generator + solver; every level provably winnable.",
-      "body": "No hand-authored level packs in v1. A generator produces endless levels on a rising difficulty curve. Because the classic rule makes random shuffles often impossible, generation must guarantee solvability (reverse-move scrambling and/or BFS/A* verification). The solver doubles as the hints engine.",
+      "body": "No hand-authored level packs in v1. A generator produces endless levels on a rising difficulty curve. Because the classic rule makes random shuffles often impossible, generation must guarantee solvability. As of E5 this is done by random-fill + solver verification (see m11), NOT the original reverse-move scrambling — that produced trivial levels. The solver doubles as the hints engine.",
       "created": "2026-06-25"
     },
     {
@@ -81,6 +81,22 @@
       "hook": "Layered MVVM (@Observable, iOS 17) over pure Core; Codable-to-disk persistence; snapshot+VM tests; XcodeGen.",
       "body": "ADRs 0001–0004 lock: (1) Views→ViewModels(@Observable, Observation)→Core(BallSortCore, pure value types), DI via LevelGenerating/Solving/PersistenceStore protocols, min iOS 17. (2) Persistence = Codable JSON in Application Support behind a PersistenceStore protocol, + @AppStorage for settings; SwiftData rejected. (3) Testing = exhaustive Core+ViewModel unit tests primary, targeted swift-snapshot-testing for ball/tube/board primitives, PR screenshot rule; ViewInspector rejected. (4) Xcode app target defined as code via XcodeGen project.yml (Claude authors, Tom runs xcodegen), app consumes local ./BallSortCore package. Full rationale + rejected alternatives in docs/TECHNICAL_DECISIONS.md.",
       "created": "2026-06-25"
+    },
+    {
+      "id": "m11",
+      "title": "Generator is random-fill + solver-verified — reverse-move scramble made trivial levels",
+      "type": "decision",
+      "hook": "Difficulty = solver min-moves; rejection sampling; ≤5 colors; async in the VM.",
+      "body": "E5 (PR #17) replaced the E3 reverse-move scramble generator. Measured: reverse scrambling produced trivial ~2-move levels at ANY depth (depth 10→2.0 moves, depth 160→1.9) because the random forward walk equilibrates near the solved attractor — the scrambleDepth lever was inert. New approach: random-fill the exact ball multiset, verify with the Solver, accept only a solvable non-won board meeting a minMoves floor (rejection sampling); else the hardest found in the attempt budget. Random solvable fills are genuinely hard (~14 moves 4c/2e … ~22 5c/1e). API is now generate(colors:capacity:emptyTubes:minMoves:using:); Generator takes a Solving; capped at ≤5 colors because solver verification is infeasible at 6 colors. The App-layer DifficultyCurve (BallSortApp/Game/DifficultyCurve.swift) maps level→params over a rising minMoves floor (+ more colors, fewer empty tubes). Because generation runs the solver (~0.1–0.5s), BoardViewModel generates OFF the main actor behind an isGenerating flag. Amends m2; supersedes E3.2's original note.",
+      "created": "2026-06-26"
+    },
+    {
+      "id": "m12",
+      "title": "Repo is public so GitHub Actions (macOS CI) is free",
+      "type": "context",
+      "hook": "Made public 2026-06-26 after a private-repo Actions billing block halted CI.",
+      "body": "tomzohar/ball-sort-game was made public on 2026-06-26. Reason: as a private repo, CI on macOS runners (billed at 10× minutes) hit a GitHub Actions billing block ('job not started because recent account payments have failed or your spending limit needs to be increased') — jobs failed instantly with 0 steps. Public repos get free unlimited Actions including macOS, so going public unblocked CI at no cost. iOS/Xcode CI MUST use macOS runners (Linux can't build SwiftUI/xcodebuild). If the repo ever goes private again, expect the billing gate to return.",
+      "created": "2026-06-26"
     }
   ]
 }
