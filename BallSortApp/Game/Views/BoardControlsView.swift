@@ -1,18 +1,35 @@
 import SwiftUI
 
-/// The per-level controls: undo the last move and restart the level. A dumb view
-/// driven by plain values and callbacks (ADR-0001) — no game logic.
+/// The per-level controls: get a hint, undo the last move, and restart the level.
+/// A dumb view driven by plain values and callbacks (ADR-0001) — no game logic.
 ///
-/// Two pill buttons styled for the wooden-tray theme (TrayBackground.swift):
-/// a warm amber **Undo** that visibly dims and disables when there's nothing to
-/// undo, and a darker **Restart** that's always tappable.
+/// Three pill buttons styled for the wooden-tray theme (TrayBackground.swift):
+/// a glowing gold **Hint** (E6) that dims when no hint is available, a warm amber
+/// **Undo** that dims when there's nothing to undo, and a darker **Restart** that's
+/// always tappable.
 struct BoardControlsView: View {
+    let canHint: Bool
     let canUndo: Bool
+    let onHint: () -> Void
     let onUndo: () -> Void
     let onRestart: () -> Void
 
     var body: some View {
         HStack(spacing: 16) {
+            Button(action: onHint) {
+                ControlPillLabel(
+                    title: "Hint",
+                    systemImage: "lightbulb.fill",
+                    tint: Color(hex: 0xE0A106)
+                )
+            }
+            .buttonStyle(ControlPillButtonStyle())
+            .disabled(!canHint)
+            .opacity(canHint ? 1.0 : 0.4)
+            .saturation(canHint ? 1.0 : 0.0)
+            .accessibilityLabel("Hint")
+            .accessibilityHint(canHint ? "Show a suggested move" : "No hint available")
+
             Button(action: onUndo) {
                 ControlPillLabel(
                     title: "Undo",
@@ -97,8 +114,8 @@ private struct ControlPillButtonStyle: ButtonStyle {
     ZStack {
         GameBackground()
         VStack(spacing: 32) {
-            BoardControlsView(canUndo: true, onUndo: {}, onRestart: {})
-            BoardControlsView(canUndo: false, onUndo: {}, onRestart: {})
+            BoardControlsView(canHint: true, canUndo: true, onHint: {}, onUndo: {}, onRestart: {})
+            BoardControlsView(canHint: false, canUndo: false, onHint: {}, onUndo: {}, onRestart: {})
         }
     }
 }

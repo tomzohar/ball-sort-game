@@ -17,6 +17,10 @@ struct TubeView: View {
     let isSelected: Bool
     /// `true` when a selection exists and this tube is a legal destination.
     let isTarget: Bool
+    /// `true` when this tube is the source of an active hint (E6).
+    var isHintSource: Bool = false
+    /// `true` when this tube is the destination of an active hint (E6).
+    var isHintTarget: Bool = false
     /// Invoked when the tube is tapped.
     let onTap: () -> Void
 
@@ -73,7 +77,23 @@ struct TubeView: View {
     @ViewBuilder
     private var highlight: some View {
         let shape = RoundedRectangle(cornerRadius: BoardLayout.tubeCornerRadius, style: .continuous)
-        if isTarget {
+        let gold = Color(hex: 0xFFC400)
+        if isHintSource {
+            // Hint source (E6): warm gold glow + solid border — "lift from here".
+            shape
+                .fill(gold.opacity(0.20))
+                .overlay(shape.strokeBorder(gold.opacity(0.95), lineWidth: 2.5))
+        } else if isHintTarget {
+            // Hint destination (E6): same gold, dashed border — "drop here".
+            shape
+                .fill(gold.opacity(0.12))
+                .overlay(
+                    shape.strokeBorder(
+                        gold.opacity(0.85),
+                        style: StrokeStyle(lineWidth: 2, dash: [6, 4])
+                    )
+                )
+        } else if isTarget {
             // Prototype `.col.target`: green tint + inset white border.
             shape
                 .fill(Color(hex: 0x36D44A).opacity(0.12))

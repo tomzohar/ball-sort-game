@@ -24,7 +24,10 @@ final class BoardControlsViewSnapshotTests: XCTestCase {
     ) {
         let view = ZStack {
             GameBackground()
-            BoardControlsView(canUndo: canUndo, onUndo: {}, onRestart: {})
+            BoardControlsView(
+                canHint: canUndo, canUndo: canUndo,
+                onHint: {}, onUndo: {}, onRestart: {}
+            )
         }
         .frame(width: width, height: height)
 

@@ -41,6 +41,14 @@ final class BoardViewModel {
     /// for display — it always has a value.
     private(set) var difficulty: Difficulty?
 
+    /// The solver's suggested next move, surfaced as a board highlight (E6), or
+    /// `nil` when no hint is showing. Set by `requestHint()`; cleared by any board
+    /// mutation (tap / undo / restart / level change).
+    private(set) var hintMove: Move?
+
+    /// `true` while a hint is being computed off the main actor.
+    private(set) var isHinting: Bool = false
+
     /// The state `restart()` resets to — the current level's starting board.
     private var initialState: GameState
 
@@ -67,6 +75,7 @@ final class BoardViewModel {
     /// In-flight async work, exposed for deterministic test awaiting.
     @ObservationIgnored private(set) var generateTask: Task<Void, Never>?
     @ObservationIgnored private(set) var gradingTask: Task<Void, Never>?
+    @ObservationIgnored private(set) var hintTask: Task<Void, Never>?
 
     // MARK: - Designated init
 
@@ -96,26 +105,17 @@ final class BoardViewModel {
     }
 
     /// Pins a fixed board with progression disabled — for tests and snapshots.
-    convenience init(initialState: GameState) {
+    /// Defaults make `BoardViewModel(initialState:)` the common case; tests inject a
+    /// fake `solver` (hints) or a deterministic `now` (clock) as needed.
+    convenience init(
+        initialState: GameState,
+        solver: some Solving = Solver(),
+        now: @escaping () -> TimeInterval = { Date().timeIntervalSinceReferenceDate }
+    ) {
         self.init(
             state: initialState,
             generator: nil,
-            solver: Solver(),
-            grader: DifficultyGrader(),
-            curve: .default,
-            level: 1,
-            seed: nil,
-            now: { Date().timeIntervalSinceReferenceDate }
-        )
-        startTimer()
-    }
-
-    /// Pins a fixed board with an injectable clock — for deterministic timer tests.
-    convenience init(initialState: GameState, now: @escaping () -> TimeInterval) {
-        self.init(
-            state: initialState,
-            generator: nil,
-            solver: Solver(),
+            solver: solver,
             grader: DifficultyGrader(),
             curve: .default,
             level: 1,
@@ -169,6 +169,15 @@ final class BoardViewModel {
     /// Whether there is at least one move to undo.
     var canUndo: Bool { !history.isEmpty }
 
+    /// Whether a hint can be requested right now (a live, unsolved board).
+    var canHint: Bool { !isGenerating && !isWon }
+
+    /// Whether tube `index` is the source of the active hint.
+    func isHintSource(_ index: Int) -> Bool { hintMove?.from == index }
+
+    /// Whether tube `index` is the destination of the active hint.
+    func isHintTarget(_ index: Int) -> Bool { hintMove?.to == index }
+
     /// The difficulty band to display: the exact grade if computed, else the
     /// curve's instant estimate. Always has a value.
     var difficultyBand: Difficulty.Band {
@@ -188,6 +197,7 @@ final class BoardViewModel {
     /// a level is generating.
     func tap(_ index: Int) {
         guard !isGenerating else { return }
+        clearHint()
 
         guard let source = selectedTube else {
             lastDrop = nil
@@ -226,6 +236,7 @@ final class BoardViewModel {
     /// nothing to undo.
     func undo() {
         guard let previous = history.popLast() else { return }
+        clearHint()
         gameState = previous
         moveCount = max(0, moveCount - 1)
         selectedTube = nil
@@ -237,6 +248,7 @@ final class BoardViewModel {
     /// and the clock. Ignored while a level is generating.
     func restart() {
         guard !isGenerating else { return }
+        clearHint()
         gameState = initialState
         history.removeAll()
         moveCount = 0
@@ -252,6 +264,44 @@ final class BoardViewModel {
         guard generator != nil else { return }
         level += 1
         startGeneration(forLevel: level)
+    }
+
+    // MARK: - Hints
+
+    /// Compute the solver's next-best move off the main actor and surface it as
+    /// `hintMove` for the board to highlight (E6). No-op on a generating or won
+    /// board, or while a hint is already in flight. The solve is the same BFS used
+    /// for grading, so it runs detached to keep taps responsive. This is the seam a
+    /// future rewarded-ad gate would wrap.
+    func requestHint() {
+        guard canHint, !isHinting else { return }
+        cancelSelection()
+
+        let state = gameState
+        let solver = solver
+        let token = level
+        isHinting = true
+        hintTask = Task { [weak self] in
+            let move = await Task.detached(priority: .userInitiated) {
+                solver.solve(state)?.first
+            }.value
+            guard let self, !Task.isCancelled else { return }
+            // Discard if the board moved on (or advanced levels) while solving.
+            guard self.level == token, self.gameState == state else {
+                self.isHinting = false
+                return
+            }
+            self.isHinting = false
+            self.hintMove = move
+        }
+    }
+
+    /// Drop any active hint and cancel an in-flight solve.
+    private func clearHint() {
+        hintTask?.cancel()
+        hintTask = nil
+        hintMove = nil
+        isHinting = false
     }
 
     // MARK: - Timer helpers
@@ -277,6 +327,7 @@ final class BoardViewModel {
     /// shows an empty placeholder and interaction is disabled.
     private func startGeneration(forLevel level: Int) {
         guard let generator else { return }
+        clearHint()
         gradingTask?.cancel()
         generateTask?.cancel()
 

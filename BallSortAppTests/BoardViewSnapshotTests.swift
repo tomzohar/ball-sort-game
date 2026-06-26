@@ -50,4 +50,37 @@ final class BoardViewSnapshotTests: XCTestCase {
             )
         )
     }
+
+    /// The board with an active hint: gold source/destination highlights (E6).
+    /// Uses a fake solver so the hinted move is fixed and the snapshot deterministic.
+    func testBoardWithHintHighlight() async {
+        let model = BoardViewModel(initialState: fixtureState, solver: FixedHintSolver())
+        model.requestHint()
+        await model.hintTask?.value
+
+        let view = ZStack {
+            GameBackground()
+            WoodenTray { BoardView(model: model) }
+                .padding(16)
+        }
+        .frame(width: 390, height: 360)
+
+        let host = UIHostingController(rootView: view)
+        host.view.frame = CGRect(x: 0, y: 0, width: 390, height: 360)
+
+        assertSnapshot(
+            of: host.view,
+            as: .image(
+                precision: 0.98,
+                perceptualPrecision: 0.97,
+                traits: .init(userInterfaceStyle: .light)
+            )
+        )
+    }
+}
+
+/// A solver stub that always hints "lift from tube 0, drop on the empty tube 5",
+/// so the hint snapshot is stable regardless of the real solver's search order.
+private struct FixedHintSolver: Solving {
+    func solve(_ state: GameState) -> [Move]? { [Move(from: 0, to: 5)] }
 }
