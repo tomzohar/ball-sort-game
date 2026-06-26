@@ -10,6 +10,7 @@ import BallSortCore
 /// Snapshots `host.view` at an explicit fixed frame so the baseline is
 /// device-independent; precision/perceptualPrecision absorb sub-pixel gradient
 /// rendering diffs across OS versions.
+@MainActor
 final class BoardViewSnapshotTests: XCTestCase {
     /// A fixed, mid-game 6-tube board (4 colors + 2 empty) so the snapshot is
     /// deterministic and exercises filled, partially filled, and empty tubes.
