@@ -163,38 +163,38 @@
         {
           "id": "E4.1",
           "title": "BoardViewModel (tested)",
-          "status": "todo",
-          "note": ""
+          "status": "done",
+          "note": "Done — @Observable BoardViewModel (tap-lift/tap-drop, restart, isWon) delegating legality/apply to Core; XCTest unit-tested. PR #11."
         },
         {
           "id": "E4.2",
           "title": "Tube + ball SwiftUI views (wooden tray, glossy balls)",
-          "status": "todo",
-          "note": ""
+          "status": "done",
+          "note": "Done — BallView (glossy gradient ball, PR #9) + WoodenTray/GameBackground (PR #8) + TubeView (gravity-stacked dimples/balls, selected/target chrome). Snapshot-tested."
         },
         {
           "id": "E4.3",
           "title": "Adaptive sizing iPhone ↔ iPad, portrait",
-          "status": "todo",
-          "note": ""
+          "status": "done",
+          "note": "Done — BoardLayout adaptive sizing (PR #10) + BoardView width-driven layout, 1 row ≤5 tubes else 2 balanced rows, iPhone/iPad maxBall."
         },
         {
           "id": "E4.4",
           "title": "Tap-lift / tap-drop interaction",
-          "status": "todo",
-          "note": ""
+          "status": "done",
+          "note": "Done — tap-lift/tap-drop wired BoardView → BoardViewModel; legal-destination highlight via gameState.isLegal."
         },
         {
           "id": "E4.5",
           "title": "Lift + drop animations",
-          "status": "todo",
-          "note": ""
+          "status": "done",
+          "note": "Done — lift (scale+offset+glow) and drop (bouncy spring ~cubic-bezier(.34,1.4,.5,1)) animations on tap."
         },
         {
           "id": "E4.6",
           "title": "Snapshot tests",
-          "status": "todo",
-          "note": ""
+          "status": "done",
+          "note": "Done — BoardViewSnapshotTests (device-independent fixed-frame baseline) + real running-app screenshot docs/screenshots/e4-board.png."
         }
       ]
     },
