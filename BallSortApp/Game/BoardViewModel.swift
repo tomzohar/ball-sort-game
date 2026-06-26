@@ -9,13 +9,15 @@ import BallSortCore
 /// count, win detection, and generator-driven level advancement along a rising
 /// `DifficultyCurve`.
 ///
-/// Dependencies (generator / solver / grader / curve / clock) are injected with
-/// production defaults so the composition root can build it with `BoardViewModel()`
-/// and tests can pin a board (`init(initialState:)`) or fakes.
+/// Level generation runs the solver to verify solvability, so it happens **off the
+/// main actor** behind an `isGenerating` flag; the board appears once generation
+/// completes. Dependencies (generator / solver / grader / curve / clock) are
+/// injected with production defaults so the composition root can build it with
+/// `BoardViewModel()`, and tests can pin a board (`init(initialState:)`) or fakes.
 @MainActor
 @Observable
 final class BoardViewModel {
-    /// The current board snapshot.
+    /// The current board snapshot (an empty placeholder while a level generates).
     private(set) var gameState: GameState
 
     /// The lifted source tube awaiting a destination, or `nil` when nothing is
@@ -32,8 +34,11 @@ final class BoardViewModel {
     /// The 1-based level the player is on.
     private(set) var level: Int
 
-    /// The exact difficulty grade once computed for small-enough levels, else `nil`.
-    /// Prefer `difficultyBand` for display — it always has a value.
+    /// `true` while a level is being generated (solver-verified) off the main actor.
+    private(set) var isGenerating: Bool
+
+    /// The exact difficulty grade once computed, else `nil`. Prefer `difficultyBand`
+    /// for display — it always has a value.
     private(set) var difficulty: Difficulty?
 
     /// The state `restart()` resets to — the current level's starting board.
@@ -56,13 +61,11 @@ final class BoardViewModel {
     private var startedAt: TimeInterval?
     private var frozenElapsed: TimeInterval = 0
 
-    /// Exact BFS grading is only attempted within these known-feasible bounds
-    /// (the E3 solvability-harness limits); deeper/wider boards would make the
-    /// solver search blow up, so the badge falls back to the curve estimate.
+    /// The curve caps colors here; exact grading stays within solver-feasible sizes.
     private static let maxGradableColors = 5
-    private static let maxGradableScramble = 60
 
-    /// The in-flight grading task, exposed for deterministic test awaiting.
+    /// In-flight async work, exposed for deterministic test awaiting.
+    @ObservationIgnored private(set) var generateTask: Task<Void, Never>?
     @ObservationIgnored private(set) var gradingTask: Task<Void, Never>?
 
     // MARK: - Designated init
@@ -83,6 +86,7 @@ final class BoardViewModel {
         self.moveCount = 0
         self.lastDrop = nil
         self.level = max(1, level)
+        self.isGenerating = false
         self.generator = generator
         self.solver = solver
         self.grader = grader
@@ -121,8 +125,8 @@ final class BoardViewModel {
         startTimer()
     }
 
-    /// The production game loop: generates `startingLevel` from `curve` and begins
-    /// the difficulty progression. A non-`nil` `seed` makes the whole run
+    /// The production game loop: generates `startingLevel` from `curve` (off-main)
+    /// and begins the difficulty progression. A non-`nil` `seed` makes the whole run
     /// reproducible (per-level seeds are derived from it).
     convenience init(
         generator: some LevelGenerating = Generator(),
@@ -134,11 +138,9 @@ final class BoardViewModel {
         now: @escaping () -> TimeInterval = { Date().timeIntervalSinceReferenceDate }
     ) {
         let lvl = max(1, startingLevel)
-        let state = Self.makeLevel(
-            forLevel: lvl, generator: generator, curve: curve, seed: seed
-        )
+        let placeholder = Self.placeholder(for: curve.parameters(forLevel: lvl))
         self.init(
-            state: state,
+            state: placeholder,
             generator: generator,
             solver: solver,
             grader: grader,
@@ -147,14 +149,13 @@ final class BoardViewModel {
             seed: seed,
             now: now
         )
-        startTimer()
-        scheduleGrading()
+        startGeneration(forLevel: lvl)
     }
 
     // MARK: - Derived state
 
     /// `true` once every tube is empty or a finished single-color stack.
-    var isWon: Bool { gameState.isWon }
+    var isWon: Bool { !isGenerating && gameState.isWon }
 
     /// Whether `index` is the currently lifted source tube.
     func isSelected(_ index: Int) -> Bool { selectedTube == index }
@@ -183,14 +184,11 @@ final class BoardViewModel {
 
     // MARK: - Interaction
 
-    /// Handle a tap on tube `index`, implementing tap-lift / tap-drop.
-    ///
-    /// - No selection: lift a non-empty tube; ignore an empty one.
-    /// - Tapping the lifted tube again: cancel the selection.
-    /// - Otherwise attempt `from → index`: apply if legal (snapshot for undo,
-    ///   count++, record the drop, clear selection, stop the clock on a win); if
-    ///   illegal, switch selection to `index` when non-empty, else clear it.
+    /// Handle a tap on tube `index`, implementing tap-lift / tap-drop. Ignored while
+    /// a level is generating.
     func tap(_ index: Int) {
+        guard !isGenerating else { return }
+
         guard let source = selectedTube else {
             lastDrop = nil
             if !isEmptyTube(index) {
@@ -232,13 +230,13 @@ final class BoardViewModel {
         moveCount = max(0, moveCount - 1)
         selectedTube = nil
         lastDrop = nil
-        // Undoing out of a solved board resumes the clock.
         if !gameState.isWon { startTimer() }
     }
 
     /// Reset the current level to its starting board, clearing history, counters,
-    /// and the clock.
+    /// and the clock. Ignored while a level is generating.
     func restart() {
+        guard !isGenerating else { return }
         gameState = initialState
         history.removeAll()
         moveCount = 0
@@ -248,23 +246,12 @@ final class BoardViewModel {
         startTimer()
     }
 
-    /// Advance to the next level: generate the next board along the curve and reset
-    /// all per-level state. No-op when progression is disabled (pinned board).
+    /// Advance to the next level: generate the next board along the curve (off-main).
+    /// No-op when progression is disabled (pinned board).
     func nextLevel() {
-        guard let generator else { return }
+        guard generator != nil else { return }
         level += 1
-        let state = Self.makeLevel(
-            forLevel: level, generator: generator, curve: curve, seed: seed
-        )
-        gameState = state
-        initialState = state
-        history.removeAll()
-        moveCount = 0
-        selectedTube = nil
-        lastDrop = nil
-        resetTimer()
-        startTimer()
-        scheduleGrading()
+        startGeneration(forLevel: level)
     }
 
     // MARK: - Timer helpers
@@ -284,17 +271,89 @@ final class BoardViewModel {
         startedAt = nil
     }
 
+    // MARK: - Generation
+
+    /// Generate `level` off the main actor, then install it. While running, the board
+    /// shows an empty placeholder and interaction is disabled.
+    private func startGeneration(forLevel level: Int) {
+        guard let generator else { return }
+        gradingTask?.cancel()
+        generateTask?.cancel()
+
+        let params = curve.parameters(forLevel: level)
+        isGenerating = true
+        gameState = Self.placeholder(for: params)
+        selectedTube = nil
+        lastDrop = nil
+        history.removeAll()
+        moveCount = 0
+        resetTimer()
+
+        let levelSeed = seed.map { $0 &+ UInt64(level) }
+        let token = level
+        generateTask = Task { [weak self] in
+            let state = await Task.detached(priority: .userInitiated) {
+                Self.makeLevel(params: params, generator: generator, seed: levelSeed)
+            }.value
+            guard let self, !Task.isCancelled, self.level == token else { return }
+            self.install(state)
+        }
+    }
+
+    /// Install a freshly generated board and start the level.
+    private func install(_ state: GameState) {
+        gameState = state
+        initialState = state
+        isGenerating = false
+        startTimer()
+        scheduleGrading()
+    }
+
+    nonisolated private static func makeLevel(
+        params: LevelParameters,
+        generator: any LevelGenerating,
+        seed: UInt64?
+    ) -> GameState {
+        if let seed {
+            var rng = SeededRandomNumberGenerator(seed: seed)
+            return generate(params, generator: generator, rng: &rng)
+        }
+        var rng = SystemRandomNumberGenerator()
+        return generate(params, generator: generator, rng: &rng)
+    }
+
+    nonisolated private static func generate<R: RandomNumberGenerator>(
+        _ params: LevelParameters,
+        generator: any LevelGenerating,
+        rng: inout R
+    ) -> GameState {
+        generator.generate(
+            colors: params.colors,
+            capacity: params.capacity,
+            emptyTubes: params.emptyTubes,
+            minMoves: params.minMoves,
+            using: &rng
+        )
+    }
+
+    /// An all-empty board matching `params`' tube count — shown while generating.
+    private static func placeholder(for params: LevelParameters) -> GameState {
+        let tubes = (0..<(params.colors + params.emptyTubes)).map { _ in
+            Tube(balls: [], capacity: params.capacity)
+        }
+        return GameState(tubes: tubes, capacity: params.capacity)
+    }
+
     // MARK: - Difficulty grading
 
-    /// Kick off exact BFS grading off the main actor, but only within feasible
-    /// bounds; otherwise leave `difficulty` nil and rely on the curve estimate.
+    /// Grade the current board off the main actor (colors are curve-capped to a
+    /// solver-feasible size). Leaves `difficulty` nil — and the badge on the curve
+    /// estimate — if grading is skipped or superseded.
     private func scheduleGrading() {
         gradingTask?.cancel()
         difficulty = nil
 
-        let params = curve.parameters(forLevel: level)
-        guard params.colors <= Self.maxGradableColors,
-              params.scrambleDepth <= Self.maxGradableScramble else {
+        guard curve.parameters(forLevel: level).colors <= Self.maxGradableColors else {
             gradingTask = nil
             return
         }
@@ -310,55 +369,6 @@ final class BoardViewModel {
             guard let self, !Task.isCancelled, self.level == token else { return }
             self.difficulty = graded
         }
-    }
-
-    // MARK: - Level generation
-
-    /// Generate a non-won board for `level` from `curve`. The reverse-scramble walk
-    /// can land back on a solved board, so step a deterministic seed sequence (or
-    /// retry the system RNG) and take the first state that isn't already won.
-    private static func makeLevel(
-        forLevel level: Int,
-        generator: any LevelGenerating,
-        curve: DifficultyCurve,
-        seed: UInt64?
-    ) -> GameState {
-        let params = curve.parameters(forLevel: level)
-        let attempts = 50
-
-        if let seed {
-            // Per-level base seed keeps the whole run reproducible.
-            let base = seed &+ UInt64(level)
-            for offset in 0..<UInt64(attempts) {
-                var rng = SeededRandomNumberGenerator(seed: base &+ offset)
-                let state = generate(params, generator: generator, rng: &rng)
-                if !state.isWon { return state }
-            }
-            var rng = SeededRandomNumberGenerator(seed: base)
-            return generate(params, generator: generator, rng: &rng)
-        }
-
-        for _ in 0..<attempts {
-            var rng = SystemRandomNumberGenerator()
-            let state = generate(params, generator: generator, rng: &rng)
-            if !state.isWon { return state }
-        }
-        var rng = SystemRandomNumberGenerator()
-        return generate(params, generator: generator, rng: &rng)
-    }
-
-    private static func generate<R: RandomNumberGenerator>(
-        _ params: LevelParameters,
-        generator: any LevelGenerating,
-        rng: inout R
-    ) -> GameState {
-        generator.generate(
-            colors: params.colors,
-            capacity: params.capacity,
-            emptyTubes: params.emptyTubes,
-            scrambleDepth: params.scrambleDepth,
-            using: &rng
-        )
     }
 
     private func isEmptyTube(_ index: Int) -> Bool {

@@ -39,7 +39,10 @@ struct RootView: View {
             }
             .padding(.top, 12)
 
-            if model.isWon {
+            if model.isGenerating {
+                Color.black.opacity(0.35).ignoresSafeArea()
+                generatingOverlay
+            } else if model.isWon {
                 Color.black.opacity(0.35).ignoresSafeArea()
                 WinOverlayView(
                     moves: model.moveCount,
@@ -50,6 +53,20 @@ struct RootView: View {
             }
         }
         .animation(.easeInOut, value: model.isWon)
+        .animation(.easeInOut, value: model.isGenerating)
+    }
+
+    private var generatingOverlay: some View {
+        VStack(spacing: 12) {
+            ProgressView()
+                .controlSize(.large)
+                .tint(.white)
+            Text("Generating level…")
+                .font(.headline)
+                .foregroundStyle(.white)
+        }
+        .padding(28)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
 }
 

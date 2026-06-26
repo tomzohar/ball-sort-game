@@ -38,12 +38,13 @@ final class GameLoopViewModelTests: XCTestCase {
     }
 
     /// Generates a deterministic, never-won board whose green count tracks
-    /// `scrambleDepth`, so successive levels produce visibly different boards.
+    /// `minMoves`, so successive levels (with a rising floor) differ. Synchronous and
+    /// solver-free, so VM generation tests stay fast and deterministic.
     private struct FakeGenerator: LevelGenerating {
         func generate<R: RandomNumberGenerator>(
-            colors: Int, capacity: Int, emptyTubes: Int, scrambleDepth: Int, using generator: inout R
+            colors: Int, capacity: Int, emptyTubes: Int, minMoves: Int, using generator: inout R
         ) -> GameState {
-            let greens = min(max(1, scrambleDepth / 10), max(1, capacity - 1))
+            let greens = min(max(1, capacity - 1), max(1, minMoves - 9))
             var tubes = [
                 Tube(balls: [.yellow, .blue], capacity: capacity), // mixed -> never won
                 Tube(balls: Array(repeating: .green, count: greens), capacity: capacity)
@@ -60,12 +61,13 @@ final class GameLoopViewModelTests: XCTestCase {
         }
     }
 
-    /// A small curve kept inside the gradable bounds for grading tests.
-    private func smallCurve(baseScramble: Int = 10) -> DifficultyCurve {
+    /// A small curve: constant colors/empties, a rising min-moves floor (+4/level).
+    private func smallCurve(baseColors: Int = 3, maxColors: Int = 5) -> DifficultyCurve {
         DifficultyCurve(
-            baseColors: 3, maxColors: 6, colorsEveryLevels: 10,
-            capacity: capacity, emptyTubes: 2,
-            baseScramble: baseScramble, scramblePerLevel: 10
+            baseColors: baseColors, maxColors: maxColors, colorsEveryLevels: 10,
+            capacity: capacity,
+            baseEmptyTubes: 2, minEmptyTubes: 1, emptyDropEveryLevels: 100,
+            baseMinMoves: 10, minMovesPerLevel: 4, maxMinMoves: 100
         )
     }
 
@@ -147,36 +149,56 @@ final class GameLoopViewModelTests: XCTestCase {
         XCTAssertEqual(sut.elapsed, 7, accuracy: 0.0001) // frozen at win time
     }
 
-    // MARK: - Level advancement
+    // MARK: - Generation
 
-    func testNextLevelAdvancesAlongCurve() {
+    func testFirstLevelGeneratesAndClearsIsGenerating() async {
         let sut = BoardViewModel(
             generator: FakeGenerator(), solver: FakeSolver(moves: 5),
             curve: smallCurve(), seed: 1
         )
+        await sut.generateTask?.value
+        XCTAssertFalse(sut.isGenerating)
+        XCTAssertEqual(sut.level, 1)
+        XCTAssertFalse(sut.gameState.isWon)
+    }
+
+    // MARK: - Level advancement
+
+    func testNextLevelAdvancesAlongCurve() async {
+        let sut = BoardViewModel(
+            generator: FakeGenerator(), solver: FakeSolver(moves: 5),
+            curve: smallCurve(), seed: 1
+        )
+        await sut.generateTask?.value
         XCTAssertEqual(sut.level, 1)
         let firstGreens = sut.gameState.tubes[1].balls.count
 
         sut.nextLevel()
+        await sut.generateTask?.value
         XCTAssertEqual(sut.level, 2)
         XCTAssertFalse(sut.isWon)
         XCTAssertEqual(sut.moveCount, 0)
         XCTAssertFalse(sut.canUndo)
-        // Curve raised scrambleDepth, so the generated board differs.
+        // The curve raised the min-moves floor, so the generated board differs.
         XCTAssertGreaterThan(sut.gameState.tubes[1].balls.count, firstGreens)
     }
 
-    func testNextLevelResetsTimer() {
+    func testTimerStartsWhenLevelInstalledAndResetsOnNextLevel() async {
         let clock = Clock()
+        clock.t = 100
         let sut = BoardViewModel(
             generator: FakeGenerator(), solver: FakeSolver(moves: 5),
             curve: smallCurve(), seed: 1, now: { clock.t }
         )
-        clock.t = 30
-        XCTAssertEqual(sut.elapsed, 30, accuracy: 0.0001)
-        sut.nextLevel() // resets and restarts at t = 30
+        await sut.generateTask?.value // installed at t = 100
         XCTAssertEqual(sut.elapsed, 0, accuracy: 0.0001)
-        clock.t = 33
+        clock.t = 105
+        XCTAssertEqual(sut.elapsed, 5, accuracy: 0.0001)
+
+        sut.nextLevel()
+        await sut.generateTask?.value // re-installed at t = 105
+        XCTAssertEqual(sut.elapsed, 0, accuracy: 0.0001)
+        clock.t = 108
         XCTAssertEqual(sut.elapsed, 3, accuracy: 0.0001)
     }
 
@@ -195,19 +217,21 @@ final class GameLoopViewModelTests: XCTestCase {
             generator: FakeGenerator(), solver: solver,
             curve: smallCurve(), seed: 1
         )
+        await sut.generateTask?.value
         await sut.gradingTask?.value
         let expected = DifficultyGrader().grade(sut.gameState, using: solver)
         XCTAssertEqual(sut.difficulty, expected)
         XCTAssertEqual(sut.difficultyBand, expected.band)
     }
 
-    func testGradingSkippedAboveBoundsFallsBackToEstimate() {
-        // baseScramble 100 exceeds the gradable bound, so no exact grade runs.
-        let curve = smallCurve(baseScramble: 100)
+    func testGradingSkippedAboveColorBoundFallsBackToEstimate() async {
+        // 6 colors exceeds the solver-feasible grading bound, so no exact grade runs.
+        let curve = smallCurve(baseColors: 6, maxColors: 6)
         let sut = BoardViewModel(
             generator: FakeGenerator(), solver: FakeSolver(moves: 5),
             curve: curve, seed: 1
         )
+        await sut.generateTask?.value
         XCTAssertNil(sut.gradingTask)
         XCTAssertNil(sut.difficulty)
         XCTAssertEqual(sut.difficultyBand, curve.estimatedBand(forLevel: 1))
