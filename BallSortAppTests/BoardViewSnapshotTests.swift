@@ -33,12 +33,12 @@ final class BoardViewSnapshotTests: XCTestCase {
             WoodenTray { BoardView(model: BoardViewModel(initialState: fixtureState)) }
                 .padding(16)
         }
-        .frame(width: 390, height: 660)
+        .frame(width: 390, height: 360)
     }
 
     func testBoardInWoodenTray() {
         let host = UIHostingController(rootView: fixture)
-        host.view.frame = CGRect(x: 0, y: 0, width: 390, height: 660)
+        host.view.frame = CGRect(x: 0, y: 0, width: 390, height: 360)
 
         assertSnapshot(
             of: host.view,
