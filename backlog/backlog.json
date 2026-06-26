@@ -1,6 +1,6 @@
 {
   "project": "Ball Sort Game",
-  "updated": "2026-06-25",
+  "updated": "2026-06-26",
   "statuses": [
     "todo",
     "in_progress",
@@ -131,26 +131,26 @@
         {
           "id": "E3.1",
           "title": "Solver (BFS/A*) → move sequence or nil",
-          "status": "todo",
-          "note": "Also powers hints (E6)."
+          "status": "done",
+          "note": "PR #3. Solving protocol + Solver struct (Solving.swift/Solver.swift). BFS over GameState, visited set keyed on .canonical (collapses tube-permutation symmetry → terminates without depth cap). Returns [] for already-won, a SHORTEST (min-moves) legal sequence for solvable, nil for unsolvable. Also powers hints (E6) and feeds E3.4 min-moves."
         },
         {
           "id": "E3.2",
           "title": "Generator via reverse-move scrambling",
-          "status": "todo",
-          "note": ""
+          "status": "done",
+          "note": "PR #4. LevelGenerating protocol + Generator struct. Reverse-move scrambling from the solved board (solvable BY CONSTRUCTION — no solver call). generate(colors:capacity:emptyTubes:scrambleDepth:using: inout R); seeded (UInt64) + system-RNG conveniences; SeededRandomNumberGenerator (SplitMix64) for reproducible levels. Inputs validated via precondition."
         },
         {
           "id": "E3.3",
           "title": "Solvability-guarantee test harness",
-          "status": "todo",
-          "note": "Every generated level must pass the solver in tests."
+          "status": "done",
+          "note": "PR #5. Test-only SolvabilityHarnessTests: parameter sweep colors 2…5 × capacity 3…4 × emptyTubes 1…2 × scrambleDepth {10,30,60} × 8 fixed seeds = 384 generated levels; each asserted structurally valid, Solver-solvable, and the solution replays to isWon. Seed+params in failure messages for reproducibility. Matrix capped colors≤5/capacity≤4 to keep BFS bounded."
         },
         {
           "id": "E3.4",
           "title": "Difficulty grading (colors, tubes, min-moves)",
-          "status": "todo",
-          "note": "Feeds the rising curve."
+          "status": "done",
+          "note": "PR #6. DifficultyGrader + Difficulty type (Band trivial/easy/medium/hard/expert + numeric score; Sendable/Equatable/Comparable). grade(_:using: some Solving) — solver injected (DI). score = minMoves*3 + tubeCount + colorCount (monotonic in every dimension, strictly increasing in min-moves). Unsolvable → Difficulty.maximum. Feeds E5's rising curve."
         }
       ]
     },
