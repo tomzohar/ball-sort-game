@@ -65,7 +65,7 @@ final class GameLoopViewModelTests: XCTestCase {
     private func smallCurve(baseColors: Int = 3, maxColors: Int = 5) -> DifficultyCurve {
         DifficultyCurve(
             baseColors: baseColors, maxColors: maxColors, colorsEveryLevels: 10,
-            capacity: capacity,
+            baseCapacity: capacity,
             baseEmptyTubes: 2, minEmptyTubes: 1, emptyDropEveryLevels: 100,
             baseMinMoves: 10, minMovesPerLevel: 4, maxMinMoves: 100
         )

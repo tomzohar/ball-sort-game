@@ -30,6 +30,8 @@ A native iOS **ball-sort puzzle** game, built up from the prototype at `~/Downlo
 - Game Center leaderboards/achievements (gated on enrollment; architected to add late).
 - Stats + streaks (levels solved, best moves/time, daily streak).
 - Persistence: resume in-progress level + stats survive relaunch.
+- Per-level run history + retry a past level as a non-progressing side excursion (E13, added 2026-06-27 at Tom's request).
+- Appearance preference: System / Light / Dark (E13).
 
 ## Deferred (post-v1)
 

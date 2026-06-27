@@ -64,4 +64,76 @@ final class DifficultyCurveTests: XCTestCase {
             previous = band
         }
     }
+
+    // MARK: - No plateau (E14.1)
+
+    /// A monotone proxy for how hard a level's parameters are: bigger board
+    /// (`colors * capacity`) and a higher min-moves floor make it harder; more empty
+    /// tubes make it easier. Every term moves difficulty the right way, so the proxy
+    /// is non-decreasing exactly when the curve never eases off.
+    private func difficultyPotential(_ p: LevelParameters) -> Int {
+        p.colors * p.capacity + p.minMoves - p.emptyTubes
+    }
+
+    /// The bug this task fixes: the curve used to max out every parameter by ~level 9
+    /// and then flatline, contradicting the brief's "infinite rising difficulty." Deep
+    /// levels must be strictly harder than the old plateau point.
+    func testCurveDoesNotPlateauAfterTheEarlyGame() {
+        let curve = DifficultyCurve.default
+        XCTAssertNotEqual(
+            curve.parameters(forLevel: 20), curve.parameters(forLevel: 9),
+            "level 20 must differ from level 9 — the curve plateaued"
+        )
+        XCTAssertGreaterThan(
+            difficultyPotential(curve.parameters(forLevel: 20)),
+            difficultyPotential(curve.parameters(forLevel: 9)),
+            "level 20 must be strictly harder than level 9"
+        )
+    }
+
+    /// Difficulty must never drop as the player advances, including across the points
+    /// where empty tubes fall away and capacity steps up.
+    func testDifficultyPotentialIsNonDecreasing() {
+        let curve = DifficultyCurve.default
+        var previous = Int.min
+        for level in 1...40 {
+            let potential = difficultyPotential(curve.parameters(forLevel: level))
+            XCTAssertGreaterThanOrEqual(potential, previous, "difficulty dropped at level \(level)")
+            previous = potential
+        }
+    }
+
+    /// Capacity is the deep-game difficulty lever (it stays solver-feasible only while
+    /// there is a single empty tube): a gentle start of 4, non-decreasing, climbing to
+    /// the cap and never past it.
+    func testCapacityGrowsNonDecreasingAndCapped() {
+        let curve = DifficultyCurve.default
+        XCTAssertEqual(curve.parameters(forLevel: 1).capacity, 4, "level 1 stays the gentle 4-ball tube")
+        var previous = 0
+        for level in 1...40 {
+            let capacity = curve.parameters(forLevel: level).capacity
+            XCTAssertGreaterThanOrEqual(capacity, previous, "capacity dropped at level \(level)")
+            XCTAssertLessThanOrEqual(capacity, curve.maxCapacity)
+            previous = capacity
+        }
+        XCTAssertEqual(
+            curve.parameters(forLevel: 40).capacity, curve.maxCapacity,
+            "capacity should reach its ceiling deep in the curve"
+        )
+    }
+
+    /// Capacity must only grow once the curve has dropped to a single empty tube —
+    /// growing it while two empties remain pushes the solver into 10s+ generation times.
+    func testCapacityOnlyGrowsAfterEmptyTubesBottomOut() {
+        let curve = DifficultyCurve.default
+        for level in 1...40 {
+            let p = curve.parameters(forLevel: level)
+            if p.capacity > 4 {
+                XCTAssertEqual(
+                    p.emptyTubes, curve.minEmptyTubes,
+                    "capacity grew to \(p.capacity) at level \(level) while \(p.emptyTubes) empty tubes remained"
+                )
+            }
+        }
+    }
 }
