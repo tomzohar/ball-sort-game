@@ -17,6 +17,13 @@ struct SettingsView: View {
     /// Invoked when the player taps Done.
     let onClose: () -> Void
 
+    /// Test-facing handle on the sound binding. The `@AppStorage` projected value is
+    /// `private`; exposing it lets `SettingsViewTests` drive the same write path the
+    /// `Toggle` uses, without an OS-fragile snapshot.
+    var soundEnabledBinding: Binding<Bool> { $soundEnabled }
+    /// Test-facing handle on the haptics binding (see `soundEnabledBinding`).
+    var hapticsEnabledBinding: Binding<Bool> { $hapticsEnabled }
+
     var body: some View {
         ZStack {
             GameBackground()
