@@ -37,7 +37,17 @@ targets:
         # Portrait-only (PROJECT_BRIEF). iPhone strictly portrait; iPad allows both portrait orientations.
         INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait"
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown"
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        # Branded launch screen (E9.2): a warm wooden-tray background (~#8A5A2B, the
+        # tray gradient's bottom tone) via LaunchScreen.storyboard. project.yml stays
+        # the source of truth (ADR-0004) — it owns the storyboard reference, and the
+        # storyboard is a checked-in resource compiled from BallSortApp sources.
+        #
+        # Tradeoff note: the keys-only UILaunchScreen route can't set a background
+        # color — this Xcode only synthesizes an *empty* UILaunchScreen dict from
+        # INFOPLIST_KEY_UILaunchScreen_Generation (no _BackgroundColor / _ImageName
+        # synthesis keys exist), so a branded color needs a storyboard. Setting
+        # UILaunchStoryboardName also takes precedence over UILaunchScreen.
+        INFOPLIST_KEY_UILaunchStoryboardName: LaunchScreen
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
 
