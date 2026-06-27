@@ -1,41 +1,30 @@
 import SwiftUI
 
-// Wooden tray + dark page backdrop, ported from the HTML prototype's theme (PROJECT_BRIEF, m3).
-// Dumb styling only — no game logic (ADR-0001). Reuses `Color(hex:)` from BallColor+Color.swift.
+// Raked-sand garden bed + bright "stage" backdrop — the "Zen Garden" reskin (E12.6).
+// Replaces the prototype's wooden tray / dark backdrop. Dumb styling only, no game
+// logic (ADR-0001). Light is the hero appearance; tokens come from `ZenTheme`.
+//
+// Public symbols (`GameBackground`, `WoodenTray<Content>`) keep their exact names and
+// generic API so `RootView` and the snapshot tests keep compiling — only the look
+// changes. `ZenTray` is offered as a forward-looking alias.
 
-/// The dark page backdrop behind the whole board.
-///
-/// Approximates the prototype's
-/// `radial-gradient(1200px 600px at 50% -10%, #5a4634 0%, #3a2c20 45%, #241a12 100%)`:
-/// a radial gradient whose centre sits just above the top edge.
+/// The bright page backdrop behind the whole board — the calm "stage" the garden
+/// sits on (`ZenColor.stage`).
 struct GameBackground: View {
     var body: some View {
-        RadialGradient(
-            gradient: Gradient(stops: [
-                .init(color: Color(hex: 0x5A4634), location: 0.0),
-                .init(color: Color(hex: 0x3A2C20), location: 0.45),
-                .init(color: Color(hex: 0x241A12), location: 1.0)
-            ]),
-            center: UnitPoint(x: 0.5, y: -0.1),
-            startRadius: 0,
-            endRadius: 700
-        )
-        .ignoresSafeArea()
+        ZenColor.stage
+            .ignoresSafeArea()
     }
 }
 
-/// A container that wraps arbitrary `content` in the prototype's wooden-tray look.
+/// A container that wraps arbitrary `content` in the raked-sand garden bed.
 ///
-/// Ported CSS:
-/// - background: linear-gradient(#c98a4b → #8a5a2b, top→bottom)
-/// - border: 6px solid #5e3c1c
-/// - border-radius: 22px
-/// - box-shadow: inset 0 3px 8px rgba(255,255,255,.25),  // top highlight
-///               inset 0 -8px 14px rgba(0,0,0,.45),       // bottom shadow
-///               0 18px 40px rgba(0,0,0,.55)              // outer drop
+/// A `ZenColor.sandBed` surface with a subtle raked-line texture, a hairline
+/// `ZenColor.stoneFrame` border, `ZenRadius.lg` rounding and a soft `ZenShadow.card`
+/// lift — the puzzle's tubes rest in this bed.
 ///
-/// SwiftUI has no native inset shadow, so the two inset shadows are approximated with
-/// gradient overlays clipped to the rounded shape; the outer drop shadow uses `.shadow`.
+/// Named `WoodenTray` for source compatibility with existing callers/tests; the look
+/// is fully Zen. Prefer the `ZenTray` alias in new code.
 struct WoodenTray<Content: View>: View {
     private let content: Content
 
@@ -43,53 +32,65 @@ struct WoodenTray<Content: View>: View {
         self.content = content()
     }
 
-    private static var cornerRadius: CGFloat { 22 }
-    private static var borderWidth: CGFloat { 6 }
-    private static var innerPadding: CGFloat { 14 }
+    private static var cornerRadius: CGFloat { ZenRadius.lg }
+    private static var borderWidth: CGFloat { 1 }
+    private static var innerPadding: CGFloat { ZenSpacing.lg }
 
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous)
 
         content
             .padding(Self.innerPadding)
-            .background(
-                LinearGradient(
-                    colors: [Color(hex: 0xC98A4B), Color(hex: 0x8A5A2B)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-            )
-            // Inset top highlight: inset 0 3px 8px rgba(255,255,255,.25).
-            .overlay(
-                LinearGradient(
-                    colors: [Color.white.opacity(0.25), Color.clear],
-                    startPoint: .top,
-                    endPoint: .center
-                )
-                .blur(radius: 4)
-                .mask(shape.stroke(lineWidth: 8))
-                .allowsHitTesting(false)
-            )
-            // Inset bottom shadow: inset 0 -8px 14px rgba(0,0,0,.45).
-            .overlay(
-                LinearGradient(
-                    colors: [Color.clear, Color.black.opacity(0.45)],
-                    startPoint: .center,
-                    endPoint: .bottom
-                )
-                .blur(radius: 7)
-                .mask(shape.stroke(lineWidth: 16))
-                .allowsHitTesting(false)
-            )
+            .background(ZenColor.sandBed)
+            // Subtle raked-sand grooves combed across the bed.
+            .background(RakedSand().allowsHitTesting(false))
             .clipShape(shape)
-            // Border: 6px solid #5e3c1c (drawn inside the clipped shape).
+            // Hairline stone frame around the bed.
             .overlay(
                 shape
-                    .strokeBorder(Color(hex: 0x5E3C1C), lineWidth: Self.borderWidth)
+                    .strokeBorder(ZenColor.stoneFrame, lineWidth: Self.borderWidth)
                     .allowsHitTesting(false)
             )
-            // Outer drop shadow: 0 18px 40px rgba(0,0,0,.55).
-            .shadow(color: Color.black.opacity(0.55), radius: 20, x: 0, y: 18)
+            // Soft card-level lift off the stage.
+            .zenShadow(.card)
+    }
+}
+
+/// Forward-looking alias for the raked-sand garden bed. Identical to `WoodenTray`;
+/// new code should prefer this name.
+typealias ZenTray<Content: View> = WoodenTray<Content>
+
+/// The raked-sand groove texture: evenly combed horizontal lines, very low contrast,
+/// the way a garden rake leaves the sand. Drawn with `Canvas` so it scales to any size
+/// and stays a pure visual (no layout cost on the content).
+private struct RakedSand: View {
+    /// Spacing between rake grooves.
+    private let lineSpacing: CGFloat = 9
+    /// Groove stroke width.
+    private let lineWidth: CGFloat = 1
+
+    var body: some View {
+        Canvas { context, size in
+            // Two-tone grooves: a faint dark trough with a lighter crest just below,
+            // so the rake lines read as carved grooves rather than flat stripes.
+            let trough = Color.black.opacity(0.06)
+            let crest = Color.white.opacity(0.30)
+
+            var y: CGFloat = lineSpacing
+            while y < size.height {
+                var groove = Path()
+                groove.move(to: CGPoint(x: 0, y: y))
+                groove.addLine(to: CGPoint(x: size.width, y: y))
+                context.stroke(groove, with: .color(trough), lineWidth: lineWidth)
+
+                var highlight = Path()
+                highlight.move(to: CGPoint(x: 0, y: y + lineWidth))
+                highlight.addLine(to: CGPoint(x: size.width, y: y + lineWidth))
+                context.stroke(highlight, with: .color(crest), lineWidth: lineWidth)
+
+                y += lineSpacing
+            }
+        }
     }
 }
 
@@ -98,13 +99,21 @@ struct WoodenTray<Content: View>: View {
         GameBackground()
         WoodenTray {
             HStack(spacing: 14) {
-                Circle().fill(Color(hex: 0xFFD21A))
-                Circle().fill(Color(hex: 0xFF7A18))
-                Circle().fill(Color(hex: 0x2196F3))
-                Circle().fill(Color(hex: 0x36D44A))
+                Circle().fill(BallColorPreview.amber)
+                Circle().fill(BallColorPreview.persimmon)
+                Circle().fill(BallColorPreview.pond)
+                Circle().fill(BallColorPreview.moss)
             }
             .frame(width: 220, height: 56)
         }
         .padding(40)
     }
+}
+
+/// Stone hexes for the preview only (the real mapping lives in `BallColor+Color`).
+private enum BallColorPreview {
+    static let amber = Color(hex: 0xDDA63A)
+    static let persimmon = Color(hex: 0xD27845)
+    static let pond = Color(hex: 0x4E8CA8)
+    static let moss = Color(hex: 0x6E9E62)
 }

@@ -31,13 +31,15 @@ final class TrayBackgroundSnapshotTests: XCTestCase {
 
         // Snapshot the view at its fixed frame (not the controller, which renders at window size).
         // precision/perceptualPrecision absorb sub-pixel gradient-rendering diffs across OS versions.
-        assertSnapshot(
-            of: host.view,
-            as: .image(
-                precision: 0.98,
-                perceptualPrecision: 0.97,
-                traits: .init(userInterfaceStyle: .light)
+        withSnapshotTesting(record: .missing) {
+            assertSnapshot(
+                of: host.view,
+                as: .image(
+                    precision: 0.98,
+                    perceptualPrecision: 0.97,
+                    traits: .init(userInterfaceStyle: .light)
+                )
             )
-        )
+        }
     }
 }
