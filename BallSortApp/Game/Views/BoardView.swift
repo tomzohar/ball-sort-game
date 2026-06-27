@@ -25,6 +25,20 @@ struct BoardView: View {
     @State private var flourishTube: Int?
     @State private var flourishToken = 0
 
+    /// Resolved outer frames of each tube in the board coordinate space, captured via a
+    /// preference so the pour flight knows where to launch from and land (E14.3). Tube
+    /// frames are fixed-size regardless of fill, so these are stable across a move.
+    @State private var tubeRects: [Int: CGRect] = [:]
+    /// The ball currently arcing between tubes, or `nil` when none is in flight.
+    @State private var flight: PourFlight?
+    /// Drives the in-flight ball along its parabola (0 = launch, 1 = land).
+    @State private var flightProgress: CGFloat = 0
+    /// The destination tube whose just-landed top ball is held hidden during the flight.
+    @State private var suppressedTube: Int?
+
+    /// Name of the coordinate space tube frames and the flying ball share.
+    private static let boardSpace = "board"
+
     /// Bouncy spring approximating the prototype drop easing
     /// `cubic-bezier(.34, 1.4, .5, 1)` over ~0.28s. Defined in `AnimationConstants`.
     private var dropAnimation: Animation { AnimationConstants.drop }
@@ -52,28 +66,105 @@ struct BoardView: View {
                 ballSize: ballSize
             )
 
-            HStack(alignment: .bottom, spacing: BoardLayout.tubeGap) {
-                ForEach(tubes.indices, id: \.self) { i in
-                    TubeView(
-                        tube: tubes[i],
-                        tubeIndex: i,
-                        capacity: capacity,
-                        ballSize: ballSize,
-                        ballGap: ballGap,
-                        isSelected: model.isSelected(i),
-                        isTarget: isTarget(i),
-                        isHintSource: model.isHintSource(i),
-                        isHintTarget: model.isHintTarget(i),
-                        flourishing: flourishTube == i,
-                        onTap: { withAnimation(dropAnimation) { model.tap(i) } }
-                    )
-                    .offset(x: shakeTube == i ? shakeOffset : 0)
+            ZStack(alignment: .topLeading) {
+                HStack(alignment: .bottom, spacing: BoardLayout.tubeGap) {
+                    ForEach(tubes.indices, id: \.self) { i in
+                        TubeView(
+                            tube: tubes[i],
+                            tubeIndex: i,
+                            capacity: capacity,
+                            ballSize: ballSize,
+                            ballGap: ballGap,
+                            isSelected: model.isSelected(i),
+                            isTarget: isTarget(i),
+                            isHintSource: model.isHintSource(i),
+                            isHintTarget: model.isHintTarget(i),
+                            flourishing: flourishTube == i,
+                            suppressTopBall: suppressedTube == i,
+                            onTap: { withAnimation(dropAnimation) { model.tap(i) } }
+                        )
+                        .background(tubeFrameReporter(index: i))
+                        .offset(x: shakeTube == i ? shakeOffset : 0)
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                // The poured ball, arcing over the rim from source mouth to landing slot.
+                if let flight {
+                    BallView(color: flight.color, size: ballSize)
+                        .position(flight.launch)
+                        .modifier(PourArcEffect(
+                            progress: flightProgress,
+                            launch: flight.launch,
+                            land: flight.land,
+                            peak: flight.peak
+                        ))
+                        .allowsHitTesting(false)
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .coordinateSpace(name: Self.boardSpace)
+            .onPreferenceChange(TubeFramesKey.self) { tubeRects = $0 }
+            .onChange(of: model.lastMove?.nonce) { _, _ in
+                startPourFlight(ballSize: ballSize, ballGap: ballGap, capacity: capacity)
+            }
         }
         .onChange(of: model.illegalMoveNonce) { _, _ in playShake() }
         .onChange(of: model.lastDrop) { _, _ in playFlourishIfTubeCompleted() }
+    }
+
+    /// Captures a tube's outer frame in the board coordinate space for the pour flight.
+    private func tubeFrameReporter(index: Int) -> some View {
+        GeometryReader { geo in
+            Color.clear.preference(
+                key: TubeFramesKey.self,
+                value: [index: geo.frame(in: .named(Self.boardSpace))]
+            )
+        }
+    }
+
+    /// Launches the pour-arc flight for the most recent move: a ball travels from the
+    /// source mouth, over the rim, to the slot it lands in, while the destination's new
+    /// top ball is held hidden so it reveals on landing (E14.3). Geometry comes from the
+    /// captured tube frames (stable across a move) and the post-move destination count.
+    private func startPourFlight(ballSize: CGFloat, ballGap: CGFloat, capacity: Int) {
+        guard let move = model.lastMove, move.nonce != flight?.nonce,
+              let sourceRect = tubeRects[move.from], let destRect = tubeRects[move.to],
+              model.gameState.tubes.indices.contains(move.to) else { return }
+
+        let destCount = model.gameState.tubes[move.to].count
+        let launch = PourGeometry.mouthPoint(in: sourceRect, ballSize: ballSize)
+        let land = PourGeometry.landingPoint(
+            in: destRect,
+            capacity: capacity,
+            countAfterMove: destCount,
+            ballSize: ballSize,
+            ballGap: ballGap
+        )
+
+        flight = PourFlight(
+            nonce: move.nonce,
+            launch: launch,
+            land: land,
+            color: move.color,
+            peak: pourArcPeak(launch: launch, land: land, ballSize: ballSize)
+        )
+        suppressedTube = move.to
+        flightProgress = 0
+        withAnimation(AnimationConstants.pour) { flightProgress = 1 }
+
+        // Clear the flight and reveal the landed ball when the arc finishes. Mirrors the
+        // existing shake/flourish timer pattern; guarded so a newer flight isn't cut short.
+        DispatchQueue.main.asyncAfter(deadline: .now() + AnimationConstants.pourDuration) {
+            guard flight?.nonce == move.nonce else { return }
+            flight = nil
+            suppressedTube = nil
+        }
+    }
+
+    /// How high the arc rises above its endpoints — enough to clear the rim, growing
+    /// with the horizontal distance so far pours lift more. TUNABLE feel knob (E14.3).
+    private func pourArcPeak(launch: CGPoint, land: CGPoint, ballSize: CGFloat) -> CGFloat {
+        max(ballSize * 0.9, abs(land.x - launch.x) * 0.35)
     }
 
     /// Brief horizontal wobble on the rejected source tube. Derived purely from VM
@@ -110,6 +201,14 @@ struct BoardView: View {
     private func isTarget(_ i: Int) -> Bool {
         guard let from = model.selectedTube, from != i else { return false }
         return model.gameState.isLegal(Move(from: from, to: i))
+    }
+}
+
+/// Collects each tube's outer frame (keyed by tube index) for the pour-arc flight.
+private struct TubeFramesKey: PreferenceKey {
+    static let defaultValue: [Int: CGRect] = [:]
+    static func reduce(value: inout [Int: CGRect], nextValue: () -> [Int: CGRect]) {
+        value.merge(nextValue(), uniquingKeysWith: { _, new in new })
     }
 }
 

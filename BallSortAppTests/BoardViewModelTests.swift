@@ -123,6 +123,39 @@ final class BoardViewModelTests: XCTestCase {
         XCTAssertEqual(sut.gameState.tubes[1].balls, [.yellow])
     }
 
+    // MARK: - Pour-arc seam (E14.3)
+
+    func testLegalMoveRecordsLastMoveWithEndpointsAndColor() {
+        let sut = BoardViewModel(initialState: legalMoveState())
+        XCTAssertNil(sut.lastMove)
+        sut.tap(0) // lift yellow
+        sut.tap(1) // drop on empty
+        XCTAssertEqual(sut.lastMove, AnimatedMove(from: 0, to: 1, color: .yellow, nonce: 1))
+    }
+
+    func testEachLegalMoveIncrementsTheNonce() {
+        let sut = BoardViewModel(initialState: legalMoveState())
+        sut.tap(0); sut.tap(1) // yellow 0 -> 1
+        XCTAssertEqual(sut.lastMove?.nonce, 1)
+        sut.tap(0); sut.tap(1) // yellow 0 -> 1 again (onto matching top)
+        XCTAssertEqual(sut.lastMove, AnimatedMove(from: 0, to: 1, color: .yellow, nonce: 2))
+    }
+
+    func testIllegalMoveLeavesLastMoveUnchanged() {
+        let sut = BoardViewModel(initialState: colorMismatchState())
+        sut.tap(0) // select yellow
+        sut.tap(1) // reject onto blue
+        XCTAssertNil(sut.lastMove, "a rejected move must not fire a pour flight")
+    }
+
+    func testUndoDoesNotRetriggerLastMove() {
+        let sut = BoardViewModel(initialState: legalMoveState())
+        sut.tap(0); sut.tap(1)
+        let afterMove = sut.lastMove
+        sut.undo()
+        XCTAssertEqual(sut.lastMove, afterMove, "undo must not bump the nonce or replay a flight")
+    }
+
     func testLegalMoveOntoSameColorTopApplies() {
         let state = GameState(
             tubes: [

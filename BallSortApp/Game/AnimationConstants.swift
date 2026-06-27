@@ -18,6 +18,15 @@ enum AnimationConstants {
     /// Drop: falls and settles with one soft rebound. Canvas: response .30, damp .72, ~300ms.
     static let drop: Animation = .spring(response: 0.30, dampingFraction: 0.72)
 
+    /// Pour (E14.3): a ball arcs from the source mouth over the rim into the
+    /// destination. An ease-in-out timing curve so it lifts off and settles gently
+    /// (the Zen "water-like" motion), paired with `pourDuration` to time the landing.
+    /// TUNABLE: duration, curve, and the arc peak (see `BoardView.pourArcPeak`) are the
+    /// feel knobs to adjust on device.
+    static let pour: Animation = .timingCurve(0.4, 0.0, 0.35, 1.0, duration: pourDuration)
+    /// Wall-clock length of the pour flight; the view clears the flying ball after it.
+    static let pourDuration: Double = 0.42
+
     /// Illegal move: tube shivers ±3pt, quick and quiet, no bounce-back.
     /// Canvas: shake 3 cycles ~180ms. Higher damping than before kills the rebound.
     static let shake: Animation = .spring(response: 0.18, dampingFraction: 0.55)

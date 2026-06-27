@@ -37,6 +37,10 @@ struct TubeView: View {
     var isHintTarget: Bool = false
     /// `true` for the brief "tube complete" flourish (scale-bounce + glow pulse).
     var flourishing: Bool = false
+    /// `true` while a pour is in flight toward this tube (E14.3): the just-landed top
+    /// ball is held hidden so it appears to *arrive* with the flying ball rather than
+    /// pop in instantly. The slot stays (an empty dimple) so the column doesn't reflow.
+    var suppressTopBall: Bool = false
     /// Invoked when the tube is tapped.
     let onTap: () -> Void
 
@@ -137,7 +141,10 @@ struct TubeView: View {
     private func cell(at slot: Int) -> some View {
         // `slot` is always in `0..<capacity` and `slotsTopToBottom` has exactly
         // `capacity` elements, so a direct index is safe.
-        if let color = slotsTopToBottom[slot] {
+        // Hold the top ball hidden while a pour is flying toward it (E14.3) so it
+        // reveals on landing instead of popping in ahead of the flight.
+        let hiddenForPour = suppressTopBall && slot == topBallSlot
+        if let color = slotsTopToBottom[slot], !hiddenForPour {
             let lifted = isSelected && slot == topBallSlot
             BallView(color: color, size: ballSize, isLifted: lifted)
                 // Lift the selected top ball ~10pt up over the tube mouth.
