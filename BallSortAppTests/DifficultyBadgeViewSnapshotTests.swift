@@ -25,7 +25,7 @@ final class DifficultyBadgeViewSnapshotTests: XCTestCase {
     ) {
         let view = DifficultyBadgeView(level: level, band: band)
             .frame(width: width, height: height)
-            .background(Color(hex: 0x3A2C20)) // opaque warm backdrop -> stable alpha
+            .background(ZenColor.stage) // opaque Zen "stage" backdrop -> stable alpha
 
         let host = UIHostingController(rootView: view)
         host.view.frame = CGRect(x: 0, y: 0, width: width, height: height)
