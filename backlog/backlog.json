@@ -74,7 +74,7 @@
           "id": "E1.4",
           "title": "GitHub Actions CI (xcodebuild test on simulator)",
           "status": "done",
-          "note": ".github/workflows/ci.yml (macos-15): SwiftLint + core swift test + xcodegen + xcodebuild test on a dynamically-picked iPhone sim. VERIFIED GREEN \u2014 first run passed in 3m0s. Pushed to private repo tomzohar/ball-sort-game."
+          "note": ".github/workflows/ci.yml (macos-15): SwiftLint + core swift test + xcodegen + xcodebuild test on a dynamically-picked iPhone sim. VERIFIED GREEN \u2014 first run passed in 3m0s. Pushed to public repo tomzohar/ball-sort-game."
         },
         {
           "id": "E1.5",
@@ -387,8 +387,8 @@
         {
           "id": "E11.1",
           "title": "Apple Developer enrollment",
-          "status": "todo",
-          "note": "TOM'S TASK. ~$99/yr, payment + Apple ID. Long pole \u2014 start day one."
+          "status": "in_progress",
+          "note": "TOM'S TASK. Submitted 2026-06-27, awaiting Apple approval. Approval unblocks E11.2/E11.3/E11.6 and E10.x (signing, App Store Connect, TestFlight, Game Center entitlement)."
         },
         {
           "id": "E11.2",
@@ -405,8 +405,8 @@
         {
           "id": "E11.4",
           "title": "Privacy nutrition label",
-          "status": "todo",
-          "note": "Trivial \u2014 no SDKs/data collection in v1."
+          "status": "done",
+          "note": "DONE. v1 collects nothing (free, SDK-free, no network, on-device only) \u2192 ASC answer is 'Data Not Collected', App does not track, no ATT. docs/PRIVACY.md (live at https://github.com/tomzohar/ball-sort-game/blob/main/docs/PRIVACY.md — repo public) + docs/STORE_PRIVACY_LABEL.md (paste-ready ASC answers + revisit-before-release checklist). Re-review when E10 Game Center lands."
         },
         {
           "id": "E11.5",
