@@ -2,7 +2,7 @@
 /// sized to the level's difficulty (number of distinct colors == number of full tubes).
 ///
 /// First real domain primitive — exists to prove the TDD harness (E1.2) and seed E2.1.
-public enum BallColor: Int, CaseIterable, Sendable, Hashable {
+public enum BallColor: Int, CaseIterable, Sendable, Hashable, Codable {
     case yellow
     case orange
     case pink

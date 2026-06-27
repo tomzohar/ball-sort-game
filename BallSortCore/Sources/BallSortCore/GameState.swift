@@ -5,7 +5,7 @@
 /// and explored by the solver. Move legality follows the *classic* rule (memory m1):
 /// a ball may move only onto an empty tube, or onto a non-full tube whose top ball
 /// matches the moving ball's color.
-public struct GameState: Equatable, Hashable, Sendable {
+public struct GameState: Equatable, Hashable, Sendable, Codable {
     /// The tubes that make up the board.
     public var tubes: [Tube]
     /// The capacity shared by every tube in this puzzle.
