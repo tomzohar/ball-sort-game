@@ -31,14 +31,16 @@ final class BallBadgeSnapshotTests: XCTestCase {
         host.view.frame = CGRect(x: 0, y: 0, width: side, height: side)
         host.view.backgroundColor = .clear
 
-        assertSnapshot(
-            of: host.view,
-            as: .image(precision: 0.98, traits: .init(userInterfaceStyle: .light)),
-            named: name,
-            file: file,
-            testName: testName,
-            line: line
-        )
+        withSnapshotTesting(record: .missing) {
+            assertSnapshot(
+                of: host.view,
+                as: .image(precision: 0.98, traits: .init(userInterfaceStyle: .light)),
+                named: name,
+                file: file,
+                testName: testName,
+                line: line
+            )
+        }
     }
 
     func testAllColorsWithBadge() {
