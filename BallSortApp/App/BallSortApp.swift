@@ -12,6 +12,11 @@ struct BallSortApp: App {
     @State private var model: BoardViewModel
     @State private var statsStore: StatsStore
 
+    /// The user's light/dark preference (Settings → Appearance). Read here so the
+    /// choice is applied app-wide via `.preferredColorScheme`; `SettingsView` writes
+    /// the same key. Defaults to `.system`.
+    @AppStorage(AppearanceMode.storageKey) private var appearanceRaw = AppearanceMode.system.rawValue
+
     init() {
         let persistence = JSONFileStore()
         let statsStore = StatsStore(persistence: persistence)
@@ -41,6 +46,7 @@ struct BallSortApp: App {
     var body: some Scene {
         WindowGroup {
             RootView(model: model, statsStore: statsStore)
+                .preferredColorScheme(AppearanceMode(storedValue: appearanceRaw).colorScheme)
         }
     }
 }
