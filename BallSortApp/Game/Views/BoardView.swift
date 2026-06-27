@@ -44,6 +44,7 @@ struct BoardView: View {
             ForEach(tubes.indices, id: \.self) { i in
                 TubeView(
                     tube: tubes[i],
+                    tubeIndex: i,
                     capacity: capacity,
                     ballSize: ballSize,
                     isSelected: model.isSelected(i),
