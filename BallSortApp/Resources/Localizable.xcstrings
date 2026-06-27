@@ -1,0 +1,594 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "ball.label" : {
+      "comment" : "VoiceOver label for a single ball, e.g. \"blue ball\". %@ is the color name.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ball"
+          }
+        }
+      }
+    },
+    "Best Moves" : {
+      "comment" : "Stats screen row: fewest moves in a solved level.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Best Moves"
+          }
+        }
+      }
+    },
+    "Best Time" : {
+      "comment" : "Stats screen row: fastest solve time.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Best Time"
+          }
+        }
+      }
+    },
+    "color.blue" : {
+      "comment" : "VoiceOver color name for the blue ball.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "blue"
+          }
+        }
+      }
+    },
+    "color.green" : {
+      "comment" : "VoiceOver color name for the green ball.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "green"
+          }
+        }
+      }
+    },
+    "color.orange" : {
+      "comment" : "VoiceOver color name for the orange ball.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "orange"
+          }
+        }
+      }
+    },
+    "color.pink" : {
+      "comment" : "VoiceOver color name for the pink ball.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "pink"
+          }
+        }
+      }
+    },
+    "color.purple" : {
+      "comment" : "VoiceOver color name for the purple ball.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "purple"
+          }
+        }
+      }
+    },
+    "color.yellow" : {
+      "comment" : "VoiceOver color name for the yellow ball.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "yellow"
+          }
+        }
+      }
+    },
+    "Current Streak" : {
+      "comment" : "Stats screen row: current consecutive-day solving streak.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Current Streak"
+          }
+        }
+      }
+    },
+    "difficulty.accessibility" : {
+      "comment" : "VoiceOver label for the difficulty badge. %lld is the level number, %@ is the band name.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Level %lld, %@ difficulty"
+          }
+        }
+      }
+    },
+    "Done" : {
+      "comment" : "Dismiss button on the Stats and Settings sheets.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done"
+          }
+        }
+      }
+    },
+    "Easy" : {
+      "comment" : "Difficulty band name.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Easy"
+          }
+        }
+      }
+    },
+    "Expert" : {
+      "comment" : "Difficulty band name.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expert"
+          }
+        }
+      }
+    },
+    "Generating level…" : {
+      "comment" : "Overlay shown while a new level is being generated.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Generating level…"
+          }
+        }
+      }
+    },
+    "Haptics" : {
+      "comment" : "Settings toggle label for haptic feedback.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haptics"
+          }
+        }
+      }
+    },
+    "Hard" : {
+      "comment" : "Difficulty band name.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hard"
+          }
+        }
+      }
+    },
+    "Hint" : {
+      "comment" : "Hint control button title and VoiceOver label.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hint"
+          }
+        }
+      }
+    },
+    "Level %lld" : {
+      "comment" : "Difficulty badge level text. %lld is the 1-based level number.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Level %lld"
+          }
+        }
+      }
+    },
+    "Levels Solved" : {
+      "comment" : "Stats screen row: lifetime levels solved.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Levels Solved"
+          }
+        }
+      }
+    },
+    "Longest Streak" : {
+      "comment" : "Stats screen row: longest-ever solving streak.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Longest Streak"
+          }
+        }
+      }
+    },
+    "Medium" : {
+      "comment" : "Difficulty band name.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Medium"
+          }
+        }
+      }
+    },
+    "Moves" : {
+      "comment" : "HUD pill label: number of moves made this level.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moves"
+          }
+        }
+      }
+    },
+    "Next Level" : {
+      "comment" : "Win overlay button: advance to the next level.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next Level"
+          }
+        }
+      }
+    },
+    "No hint available" : {
+      "comment" : "VoiceOver hint when the hint button is disabled.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hint available"
+          }
+        }
+      }
+    },
+    "Nothing to undo" : {
+      "comment" : "VoiceOver hint when the undo button is disabled.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing to undo"
+          }
+        }
+      }
+    },
+    "Replay" : {
+      "comment" : "Win overlay button: replay the current level.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Replay"
+          }
+        }
+      }
+    },
+    "Restart" : {
+      "comment" : "Restart control button title and VoiceOver label.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restart"
+          }
+        }
+      }
+    },
+    "Restart this level" : {
+      "comment" : "VoiceOver hint for the restart button.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restart this level"
+          }
+        }
+      }
+    },
+    "Settings" : {
+      "comment" : "Settings sheet title and the top-bar gear button's VoiceOver label.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings"
+          }
+        }
+      }
+    },
+    "Show a suggested move" : {
+      "comment" : "VoiceOver hint for the hint button when enabled.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show a suggested move"
+          }
+        }
+      }
+    },
+    "Solved!" : {
+      "comment" : "Win overlay headline.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Solved!"
+          }
+        }
+      }
+    },
+    "Sorted" : {
+      "comment" : "HUD pill label: completed tubes out of total.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sorted"
+          }
+        }
+      }
+    },
+    "Sound" : {
+      "comment" : "Settings toggle label for sound effects.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sound"
+          }
+        }
+      }
+    },
+    "Stats" : {
+      "comment" : "Stats sheet title and the top-bar chart button's VoiceOver label.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stats"
+          }
+        }
+      }
+    },
+    "Time" : {
+      "comment" : "HUD pill label: elapsed time.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Time"
+          }
+        }
+      }
+    },
+    "time" : {
+      "comment" : "Win overlay pill label under the elapsed clock (rendered uppercased).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "time"
+          }
+        }
+      }
+    },
+    "Trivial" : {
+      "comment" : "Difficulty band name.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trivial"
+          }
+        }
+      }
+    },
+    "tube.canDrop" : {
+      "comment" : "VoiceOver tube fragment: this tube is a legal drop target.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "can drop here"
+          }
+        }
+      }
+    },
+    "tube.complete" : {
+      "comment" : "VoiceOver tube fragment: this tube is sorted/complete.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "complete"
+          }
+        }
+      }
+    },
+    "tube.empty" : {
+      "comment" : "VoiceOver tube fragment: this tube has no balls.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "empty"
+          }
+        }
+      }
+    },
+    "tube.fill" : {
+      "comment" : "VoiceOver tube fragment: fill level. First %lld is ball count, second %lld is capacity.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld of %lld balls"
+          }
+        }
+      }
+    },
+    "tube.index" : {
+      "comment" : "VoiceOver tube fragment: 1-based tube position. %lld is the index.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tube %lld"
+          }
+        }
+      }
+    },
+    "tube.selected" : {
+      "comment" : "VoiceOver tube fragment: this tube is the lifted/selected source.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "selected"
+          }
+        }
+      }
+    },
+    "tube.top" : {
+      "comment" : "VoiceOver tube fragment: top ball color. %@ is the color name.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "top %@"
+          }
+        }
+      }
+    },
+    "Undo" : {
+      "comment" : "Undo control button title and VoiceOver label.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Undo"
+          }
+        }
+      }
+    },
+    "Undo the last move" : {
+      "comment" : "VoiceOver hint for the undo button when enabled.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Undo the last move"
+          }
+        }
+      }
+    },
+    "win.move" : {
+      "comment" : "Win overlay pill label (singular) under a move count of 1 (rendered uppercased).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "move"
+          }
+        }
+      }
+    },
+    "win.moves" : {
+      "comment" : "Win overlay pill label (plural) under a move count other than 1 (rendered uppercased).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "moves"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

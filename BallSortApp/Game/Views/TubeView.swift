@@ -59,23 +59,31 @@ struct TubeView: View {
 
     /// A spoken description of this tube: its 1-based index, fill level, top ball
     /// color (or "empty"), plus a selected / target / complete suffix (E9.4).
+    ///
+    /// Composed from localized fragments joined with ", " (E9.5). Each fragment goes
+    /// through `String(localized:)` with a stable key so it stays translatable; the
+    /// English output is identical to the pre-localization label.
     private var accessibilityLabel: String {
-        var parts = ["Tube \(tubeIndex + 1)"]
+        var parts = [String(localized: "tube.index", defaultValue: "Tube \(tubeIndex + 1)")]
         if tube.isEmpty {
-            parts.append("empty")
+            parts.append(String(localized: "tube.empty", defaultValue: "empty"))
         } else {
-            parts.append("\(tube.count) of \(capacity) balls")
+            parts.append(
+                String(localized: "tube.fill", defaultValue: "\(tube.count) of \(capacity) balls")
+            )
             if let top = tube.top {
-                parts.append("top \(top.accessibilityColorName)")
+                parts.append(
+                    String(localized: "tube.top", defaultValue: "top \(top.accessibilityColorName)")
+                )
             }
             if tube.isComplete {
-                parts.append("complete")
+                parts.append(String(localized: "tube.complete", defaultValue: "complete"))
             }
         }
         if isSelected {
-            parts.append("selected")
+            parts.append(String(localized: "tube.selected", defaultValue: "selected"))
         } else if isTarget {
-            parts.append("can drop here")
+            parts.append(String(localized: "tube.canDrop", defaultValue: "can drop here"))
         }
         return parts.joined(separator: ", ")
     }
