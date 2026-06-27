@@ -1,6 +1,6 @@
 {
   "project": "Ball Sort Game",
-  "updated": "2026-06-26",
+  "updated": "2026-06-27",
   "statuses": [
     "todo",
     "in_progress",
@@ -297,14 +297,14 @@
         {
           "id": "E8.1",
           "title": "SFX (drop / click / win)",
-          "status": "todo",
-          "note": ""
+          "status": "done",
+          "note": "Synthesized tones in-code (AVAudioEngine PCM buffers) + UIKit haptics; no audio assets, no SDKs. GameFeedbackPlaying protocol fans out to SoundPlayer + HapticsPlayer via GameFeedbackService, injected into BoardViewModel; gated on soundEnabled/hapticsEnabled UserDefaults (default on)."
         },
         {
           "id": "E8.2",
           "title": "Haptics (lift / drop / complete)",
-          "status": "todo",
-          "note": ""
+          "status": "done",
+          "note": "Synthesized tones in-code (AVAudioEngine PCM buffers) + UIKit haptics; no audio assets, no SDKs. GameFeedbackPlaying protocol fans out to SoundPlayer + HapticsPlayer via GameFeedbackService, injected into BoardViewModel; gated on soundEnabled/hapticsEnabled UserDefaults (default on)."
         },
         {
           "id": "E8.3",

@@ -63,6 +63,7 @@ final class BoardViewModel {
     private let curve: DifficultyCurve
     private let seed: UInt64?
     private let now: () -> TimeInterval
+    private let feedback: any GameFeedbackPlaying
 
     // MARK: - Timer
 
@@ -87,7 +88,8 @@ final class BoardViewModel {
         curve: DifficultyCurve,
         level: Int,
         seed: UInt64?,
-        now: @escaping () -> TimeInterval
+        now: @escaping () -> TimeInterval,
+        feedback: any GameFeedbackPlaying
     ) {
         self.gameState = state
         self.initialState = state
@@ -102,6 +104,7 @@ final class BoardViewModel {
         self.curve = curve
         self.seed = seed
         self.now = now
+        self.feedback = feedback
     }
 
     /// Pins a fixed board with progression disabled — for tests and snapshots.
@@ -110,7 +113,8 @@ final class BoardViewModel {
     convenience init(
         initialState: GameState,
         solver: some Solving = Solver(),
-        now: @escaping () -> TimeInterval = { Date().timeIntervalSinceReferenceDate }
+        now: @escaping () -> TimeInterval = { Date().timeIntervalSinceReferenceDate },
+        feedback: (any GameFeedbackPlaying)? = nil
     ) {
         self.init(
             state: initialState,
@@ -120,7 +124,8 @@ final class BoardViewModel {
             curve: .default,
             level: 1,
             seed: nil,
-            now: now
+            now: now,
+            feedback: feedback ?? NoFeedback()
         )
         startTimer()
     }
@@ -135,7 +140,8 @@ final class BoardViewModel {
         curve: DifficultyCurve = .default,
         startingLevel: Int = 1,
         seed: UInt64? = nil,
-        now: @escaping () -> TimeInterval = { Date().timeIntervalSinceReferenceDate }
+        now: @escaping () -> TimeInterval = { Date().timeIntervalSinceReferenceDate },
+        feedback: (any GameFeedbackPlaying)? = nil
     ) {
         let lvl = max(1, startingLevel)
         let placeholder = Self.placeholder(for: curve.parameters(forLevel: lvl))
@@ -147,7 +153,8 @@ final class BoardViewModel {
             curve: curve,
             level: lvl,
             seed: seed,
-            now: now
+            now: now,
+            feedback: feedback ?? GameFeedbackService()
         )
         startGeneration(forLevel: lvl)
     }
@@ -203,6 +210,7 @@ final class BoardViewModel {
             lastDrop = nil
             if !isEmptyTube(index) {
                 selectedTube = index
+                feedback.play(.lift)
             }
             return
         }
@@ -214,15 +222,27 @@ final class BoardViewModel {
 
         let move = Move(from: source, to: index)
         if gameState.isLegal(move), let next = gameState.apply(move) {
+            let completedBefore = gameState.tubes.reduce(0) { $0 + ($1.isComplete ? 1 : 0) }
             history.append(gameState)
             gameState = next
             moveCount += 1
             lastDrop = index
             selectedTube = nil
-            if gameState.isWon { stopTimer() }
+            let completedAfter = gameState.tubes.reduce(0) { $0 + ($1.isComplete ? 1 : 0) }
+            if gameState.isWon {
+                stopTimer()
+                feedback.play(.win)
+            } else if completedAfter > completedBefore {
+                feedback.play(.tubeComplete)
+            } else {
+                feedback.play(.drop)
+            }
         } else {
             lastDrop = nil
             selectedTube = isEmptyTube(index) ? nil : index
+            // The `source == index` re-selection case returned earlier, so reaching
+            // here means a distinct destination was tapped and the move was rejected.
+            feedback.play(.illegalMove)
         }
     }
 
@@ -242,6 +262,7 @@ final class BoardViewModel {
         selectedTube = nil
         lastDrop = nil
         if !gameState.isWon { startTimer() }
+        feedback.play(.undo)
     }
 
     /// Reset the current level to its starting board, clearing history, counters,
