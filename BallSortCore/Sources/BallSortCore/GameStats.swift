@@ -81,6 +81,20 @@ public struct GameStats: Codable, Equatable, Sendable {
         return updated
     }
 
+    /// Returns a new `GameStats` with only the best-moves / best-time records
+    /// improved (lower wins), leaving `levelsSolved`, the streak, and `lastSolvedDay`
+    /// untouched.
+    ///
+    /// Used for replay/practice wins (E13): replaying a past level should be able to
+    /// sharpen your records without inflating the solved count or the daily streak or
+    /// advancing the difficulty curve.
+    public func improvingBests(moves: Int, seconds: Double) -> GameStats {
+        var updated = self
+        updated.bestMoves = Swift.min(bestMoves ?? moves, moves)
+        updated.bestTimeSeconds = Swift.min(bestTimeSeconds ?? seconds, seconds)
+        return updated
+    }
+
     /// Whether `day` is the calendar day immediately following `other`, where both
     /// are `yyyymmdd` keys. Correct across month, year, and leap-day boundaries
     /// because it resolves the keys to real dates via `Calendar`.

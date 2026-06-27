@@ -10,6 +10,8 @@ struct RootView: View {
     let model: BoardViewModel
     /// The durable stats, injected by the composition root (E7.4).
     let statsStore: StatsStore
+    /// The per-level run history, injected by the composition root (E13).
+    let historyStore: HistoryStore
 
     /// Whether the stats sheet is presented.
     @State private var showingStats = false
@@ -26,6 +28,10 @@ struct RootView: View {
 
             VStack(spacing: 16) {
                 topBar
+
+                if model.isReplaying {
+                    replayBanner
+                }
 
                 DifficultyBadgeView(level: model.level, band: model.difficultyBand)
 
@@ -62,18 +68,34 @@ struct RootView: View {
                 generatingOverlay
             } else if model.isWon {
                 ZenColor.scrim.ignoresSafeArea()
+                // During a replay excursion there's no curve to advance, so the
+                // primary action returns to the player's real current level (E13).
                 WinOverlayView(
                     moves: model.moveCount,
                     elapsed: model.elapsed,
-                    onNextLevel: { withAnimation(.easeInOut) { model.nextLevel() } },
+                    nextTitle: model.isReplaying ? "Done" : "Next Level",
+                    onNextLevel: {
+                        withAnimation(.easeInOut) {
+                            if model.isReplaying { model.exitReplay() } else { model.nextLevel() }
+                        }
+                    },
                     onReplay: { withAnimation(.easeInOut) { model.restart() } }
                 )
             }
         }
         .animation(.easeInOut, value: model.isWon)
         .animation(.easeInOut, value: model.isGenerating)
+        .animation(.easeInOut, value: model.isReplaying)
         .sheet(isPresented: $showingStats) {
-            StatsScreen(stats: statsStore.stats) { showingStats = false }
+            StatsScreen(
+                stats: statsStore.stats,
+                runs: historyStore.history.runs,
+                onRetry: { run in
+                    showingStats = false
+                    withAnimation(.easeInOut) { model.replay(run) }
+                },
+                onClose: { showingStats = false }
+            )
         }
         .sheet(isPresented: $showingSettings) {
             SettingsView { showingSettings = false }
@@ -100,6 +122,39 @@ struct RootView: View {
             }
             .accessibilityLabel("Stats")
         }
+        .padding(.horizontal, ZenSpacing.lg)
+    }
+
+    /// A calm banner shown while replaying a past level (E13): names the level being
+    /// replayed and offers an Exit back to the player's real current level.
+    private var replayBanner: some View {
+        HStack(spacing: ZenSpacing.md) {
+            Image(systemName: "arrow.counterclockwise")
+                .foregroundStyle(ZenColor.accent)
+            Text("Replaying Level \(model.level)")
+                .font(ZenFont.headline)
+                .foregroundStyle(ZenColor.textPrimary)
+            Spacer(minLength: ZenSpacing.sm)
+            Button { withAnimation(.easeInOut) { model.exitReplay() } } label: {
+                Text("Exit")
+                    .font(ZenFont.button)
+                    .foregroundStyle(ZenColor.accent)
+            }
+            .accessibilityLabel("Exit replay")
+        }
+        .lineLimit(1)
+        .minimumScaleFactor(0.7)
+        .padding(.vertical, ZenSpacing.sm)
+        .padding(.horizontal, ZenSpacing.lg)
+        .background(
+            ZenColor.elevated,
+            in: RoundedRectangle(cornerRadius: ZenRadius.md, style: .continuous)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: ZenRadius.md, style: .continuous)
+                .strokeBorder(ZenColor.stoneFrame, lineWidth: 1)
+        )
+        .zenShadow(.rest)
         .padding(.horizontal, ZenSpacing.lg)
     }
 
@@ -181,5 +236,9 @@ private struct ZenIconButtonLabel: View {
         ],
         capacity: 4
     )
-    return RootView(model: BoardViewModel(initialState: state), statsStore: StatsStore())
+    return RootView(
+        model: BoardViewModel(initialState: state),
+        statsStore: StatsStore(),
+        historyStore: HistoryStore()
+    )
 }

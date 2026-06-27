@@ -44,6 +44,38 @@ struct GameStatsTests {
         #expect(second.bestTimeSeconds == 20.0) // unchanged (worse time)
     }
 
+    // MARK: - improvingBests (replay / practice wins)
+
+    @Test("improvingBests lowers the records without touching counts or streak")
+    func improvingBestsSharpensRecordsOnly() {
+        let base = GameStats.empty.recordingWin(moves: 12, seconds: 30.0, day: 20260627)
+        let sharpened = base.improvingBests(moves: 8, seconds: 22.0)
+        #expect(sharpened.bestMoves == 8)
+        #expect(sharpened.bestTimeSeconds == 22.0)
+        // Practice excursion: solved count, streak, and last-solved day are untouched.
+        #expect(sharpened.levelsSolved == base.levelsSolved)
+        #expect(sharpened.currentStreak == base.currentStreak)
+        #expect(sharpened.longestStreak == base.longestStreak)
+        #expect(sharpened.lastSolvedDay == base.lastSolvedDay)
+    }
+
+    @Test("improvingBests keeps existing records when the result is worse")
+    func improvingBestsKeepsBetterRecords() {
+        let base = GameStats.empty.recordingWin(moves: 8, seconds: 20.0, day: 20260627)
+        let attempted = base.improvingBests(moves: 15, seconds: 40.0)
+        #expect(attempted.bestMoves == 8)
+        #expect(attempted.bestTimeSeconds == 20.0)
+        #expect(attempted.levelsSolved == 1)
+    }
+
+    @Test("improvingBests from empty seeds the records")
+    func improvingBestsFromEmptySeedsRecords() {
+        let seeded = GameStats.empty.improvingBests(moves: 10, seconds: 25.0)
+        #expect(seeded.bestMoves == 10)
+        #expect(seeded.bestTimeSeconds == 25.0)
+        #expect(seeded.levelsSolved == 0)
+    }
+
     // MARK: - Same-day second win
 
     @Test("same-day second win: streak unchanged, levelsSolved increments")

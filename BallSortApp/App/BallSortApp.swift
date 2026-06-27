@@ -53,7 +53,7 @@ struct BallSortApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootView(model: model, statsStore: statsStore)
+            RootView(model: model, statsStore: statsStore, historyStore: historyStore)
                 .preferredColorScheme(AppearanceMode(storedValue: appearanceRaw).colorScheme)
         }
     }

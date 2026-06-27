@@ -15,9 +15,14 @@ struct LevelRunTests {
         )
     }
 
+    /// A deterministic, non-failing UUID keyed by a small integer (no force unwrap).
+    private func uuid(_ value: Int) -> UUID {
+        UUID(uuid: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, UInt8(value)))
+    }
+
     private func run(_ id: Int, level: Int = 1) -> LevelRun {
         LevelRun(
-            id: UUID(uuidString: "00000000-0000-0000-0000-\(String(format: "%012d", id))")!,
+            id: uuid(id),
             level: level,
             moves: 10,
             timeSeconds: 42,

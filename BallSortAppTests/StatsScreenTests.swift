@@ -66,10 +66,28 @@ final class StatsScreenTests: XCTestCase {
     /// Done still invokes the injected `onClose`; the dismissal contract is unchanged.
     func testDoneInvokesOnClose() {
         var closed = false
-        let screen = StatsScreen(stats: .empty, onClose: { closed = true })
+        let screen = StatsScreen(stats: .empty, runs: [], onRetry: { _ in }, onClose: { closed = true })
 
         screen.onClose()
 
         XCTAssertTrue(closed)
+    }
+
+    /// Retry forwards the chosen run to the injected `onRetry` so `RootView` can start
+    /// a replay excursion (E13).
+    func testRetryForwardsTheChosenRun() {
+        let board = GameState(
+            tubes: [Tube(balls: [.blue, .blue], capacity: 2), Tube(balls: [], capacity: 2)],
+            capacity: 2
+        )
+        let run = LevelRun(
+            id: UUID(), level: 9, moves: 20, timeSeconds: 50, dayKey: 20_260_627, board: board
+        )
+        var retried: LevelRun?
+        let screen = StatsScreen(stats: .empty, runs: [run], onRetry: { retried = $0 }, onClose: {})
+
+        screen.onRetry(run)
+
+        XCTAssertEqual(retried, run)
     }
 }

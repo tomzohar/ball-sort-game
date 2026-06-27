@@ -17,7 +17,7 @@ final class HistoryStoreTests: XCTestCase {
     }
 
     private func id(_ value: Int) -> UUID {
-        UUID(uuidString: "00000000-0000-0000-0000-\(String(format: "%012d", value))")!
+        UUID(uuid: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, UInt8(value)))
     }
 
     func testStartsEmptyWhenNothingPersisted() {

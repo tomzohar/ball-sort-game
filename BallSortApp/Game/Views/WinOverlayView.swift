@@ -14,6 +14,10 @@ struct WinOverlayView: View {
     let onNextLevel: () -> Void
     let onReplay: () -> Void
 
+    /// The primary button's title. Defaults to "Next Level"; a replay excursion
+    /// overrides it (e.g. "Done") since there's no curve to advance (E13).
+    var nextTitle: LocalizedStringKey = "Next Level"
+
     /// When `true`, the card renders in its settled (fully-visible) state instead of
     /// running the entrance animation. Snapshots/previews pass `true` for a stable,
     /// content-bearing baseline; production uses the default and animates in.
@@ -27,12 +31,14 @@ struct WinOverlayView: View {
         moves: Int,
         elapsed: TimeInterval,
         startsSettled: Bool = false,
+        nextTitle: LocalizedStringKey = "Next Level",
         onNextLevel: @escaping () -> Void,
         onReplay: @escaping () -> Void
     ) {
         self.moves = moves
         self.elapsed = elapsed
         self.startsSettled = startsSettled
+        self.nextTitle = nextTitle
         self.onNextLevel = onNextLevel
         self.onReplay = onReplay
         _appeared = State(initialValue: startsSettled)
@@ -71,7 +77,7 @@ struct WinOverlayView: View {
     private var buttons: some View {
         VStack(spacing: ZenSpacing.md) {
             Button(action: onNextLevel) {
-                Text("Next Level")
+                Text(nextTitle)
                     .font(ZenFont.button)
                     .frame(maxWidth: .infinity)
             }
