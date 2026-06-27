@@ -120,6 +120,30 @@
       "hook": "Serene Zen Garden skin selected over Stitch's output; tracked as E12; m7 differentiator resolved.",
       "body": "The m7 saturated-genre differentiator is resolved on the VISUAL axis: v1 ships a 'Serene Zen Garden' identity — polished river-stones in frosted glass on a raked-sand bed, light-hero, premium-calm. Re-tuned 6-stone palette (Amber/Persimmon/Plum/Moss/Pond/Iris) each with a built-in colorblind texture; SF Rounded body + Spectral brand accent; zen-cairn app icon. Authored in Claude Design (preferred over a parallel Google Stitch pass); canvas at https://claude.ai/design/p/f2dfea89-cb9c-4551-b0cf-77dc498e5580 , captured in docs/design/ZEN_GARDEN.md. Implementation tracked as epic E12 (visual reskin only — Core/generator/solver/ViewModels and classic rules unchanged; App-layer mapping + Views only). Claude Design MCP import was blocked (interactive /design-login unavailable); design captured via authenticated browser instead.",
       "created": "2026-06-27"
+    },
+    {
+      "id": "m16",
+      "title": "Board layout = single-row, screen-filling (overrides E12 two-row spec)",
+      "type": "decision",
+      "hook": "All tubes in one row; board fills the screen via height-aware ball sizing + dynamic inter-ball gap.",
+      "body": "Post-E12 UX iteration (Tom-directed, on main). The board renders ALL tubes in a single HStack — the ZEN_GARDEN canvas's '≤5 one row else two balanced rows' rule was tried then DROPPED. BoardLayout.fittedBallSize picks the largest ball that fits both the row width and the tray height; BoardLayout.filledBallGap stretches the inter-ball gap to spread the column down the tray, capped at 0.45×ball so tubes read as neat columns (an earlier 2× cap looked floaty). Balls a bit larger via trimmed overhead (tubeGap 8→6, tubeHorizontalPadding 5→4). RootView lets the tray fill the space between HUD and controls; iPad (regular width) gets roomier margins. Trade-off: with 6–7 width-bound tubes the column is shorter than the tall tray, leaving centered vertical margin (acceptable; alt knob = shrink tray to hug the board). Do NOT restore two rows per the design doc without a fresh decision.",
+      "created": "2026-06-27"
+    },
+    {
+      "id": "m17",
+      "title": "E12 Zen Garden reskin shipped to main",
+      "type": "context",
+      "hook": "Foundation + 10 component reskins + snapshot reconcile on main; Spectral font stubbed; a few follow-ups deferred.",
+      "body": "E12 (visual-only reskin) is on main: ZenTheme tokens (semantic light+dark colors, spacing/radius/elevation in BallSortApp/Game/Theme/), ZenTypography, re-tuned 6-stone palette + per-stone colorblind textures (BallColor+Texture), Zen motion (AnimationConstants), and every per-screen reskin. Exact tokens are captured in docs/design/ZEN_TOKENS.md (read off the live Claude Design canvas via the Omelette GetProject API, since DesignSync/design-login was unavailable). KNOWN FOLLOW-UPS: the Spectral brand font is STUBBED with the system serif (ZenFont.brand) — real .ttf bundling + project.yml UIAppFonts registration still TODO; E12.14 app icon (Tom's call), E12.16 explicit light/dark pass, and E12.17 iPad form-sheets remain backlog todo.",
+      "created": "2026-06-27"
+    },
+    {
+      "id": "m18",
+      "title": "iOS dev-env gotchas (parallel builds, xcodegen scheme, snapshot record)",
+      "type": "risk",
+      "hook": "Don't fan out many local xcodebuilds; clean-regen for the app scheme; re-record snapshots via TEST_RUNNER env.",
+      "body": "(1) Fanning out ~10 parallel `xcodebuild test` runs (e.g. background worktree agents) melted this Mac (load ~400–600) and the agents stalled before committing — cap concurrency, or have agents only edit+lint+commit and let GitHub CI build each PR, then do ONE serialized integration build at the end. (2) xcodegen does NOT emit a shared BallSortApp scheme; `xcodebuild test -scheme BallSortApp` won't autocreate it from a stale project — on 'scheme not found' run `rm -rf BallSort.xcodeproj && xcodegen generate`. (3) Re-record snapshot baselines with `TEST_RUNNER_SNAPSHOT_TESTING_RECORD=all xcodebuild test …` (forwards the env to the test process) for plain assertSnapshot tests; tests pinned `withSnapshotTesting(record: .missing)` ignore it — flip those to .all, run, flip back. (4) Per-PR CI goes red for component-slice PRs over a shared visual foundation (each re-records only its own snapshots + CI sim ≠ local sim) — reconcile all baselines in one pass.",
+      "created": "2026-06-27"
     }
   ]
 }

@@ -76,8 +76,18 @@ primary / secondary, accent, success.
 - **iPad:** game (8 tubes → two balanced rows) · dark-mode win.
 - **App icon:** zen-stone **cairn**, shown 1024px down to 40px and on the home screen.
 
-Layout rules unchanged: portrait-only, universal; ≤5 tubes one row else two
-balanced rows; touch targets ≥ 44pt.
+Layout rules: portrait-only, universal; touch targets ≥ 44pt.
+
+> **Implementation note (shipped, supersedes the canvas's two-row exploration).**
+> The shipped board uses a **single row for all tubes** and **stretches to fill the
+> screen**: ball diameter is the largest that fits both the row width and the tray
+> height (`BoardLayout.fittedBallSize`), and the inter-ball gap grows to spread the
+> column down the tray, capped at 0.45× the ball size (`BoardLayout.filledBallGap`)
+> so tubes read as neat columns. The tray fills the space between the HUD and the
+> controls; iPad (regular width) gets roomier margins. The canvas's "≤5 one row else
+> two balanced rows" / "8 tubes → two balanced rows" rule was **dropped** by product
+> decision (see memory m16) — if iPad ever needs two rows, that is a fresh decision,
+> not a restoration of this spec.
 
 ## Not yet on the canvas (noted by the designer as follow-ups)
 

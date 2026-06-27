@@ -540,7 +540,7 @@
           "id": "E12.17",
           "title": "iPad layouts",
           "status": "todo",
-          "note": "8 tubes -> two balanced rows; Stats/Settings as centered form-sheets (designer follow-up). Adaptive sizing via BoardLayout."
+          "note": "Board is single-row + screen-filling on all devices (adaptive sizing via BoardLayout.fittedBallSize/filledBallGap is DONE, supersedes the two-row plan; see memory m16). Remaining: iPad Stats/Settings as centered form-sheets + roomier iPad margins verified."
         },
         {
           "id": "E12.18",

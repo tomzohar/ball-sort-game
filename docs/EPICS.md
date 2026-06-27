@@ -52,10 +52,14 @@ Leaderboards (best moves/time, levels solved) + achievements via Apple's native 
 Apple Developer enrollment (**Tom's task**, payment + Apple ID), signing/provisioning, App Store Connect setup, privacy nutrition label (trivial — no SDKs/data collection in v1), screenshots + metadata, TestFlight beta, submission & review.
 **Depends on:** enrollment (external); final build needs E9. **Deliverable:** app on the App Store.
 
+## E12 — "Zen Garden" visual reskin _(largely shipped)_
+Reskin the app to the locked Zen Garden identity (river-stones in frosted glass on a raked-sand bed, light-hero) — resolves the m7 differentiation risk (see m15). **Visual only:** Core, generator/solver, ViewModels, and classic rules are unchanged; only the App-layer `BallColor`→`Color` mapping and SwiftUI Views change. Foundation (`ZenTheme` tokens, typography, re-tuned 6-stone palette + colorblind textures, motion) + the per-component reskins (ball, tube, raked-sand tray, badge, HUD, buttons, overlay, stats, settings, launch) shipped to `main`; snapshot baselines reconciled (E12.18). The board layout was also reworked to fill the screen as a **single row** (memory m16). **Deferred:** E12.14 app icon (Tom's call), E12.16 light/dark verification pass, E12.17 iPad layouts (now single-row board + iPad form-sheets). Spec: `docs/design/ZEN_GARDEN.md` + exact tokens in `docs/design/ZEN_TOKENS.md`.
+**Depends on:** E4–E9 + m15. **Deliverable:** premium, on-identity look.
+
 ---
 
 ### Critical path
 `E0 → E1 → E2 → E3 → E4 → E5` gets a playable, infinitely-replayable game. E6–E9 make it shippable. E10–E11 get it live (enrollment is the long pole — overlap it from the start).
 
 ### Revisit before submission
-The **differentiation** question (deferred from scope). A faithful clone in a saturated genre risks invisibility — decide on a hook (signature theme, twist mechanic, or daily puzzle) before we spend on store assets.
+The **differentiation** question — **RESOLVED** (m15/E12): v1's hook is the "Zen Garden" visual identity (shipped). No twist-mechanic or daily-puzzle hook for v1; revisit those post-launch if needed.
