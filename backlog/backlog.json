@@ -265,26 +265,26 @@
         {
           "id": "E7.1",
           "title": "Persist in-progress level",
-          "status": "todo",
-          "note": ""
+          "status": "done",
+          "note": "Foundation PRs #24 (Codable on Core) + #26 (PersistenceStore/JSONFileStore/InMemory fake). Integration: SavedGame envelope (level/gameState/initialState/moveCount/elapsed; undo history dropped) persisted by BoardViewModel.persistProgress() after every mutation/install; restored on launch via BoardViewModel(restoring:) wired in the composition root. Verified: real app writes saved-game.json to Application Support on launch."
         },
         {
           "id": "E7.2",
           "title": "Persist stats across relaunch",
-          "status": "todo",
-          "note": ""
+          "status": "done",
+          "note": "StatsStore (@Observable, App layer) loads GameStats from PersistenceStore on init and re-saves after each recorded win; BoardViewModel calls statsStore.recordWin(moves:seconds:) on win. Foundation: PR #25 (GameStats Core model) + #26 (store)."
         },
         {
           "id": "E7.3",
           "title": "Stats + streaks model (levels solved, best moves/time, daily streak)",
-          "status": "todo",
-          "note": ""
+          "status": "done",
+          "note": "GameStats (Core, PR #25): levelsSolved, bestMoves, bestTimeSeconds, currentStreak, longestStreak, lastSolvedDay (yyyymmdd key). recordingWin(moves:seconds:day:) is pure; daily-streak adjacency uses Foundation Calendar (correct across month/year/leap). StatsStore.currentDayKey() supplies today's local-calendar key."
         },
         {
           "id": "E7.4",
           "title": "Stats screen",
-          "status": "todo",
-          "note": ""
+          "status": "done",
+          "note": "StatsView dumb view (PR #27, snapshot-tested). Integration: StatsScreen maps GameStats -> StatsView primitives + Done button; presented as a sheet from a chart-icon button in RootView's top bar. Real running-app screenshot: docs/screenshots/e7-home.png (stats button visible)."
         }
       ]
     },

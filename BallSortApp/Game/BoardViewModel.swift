@@ -70,6 +70,13 @@ final class BoardViewModel {
     private let now: () -> TimeInterval
     private let feedback: any GameFeedbackPlaying
 
+    /// The store the in-progress level is snapshotted to (E7.1), or `nil` to
+    /// disable persistence (pinned test/snapshot boards).
+    private let persistence: (any PersistenceStore)?
+
+    /// Records wins into durable stats on win (E7.2), or `nil` to skip recording.
+    private let statsStore: StatsStore?
+
     // MARK: - Timer
 
     private var startedAt: TimeInterval?
@@ -94,7 +101,9 @@ final class BoardViewModel {
         level: Int,
         seed: UInt64?,
         now: @escaping () -> TimeInterval,
-        feedback: any GameFeedbackPlaying
+        feedback: any GameFeedbackPlaying,
+        persistence: (any PersistenceStore)?,
+        statsStore: StatsStore?
     ) {
         self.gameState = state
         self.initialState = state
@@ -110,6 +119,8 @@ final class BoardViewModel {
         self.seed = seed
         self.now = now
         self.feedback = feedback
+        self.persistence = persistence
+        self.statsStore = statsStore
     }
 
     /// Pins a fixed board with progression disabled — for tests and snapshots.
@@ -119,7 +130,9 @@ final class BoardViewModel {
         initialState: GameState,
         solver: some Solving = Solver(),
         now: @escaping () -> TimeInterval = { Date().timeIntervalSinceReferenceDate },
-        feedback: (any GameFeedbackPlaying)? = nil
+        feedback: (any GameFeedbackPlaying)? = nil,
+        persistence: (any PersistenceStore)? = nil,
+        statsStore: StatsStore? = nil
     ) {
         self.init(
             state: initialState,
@@ -130,7 +143,9 @@ final class BoardViewModel {
             level: 1,
             seed: nil,
             now: now,
-            feedback: feedback ?? NoFeedback()
+            feedback: feedback ?? NoFeedback(),
+            persistence: persistence,
+            statsStore: statsStore
         )
         startTimer()
     }
@@ -146,7 +161,9 @@ final class BoardViewModel {
         startingLevel: Int = 1,
         seed: UInt64? = nil,
         now: @escaping () -> TimeInterval = { Date().timeIntervalSinceReferenceDate },
-        feedback: (any GameFeedbackPlaying)? = nil
+        feedback: (any GameFeedbackPlaying)? = nil,
+        persistence: (any PersistenceStore)? = nil,
+        statsStore: StatsStore? = nil
     ) {
         let lvl = max(1, startingLevel)
         let placeholder = Self.placeholder(for: curve.parameters(forLevel: lvl))
@@ -159,7 +176,9 @@ final class BoardViewModel {
             level: lvl,
             seed: seed,
             now: now,
-            feedback: feedback ?? GameFeedbackService()
+            feedback: feedback ?? GameFeedbackService(),
+            persistence: persistence,
+            statsStore: statsStore
         )
         startGeneration(forLevel: lvl)
     }
@@ -236,12 +255,14 @@ final class BoardViewModel {
             let completedAfter = gameState.tubes.reduce(0) { $0 + ($1.isComplete ? 1 : 0) }
             if gameState.isWon {
                 stopTimer()
+                statsStore?.recordWin(moves: moveCount, seconds: elapsed)
                 feedback.play(.win)
             } else if completedAfter > completedBefore {
                 feedback.play(.tubeComplete)
             } else {
                 feedback.play(.drop)
             }
+            persistProgress()
         } else {
             illegalMoveNonce += 1
             lastDrop = nil
@@ -269,6 +290,7 @@ final class BoardViewModel {
         lastDrop = nil
         if !gameState.isWon { startTimer() }
         feedback.play(.undo)
+        persistProgress()
     }
 
     /// Reset the current level to its starting board, clearing history, counters,
@@ -283,6 +305,7 @@ final class BoardViewModel {
         lastDrop = nil
         resetTimer()
         startTimer()
+        persistProgress()
     }
 
     /// Advance to the next level: generate the next board along the curve (off-main).
@@ -390,6 +413,7 @@ extension BoardViewModel {
         isGenerating = false
         startTimer()
         scheduleGrading()
+        persistProgress()
     }
 
     nonisolated private static func makeLevel(
@@ -457,5 +481,67 @@ extension BoardViewModel {
     private func isEmptyTube(_ index: Int) -> Bool {
         guard gameState.tubes.indices.contains(index) else { return true }
         return gameState.tubes[index].isEmpty
+    }
+}
+
+// MARK: - Persistence (E7)
+
+extension BoardViewModel {
+
+    /// Restores a persisted in-progress level (E7.1): installs the saved board
+    /// directly — no generation — while keeping progression live so `nextLevel()`
+    /// continues along the curve. The composition root uses this when a `SavedGame`
+    /// was found on launch.
+    convenience init(
+        restoring saved: SavedGame,
+        generator: some LevelGenerating = Generator(),
+        solver: some Solving = Solver(),
+        grader: DifficultyGrader = DifficultyGrader(),
+        curve: DifficultyCurve = .default,
+        seed: UInt64? = nil,
+        now: @escaping () -> TimeInterval = { Date().timeIntervalSinceReferenceDate },
+        feedback: (any GameFeedbackPlaying)? = nil,
+        persistence: (any PersistenceStore)? = nil,
+        statsStore: StatsStore? = nil
+    ) {
+        self.init(
+            state: saved.gameState,
+            generator: generator,
+            solver: solver,
+            grader: grader,
+            curve: curve,
+            level: saved.level,
+            seed: seed,
+            now: now,
+            feedback: feedback ?? GameFeedbackService(),
+            persistence: persistence,
+            statsStore: statsStore
+        )
+        restore(from: saved)
+    }
+
+    /// Apply the non-board fields of `saved` (initial board, counters, clock) and
+    /// resume the level. Split out so the designated init stays board-only.
+    private func restore(from saved: SavedGame) {
+        initialState = saved.initialState
+        moveCount = saved.moveCount
+        frozenElapsed = saved.elapsedSeconds
+        startTimer()
+        scheduleGrading()
+    }
+
+    /// Snapshot the in-progress level to the injected store (E7.1). A no-op when
+    /// persistence is disabled (pinned boards). Failures are swallowed — a missed
+    /// save just means the resume falls back to the last good snapshot.
+    func persistProgress() {
+        guard let persistence else { return }
+        let saved = SavedGame(
+            level: level,
+            gameState: gameState,
+            initialState: initialState,
+            moveCount: moveCount,
+            elapsedSeconds: elapsed
+        )
+        try? persistence.save(saved, forKey: PersistenceKeys.savedGame)
     }
 }
