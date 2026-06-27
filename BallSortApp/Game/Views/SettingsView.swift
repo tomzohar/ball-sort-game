@@ -96,6 +96,13 @@ struct SettingsView: View {
                 }
             }
         }
+        // The app root applies `.preferredColorScheme` for the main window, but a
+        // `.sheet` is hosted in a separate presentation context that doesn't re-read
+        // that root modifier reactively — so without this, flipping the Appearance
+        // picker only restyles the board behind the sheet, not the sheet itself, until
+        // it's reopened. Applying it here (driven by the same key) makes the change
+        // live in the sheet too (E13).
+        .preferredColorScheme(AppearanceMode(storedValue: appearanceRaw).colorScheme)
     }
 }
 
