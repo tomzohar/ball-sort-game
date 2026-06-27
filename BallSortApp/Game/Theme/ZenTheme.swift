@@ -51,6 +51,8 @@ enum ZenColor {
     static let accent = Color(lightHex: 0x4F9D8B, darkHex: 0x6FB9A6)
     /// Success — "moss" green. Completed tubes, win.
     static let success = Color(lightHex: 0x6E9E62, darkHex: 0x7FB073)
+    /// Scrim — dimmed backdrop behind modal overlay cards (win/generating).
+    static let scrim = Color.black.opacity(0.4)
 }
 
 // MARK: - Spacing scale

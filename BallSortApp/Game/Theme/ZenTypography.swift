@@ -33,6 +33,18 @@ enum ZenFont {
 
     /// NUMERIC — Nunito ExtraBold · tabular. HUD values (128, 02:14) — never jitters.
     static let numeric = Font.system(.title2, design: .rounded).weight(.heavy).monospacedDigit()
+
+    /// BUTTON — primary/secondary button labels. Nunito Bold.
+    static let button = Font.system(.body, design: .rounded).weight(.bold)
+
+    /// STAT VALUE — large tabular numbers in overlay cards (moves/time). Like NUMERIC, larger.
+    static let statValue = Font.system(.title, design: .rounded).weight(.heavy).monospacedDigit()
+
+    /// STATUS — small supporting/status text (overlay sublabels). Nunito SemiBold.
+    static let status = Font.system(.caption, design: .rounded).weight(.semibold)
+
+    /// HEADLINE — section headlines (settings groups). Nunito Bold.
+    static let headline = Font.system(.headline, design: .rounded).weight(.bold)
 }
 
 extension Text {
