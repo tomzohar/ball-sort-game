@@ -8,12 +8,19 @@ import BallSortCore
 struct RootView: View {
     /// The game-loop state machine, injected by the composition root.
     let model: BoardViewModel
+    /// The durable stats, injected by the composition root (E7.4).
+    let statsStore: StatsStore
+
+    /// Whether the stats sheet is presented.
+    @State private var showingStats = false
 
     var body: some View {
         ZStack {
             GameBackground()
 
             VStack(spacing: 16) {
+                topBar
+
                 DifficultyBadgeView(level: model.level, band: model.difficultyBand)
 
                 // The HUD's clock ticks live via a TimelineView re-reading `elapsed`.
@@ -56,6 +63,27 @@ struct RootView: View {
         }
         .animation(.easeInOut, value: model.isWon)
         .animation(.easeInOut, value: model.isGenerating)
+        .sheet(isPresented: $showingStats) {
+            StatsScreen(stats: statsStore.stats) { showingStats = false }
+        }
+    }
+
+    /// A slim top bar carrying the stats button at the trailing edge.
+    private var topBar: some View {
+        HStack {
+            Spacer()
+            Button {
+                showingStats = true
+            } label: {
+                Image(systemName: "chart.bar.fill")
+                    .font(.title3)
+                    .foregroundStyle(.white)
+                    .padding(10)
+                    .background(Color.black.opacity(0.25), in: Circle())
+            }
+            .accessibilityLabel("Stats")
+        }
+        .padding(.horizontal, 16)
     }
 
     private var generatingOverlay: some View {
@@ -84,5 +112,5 @@ struct RootView: View {
         ],
         capacity: 4
     )
-    return RootView(model: BoardViewModel(initialState: state))
+    return RootView(model: BoardViewModel(initialState: state), statsStore: StatsStore())
 }

@@ -104,6 +104,14 @@
       "type": "decision",
       "hook": "requestHint() is the rewarded-ad seam; gold source/dashed dest highlight.",
       "body": "E6 hints reuse E3's Solver: BoardViewModel.requestHint() runs solver.solve(state).first off the main actor (Task.detached, like grading) and stores it as hintMove; the board highlights it (TubeView isHintSource = solid gold border, isHintTarget = dashed gold border). hintMove is cleared on any board mutation (tap/undo/restart/level change) and the hint Task is cancelled. requestHint() is the clean seam a future rewarded-ad gate would wrap. canHint = !isGenerating && !isWon drives the gold Hint pill in BoardControlsView."
+    },
+    {
+      "id": "m14",
+      "title": "E7 persistence seam: PersistenceStore + SavedGame + StatsStore",
+      "type": "decision",
+      "hook": "Codable-to-JSON behind an injected protocol (ADR-0002); composition root restores on launch.",
+      "body": "E7 (ADR-0002) persists via a generic key-based PersistenceStore protocol (BallSortApp/Persistence/) with JSONFileStore (writes <Application Support>/BallSort/<key>.json atomically) and an InMemoryPersistenceStore fake for tests/previews. Two payloads, keyed by PersistenceKeys: (1) SavedGame envelope {level, gameState, initialState, moveCount, elapsedSeconds} — undo history intentionally dropped — written by BoardViewModel.persistProgress() after every move/undo/restart/install; restored on launch via BoardViewModel(restoring:). (2) GameStats (Core value type) owned by StatsStore (@Observable, App layer) which loads on init and re-saves after BoardViewModel calls statsStore.recordWin(moves:seconds:) on win. Daily streak uses a yyyymmdd Int day-key; GameStats.recordingWin is pure (adjacency via Foundation Calendar, correct across month/year/leap); StatsStore.currentDayKey() supplies today's local-calendar key. BallSortApp.init() is the composition root: constructs JSONFileStore + StatsStore, loads SavedGame, picks BoardViewModel(restoring:) vs the generating init, injects both into RootView. Stats UI: chart-icon button in RootView top bar -> StatsScreen sheet maps GameStats to the dumb StatsView. Persistence/statsStore are optional (nil) on the pinned init(initialState:) so test/snapshot boards don't touch disk. Built as the /batch integration step after 4 parallel foundation PRs (#24 Codable core, #25 GameStats, #26 store, #27 StatsView). The restore init + persistProgress() live in a same-file `extension BoardViewModel` (// MARK: Persistence) so private state stays accessible while keeping the class body under SwiftLint's type_body_length — mirroring PR #30's generation-extension split.",
+      "created": "2026-06-27"
     }
   ]
 }
