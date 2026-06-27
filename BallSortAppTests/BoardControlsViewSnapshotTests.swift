@@ -35,18 +35,20 @@ final class BoardControlsViewSnapshotTests: XCTestCase {
         host.view.frame = CGRect(x: 0, y: 0, width: width, height: height)
 
         // precision/perceptualPrecision absorb sub-pixel gradient-rendering diffs across OS versions.
-        assertSnapshot(
-            of: host.view,
-            as: .image(
-                precision: 0.98,
-                perceptualPrecision: 0.97,
-                traits: .init(userInterfaceStyle: .light)
-            ),
-            named: name,
-            file: file,
-            testName: testName,
-            line: line
-        )
+        withSnapshotTesting(record: .missing) {
+            assertSnapshot(
+                of: host.view,
+                as: .image(
+                    precision: 0.98,
+                    perceptualPrecision: 0.97,
+                    traits: .init(userInterfaceStyle: .light)
+                ),
+                named: name,
+                file: file,
+                testName: testName,
+                line: line
+            )
+        }
     }
 
     func testCanUndoEnabled() {
