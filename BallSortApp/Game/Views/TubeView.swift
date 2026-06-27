@@ -1,11 +1,19 @@
 import SwiftUI
 import BallSortCore
 
-/// A single tube: a gravity-stacked column of balls over empty "dimple" cells,
-/// ported from the prototype's `.col` / `.cell` styling.
+/// A single tube: a Zen Garden "frosted-glass cylinder in sand" (E12.5) holding a
+/// gravity-stacked column of balls over empty "dimple" slots sunk into the sand bed.
 ///
 /// Dumb view (ADR-0001): it renders a `Tube` and reports taps; all move logic
-/// lives in `BoardViewModel` / `BallSortCore`. Sizing comes from `BoardLayout`.
+/// lives in `BoardViewModel` / `BallSortCore`. Sizing comes from `BoardLayout`;
+/// the look comes from the `Zen*` tokens (`ZenColor`, `ZenRadius`, `ZenShadow`).
+///
+/// Visual states, all derived from existing inputs:
+/// - **empty** — the resting frosted cylinder with all dimple slots.
+/// - **idle** — partially/fully filled, no selection involved.
+/// - **selected** — lifted source tube: accent (water) rim + glow.
+/// - **target** — a legal destination: accent rim + soft glow ("drop here").
+/// - **complete** — single-color full tube: success (moss) rim + glow.
 struct TubeView: View {
     /// The tube to render (balls ordered bottom `[0]` → top `.last`).
     let tube: Tube
@@ -29,6 +37,20 @@ struct TubeView: View {
     /// Invoked when the tube is tapped.
     let onTap: () -> Void
 
+    /// The tube's settled visual state, derived purely from inputs.
+    private var visualState: VisualState {
+        if isHintSource { return .hintSource }
+        if isHintTarget { return .hintTarget }
+        if isSelected { return .selected }
+        if isTarget { return .target }
+        if tube.isComplete { return .complete }
+        return .idle
+    }
+
+    /// Corner radius for the frosted cylinder. The mouth/foot read as a rounded
+    /// capsule end; uses the `ZenRadius.lg` token (no `BoardLayout` math change).
+    private var cornerRadius: CGFloat { ZenRadius.lg }
+
     var body: some View {
         VStack(spacing: BoardLayout.ballGap) {
             ForEach(0..<capacity, id: \.self) { slot in
@@ -41,10 +63,13 @@ struct TubeView: View {
             width: BoardLayout.tubeWidth(ballSize: ballSize),
             height: BoardLayout.tubeHeight(ballSize: ballSize, capacity: capacity)
         )
-        .background(highlight)
-        .scaleEffect(flourishing ? 1.08 : 1.0)
-        // "Tube complete" glow pulse (E8.3); inert otherwise.
-        .shadow(color: flourishing ? Color(hex: 0x36D44A).opacity(0.85) : .clear, radius: 16)
+        .background(frostedGlass)
+        .overlay(rim)
+        .scaleEffect(flourishing ? 1.06 : 1.0)
+        // Resting elevation: a whisper of depth so the cylinder sits in the sand.
+        .zenShadow(.rest)
+        // State glow: accent (selection/target/hint) or success (complete/flourish).
+        .shadow(color: glowColor, radius: flourishing ? 18 : 12)
         .contentShape(Rectangle())
         .onTapGesture(perform: onTap)
         // Treat the whole tube as one VoiceOver element with a descriptive label
@@ -112,7 +137,7 @@ struct TubeView: View {
         if let color = slotsTopToBottom[slot] {
             let lifted = isSelected && slot == topBallSlot
             BallView(color: color, size: ballSize, isLifted: lifted)
-                // Prototype lifts the selected top ball ~10px (`translateY(-10px)`).
+                // Lift the selected top ball ~10pt up over the tube mouth.
                 .offset(y: lifted ? -10 : 0)
                 .animation(AnimationConstants.ballLift, value: lifted)
         } else {
@@ -120,65 +145,143 @@ struct TubeView: View {
         }
     }
 
-    // MARK: - Tube state highlight
+    // MARK: - Frosted-glass cylinder
 
+    /// The translucent frosted-glass body: a soft, lightly-tinted fill over the
+    /// `sandBed` so the bed shows through like glass resting in the garden.
     @ViewBuilder
-    private var highlight: some View {
-        let shape = RoundedRectangle(cornerRadius: BoardLayout.tubeCornerRadius, style: .continuous)
-        let gold = Color(hex: 0xFFC400)
-        if isHintSource {
-            // Hint source (E6): warm gold glow + solid border — "lift from here".
-            shape
-                .fill(gold.opacity(0.20))
-                .overlay(shape.strokeBorder(gold.opacity(0.95), lineWidth: 2.5))
-        } else if isHintTarget {
-            // Hint destination (E6): same gold, dashed border — "drop here".
-            shape
-                .fill(gold.opacity(0.12))
-                .overlay(
-                    shape.strokeBorder(
-                        gold.opacity(0.85),
-                        style: StrokeStyle(lineWidth: 2, dash: [6, 4])
+    private var frostedGlass: some View {
+        let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+        shape
+            // Frost: a translucent veil of the sand bed, brightening toward the
+            // top "mouth" so the cylinder reads as glass, not a flat panel.
+            .fill(ZenColor.sandBed.opacity(0.55))
+            .overlay(
+                shape.fill(
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(0.28),
+                            Color.white.opacity(0.06),
+                            Color.clear
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
                     )
                 )
-        } else if isTarget {
-            // Prototype `.col.target`: green tint + inset white border.
-            shape
-                .fill(Color(hex: 0x36D44A).opacity(0.12))
-                .overlay(shape.strokeBorder(Color.white.opacity(0.35), lineWidth: 2))
-        } else if isSelected {
-            // Prototype `.col.selected`: faint white wash.
-            shape.fill(Color.white.opacity(0.12))
+            )
+            // A faint inner state wash so selected/target/complete tubes tint the glass.
+            .overlay(shape.fill(stateWash))
+    }
+
+    /// The glass rim: a hairline `stoneFrame` border at rest, recoloured to the
+    /// active state's accent so selection/target/complete read at a glance.
+    private var rim: some View {
+        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+            .strokeBorder(rimColor, lineWidth: rimWidth)
+            .allowsHitTesting(false)
+    }
+
+    // MARK: - State styling
+
+    /// A subtle interior tint applied over the frosted glass per state.
+    private var stateWash: Color {
+        switch visualState {
+        case .idle:        return .clear
+        case .selected:    return ZenColor.accent.opacity(0.14)
+        case .target:      return ZenColor.accent.opacity(0.10)
+        case .complete:    return ZenColor.success.opacity(0.14)
+        case .hintSource:  return ZenColor.accent.opacity(0.18)
+        case .hintTarget:  return ZenColor.accent.opacity(0.10)
         }
+    }
+
+    /// The rim color per state. Idle keeps the calm `stoneFrame` hairline; active
+    /// states use accent (water) or success (moss).
+    private var rimColor: Color {
+        switch visualState {
+        case .idle:        return ZenColor.stoneFrame.opacity(0.85)
+        case .selected:    return ZenColor.accent
+        case .target:      return ZenColor.accent.opacity(0.85)
+        case .complete:    return ZenColor.success
+        case .hintSource:  return ZenColor.accent
+        case .hintTarget:  return ZenColor.accent.opacity(0.85)
+        }
+    }
+
+    /// Rim weight: a hairline at rest, thicker when a state wants attention.
+    private var rimWidth: CGFloat {
+        switch visualState {
+        case .idle:                          return 1.5
+        case .target, .hintTarget:           return 2
+        case .selected, .complete, .hintSource: return 2.5
+        }
+    }
+
+    /// The soft outer glow color per state (drives the state `.shadow`). The
+    /// complete flourish always glows moss regardless of selection.
+    private var glowColor: Color {
+        if flourishing { return ZenColor.success.opacity(0.85) }
+        switch visualState {
+        case .idle:        return .clear
+        case .selected:    return ZenColor.accent.opacity(0.55)
+        case .target:      return ZenColor.accent.opacity(0.40)
+        case .complete:    return ZenColor.success.opacity(0.45)
+        case .hintSource:  return ZenColor.accent.opacity(0.65)
+        case .hintTarget:  return ZenColor.accent.opacity(0.45)
+        }
+    }
+
+    /// The settled visual states a tube can be in (priority-ordered in `visualState`).
+    private enum VisualState {
+        case idle, selected, target, complete, hintSource, hintTarget
     }
 }
 
-/// An empty tube slot: a sunken dark dimple, ported from the prototype's `.cell`.
+/// An empty tube slot: a sunken sand "dimple" pressed into the bed, the Zen Garden
+/// reskin of the prototype's dark `.cell` (E12.5). A soft radial shading darkens the
+/// hollow with a faint top inset, so each empty slot reads as a scooped depression.
 private struct EmptyCell: View {
     let size: CGFloat
 
     var body: some View {
         Circle()
+            // The dimple floor: a touch darker than the sand bed, deepest at center.
             .fill(
                 RadialGradient(
-                    gradient: Gradient(colors: [Color.black.opacity(0.30), Color.clear]),
-                    center: UnitPoint(x: 0.5, y: 0.6),
+                    gradient: Gradient(colors: [
+                        ZenColor.sandBed.opacity(0.9),
+                        ZenColor.stoneFrame.opacity(0.35)
+                    ]),
+                    center: UnitPoint(x: 0.5, y: 0.55),
                     startRadius: 0,
                     endRadius: size * 0.6
                 )
             )
-            // Approximate the prototype's `inset 0 4px 7px rgba(0,0,0,.45)`.
+            // Inset shadow rim — the lip of the scooped hollow, darkest at the top.
             .overlay(
                 Circle()
                     .fill(
                         LinearGradient(
-                            colors: [Color.black.opacity(0.45), Color.clear],
+                            colors: [Color.black.opacity(0.22), Color.clear],
                             startPoint: .top,
                             endPoint: .center
                         )
                     )
                     .blur(radius: 3)
-                    .mask(Circle().stroke(lineWidth: 6))
+                    .mask(Circle().stroke(lineWidth: 5))
+            )
+            // A whisper of catch-light along the lower lip of the dimple.
+            .overlay(
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.clear, Color.white.opacity(0.18)],
+                            startPoint: .center,
+                            endPoint: .bottom
+                        )
+                    )
+                    .blur(radius: 2)
+                    .mask(Circle().stroke(lineWidth: 4))
             )
             .frame(width: size, height: size)
     }
@@ -187,19 +290,29 @@ private struct EmptyCell: View {
 #Preview {
     ZStack {
         GameBackground()
-        HStack(spacing: BoardLayout.tubeGap) {
-            TubeView(
-                tube: Tube(balls: [.blue, .pink, .blue], capacity: 4),
-                capacity: 4, ballSize: 56, isSelected: false, isTarget: false, onTap: {}
-            )
-            TubeView(
-                tube: Tube(balls: [.green, .green], capacity: 4),
-                capacity: 4, ballSize: 56, isSelected: true, isTarget: false, onTap: {}
-            )
-            TubeView(
-                tube: Tube(balls: [.yellow], capacity: 4),
-                capacity: 4, ballSize: 56, isSelected: false, isTarget: true, onTap: {}
-            )
+        WoodenTray {
+            HStack(spacing: BoardLayout.tubeGap) {
+                TubeView(
+                    tube: Tube(balls: [.blue, .pink, .blue], capacity: 4),
+                    capacity: 4, ballSize: 56, isSelected: false, isTarget: false, onTap: {}
+                )
+                TubeView(
+                    tube: Tube(balls: [.green, .green], capacity: 4),
+                    capacity: 4, ballSize: 56, isSelected: true, isTarget: false, onTap: {}
+                )
+                TubeView(
+                    tube: Tube(balls: [.yellow], capacity: 4),
+                    capacity: 4, ballSize: 56, isSelected: false, isTarget: true, onTap: {}
+                )
+                TubeView(
+                    tube: Tube(balls: [.pink, .pink, .pink, .pink], capacity: 4),
+                    capacity: 4, ballSize: 56, isSelected: false, isTarget: false, onTap: {}
+                )
+                TubeView(
+                    tube: Tube(balls: [], capacity: 4),
+                    capacity: 4, ballSize: 56, isSelected: false, isTarget: false, onTap: {}
+                )
+            }
         }
         .padding(40)
     }
