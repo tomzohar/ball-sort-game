@@ -42,6 +42,16 @@ final class BoardViewModel {
     /// `true` while a level is being generated (solver-verified) off the main actor.
     private(set) var isGenerating: Bool
 
+    /// `true` while replaying a past level as a side excursion (E13). In this mode
+    /// progression is suspended: the current level's saved snapshot is left untouched
+    /// (`persistProgress()` is suppressed) and `exitReplay()` restores it. A replay
+    /// win sharpens records but does not advance the curve.
+    private(set) var isReplaying = false
+
+    /// The level a replay started from, stashed in memory so `exitReplay()` can
+    /// restore it. Non-`nil` exactly while `isReplaying`.
+    private var replayStash: ReplayStash?
+
     /// The exact difficulty grade once computed, else `nil`. Prefer `difficultyBand`
     /// for display — it always has a value.
     private(set) var difficulty: Difficulty?
@@ -77,6 +87,10 @@ final class BoardViewModel {
     /// Records wins into durable stats on win (E7.2), or `nil` to skip recording.
     private let statsStore: StatsStore?
 
+    /// Records each win as a replayable run in the per-level history (E13), or `nil`
+    /// to skip recording.
+    private let historyStore: HistoryStore?
+
     // MARK: - Timer
 
     private var startedAt: TimeInterval?
@@ -103,7 +117,8 @@ final class BoardViewModel {
         now: @escaping () -> TimeInterval,
         feedback: any GameFeedbackPlaying,
         persistence: (any PersistenceStore)?,
-        statsStore: StatsStore?
+        statsStore: StatsStore?,
+        historyStore: HistoryStore?
     ) {
         self.gameState = state
         self.initialState = state
@@ -121,6 +136,7 @@ final class BoardViewModel {
         self.feedback = feedback
         self.persistence = persistence
         self.statsStore = statsStore
+        self.historyStore = historyStore
     }
 
     /// Pins a fixed board with progression disabled — for tests and snapshots.
@@ -132,7 +148,8 @@ final class BoardViewModel {
         now: @escaping () -> TimeInterval = { Date().timeIntervalSinceReferenceDate },
         feedback: (any GameFeedbackPlaying)? = nil,
         persistence: (any PersistenceStore)? = nil,
-        statsStore: StatsStore? = nil
+        statsStore: StatsStore? = nil,
+        historyStore: HistoryStore? = nil
     ) {
         self.init(
             state: initialState,
@@ -145,7 +162,8 @@ final class BoardViewModel {
             now: now,
             feedback: feedback ?? NoFeedback(),
             persistence: persistence,
-            statsStore: statsStore
+            statsStore: statsStore,
+            historyStore: historyStore
         )
         startTimer()
     }
@@ -163,7 +181,8 @@ final class BoardViewModel {
         now: @escaping () -> TimeInterval = { Date().timeIntervalSinceReferenceDate },
         feedback: (any GameFeedbackPlaying)? = nil,
         persistence: (any PersistenceStore)? = nil,
-        statsStore: StatsStore? = nil
+        statsStore: StatsStore? = nil,
+        historyStore: HistoryStore? = nil
     ) {
         let lvl = max(1, startingLevel)
         let placeholder = Self.placeholder(for: curve.parameters(forLevel: lvl))
@@ -178,7 +197,8 @@ final class BoardViewModel {
             now: now,
             feedback: feedback ?? GameFeedbackService(),
             persistence: persistence,
-            statsStore: statsStore
+            statsStore: statsStore,
+            historyStore: historyStore
         )
         startGeneration(forLevel: lvl)
     }
@@ -255,7 +275,21 @@ final class BoardViewModel {
             let completedAfter = gameState.tubes.reduce(0) { $0 + ($1.isComplete ? 1 : 0) }
             if gameState.isWon {
                 stopTimer()
-                statsStore?.recordWin(moves: moveCount, seconds: elapsed)
+                if isReplaying {
+                    // A practice excursion: sharpen records only, don't advance the
+                    // curve or inflate the solved count / streak (E13).
+                    statsStore?.recordBests(moves: moveCount, seconds: elapsed)
+                } else {
+                    statsStore?.recordWin(moves: moveCount, seconds: elapsed)
+                }
+                // `initialState` is this level's starting board — snapshot it so the
+                // run can be replayed as the exact same puzzle (E13).
+                historyStore?.record(
+                    level: level,
+                    board: initialState,
+                    moves: moveCount,
+                    seconds: elapsed
+                )
                 feedback.play(.win)
             } else if completedAfter > completedBefore {
                 feedback.play(.tubeComplete)
@@ -309,9 +343,10 @@ final class BoardViewModel {
     }
 
     /// Advance to the next level: generate the next board along the curve (off-main).
-    /// No-op when progression is disabled (pinned board).
+    /// No-op when progression is disabled (pinned board) or while replaying — a
+    /// replay is a side excursion that never advances the curve.
     func nextLevel() {
-        guard generator != nil else { return }
+        guard generator != nil, !isReplaying else { return }
         level += 1
         startGeneration(forLevel: level)
     }
@@ -502,7 +537,8 @@ extension BoardViewModel {
         now: @escaping () -> TimeInterval = { Date().timeIntervalSinceReferenceDate },
         feedback: (any GameFeedbackPlaying)? = nil,
         persistence: (any PersistenceStore)? = nil,
-        statsStore: StatsStore? = nil
+        statsStore: StatsStore? = nil,
+        historyStore: HistoryStore? = nil
     ) {
         self.init(
             state: saved.gameState,
@@ -515,7 +551,8 @@ extension BoardViewModel {
             now: now,
             feedback: feedback ?? GameFeedbackService(),
             persistence: persistence,
-            statsStore: statsStore
+            statsStore: statsStore,
+            historyStore: historyStore
         )
         restore(from: saved)
     }
@@ -531,10 +568,12 @@ extension BoardViewModel {
     }
 
     /// Snapshot the in-progress level to the injected store (E7.1). A no-op when
-    /// persistence is disabled (pinned boards). Failures are swallowed — a missed
-    /// save just means the resume falls back to the last good snapshot.
+    /// persistence is disabled (pinned boards) or while replaying (E13) — a replay is
+    /// a side excursion that must not overwrite the player's real saved level.
+    /// Failures are swallowed — a missed save just means the resume falls back to the
+    /// last good snapshot.
     func persistProgress() {
-        guard let persistence else { return }
+        guard let persistence, !isReplaying else { return }
         let saved = SavedGame(
             level: level,
             gameState: gameState,
@@ -544,4 +583,86 @@ extension BoardViewModel {
         )
         try? persistence.save(saved, forKey: PersistenceKeys.savedGame)
     }
+}
+
+// MARK: - Replay excursion (E13)
+
+extension BoardViewModel {
+
+    /// Replay a past level as a side excursion: install `run`'s exact starting board
+    /// and play it without disturbing the player's place on the difficulty curve.
+    ///
+    /// The current level is stashed in memory and the saved-game snapshot is left
+    /// untouched (`persistProgress()` is suppressed while replaying), so a relaunch
+    /// mid-replay resumes the real current level. `exitReplay()` restores it. No-op
+    /// while a level is generating. Re-entrant: retrying a different run while already
+    /// replaying keeps the original stash so exit still returns to the true current
+    /// level.
+    func replay(_ run: LevelRun) {
+        guard !isGenerating else { return }
+        clearHint()
+        gradingTask?.cancel()
+        generateTask?.cancel()
+
+        if !isReplaying {
+            replayStash = ReplayStash(
+                level: level,
+                gameState: gameState,
+                initialState: initialState,
+                moveCount: moveCount,
+                history: history,
+                elapsed: elapsed
+            )
+        }
+
+        isReplaying = true
+        isGenerating = false
+        level = run.level
+        gameState = run.board
+        initialState = run.board
+        history.removeAll()
+        moveCount = 0
+        selectedTube = nil
+        lastDrop = nil
+        resetTimer()
+        startTimer()
+        scheduleGrading()
+    }
+
+    /// Leave a replay and restore the stashed current level (board, history, counters,
+    /// clock). No-op when not replaying.
+    func exitReplay() {
+        guard isReplaying, let stash = replayStash else { return }
+        clearHint()
+        gradingTask?.cancel()
+        generateTask?.cancel()
+
+        isReplaying = false
+        replayStash = nil
+        level = stash.level
+        gameState = stash.gameState
+        initialState = stash.initialState
+        history = stash.history
+        moveCount = stash.moveCount
+        selectedTube = nil
+        lastDrop = nil
+        resetTimer()
+        frozenElapsed = stash.elapsed
+        if !gameState.isWon { startTimer() }
+        scheduleGrading()
+        persistProgress()
+    }
+}
+
+// MARK: - Replay stash
+
+/// A snapshot of the level a replay started from, held in memory so `exitReplay()`
+/// can restore the player's real current level after a side excursion (E13).
+private struct ReplayStash {
+    let level: Int
+    let gameState: GameState
+    let initialState: GameState
+    let moveCount: Int
+    let history: [GameState]
+    let elapsed: TimeInterval
 }

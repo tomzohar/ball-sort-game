@@ -82,6 +82,30 @@ final class BoardViewModelPersistenceTests: XCTestCase {
         XCTAssertEqual(statsStore.stats.bestMoves, 1)
     }
 
+    func testWinRecordsHistoryWithStartingBoard() {
+        let historyStore = HistoryStore(
+            persistence: InMemoryPersistenceStore(),
+            today: { 20_260_627 }
+        )
+        let start = nearWinState()
+        let sut = BoardViewModel(
+            initialState: start,
+            persistence: InMemoryPersistenceStore(),
+            historyStore: historyStore
+        )
+
+        sut.tap(0) // lift
+        sut.tap(1) // drop — wins
+
+        XCTAssertTrue(sut.isWon)
+        XCTAssertEqual(historyStore.history.runs.count, 1)
+        let run = historyStore.history.runs[0]
+        XCTAssertEqual(run.level, 1)
+        XCTAssertEqual(run.moves, 1)
+        // The run captures the level's STARTING board (for replay), not the won one.
+        XCTAssertEqual(run.board, start)
+    }
+
     // MARK: - Restoring
 
     func testRestoreInstallsSavedBoard() {

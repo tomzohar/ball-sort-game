@@ -1,0 +1,1 @@
+- m19: E13 replay = board snapshot + non-progressing side excursion; appearance toggle via @AppStorage + .preferredColorScheme

@@ -7,7 +7,7 @@
       "title": "Classic move rule, not the prototype's lenient rule",
       "type": "decision",
       "hook": "Drop only onto empty tube or same-color top.",
-      "body": "The shipped game uses the classic ball-sort rule: a ball may move only onto an empty tube or onto a tube whose top ball is the same color (and not full). The ballsortgame.html prototype used a lenient any-ball-any-space rule — do NOT carry that over. Classic is the proven, strategic, monetizable formula and is what requires the solver/generator.",
+      "body": "The shipped game uses the classic ball-sort rule: a ball may move only onto an empty tube or onto a tube whose top ball is the same color (and not full). The ballsortgame.html prototype used a lenient any-ball-any-space rule \u2014 do NOT carry that over. Classic is the proven, strategic, monetizable formula and is what requires the solver/generator.",
       "created": "2026-06-25"
     },
     {
@@ -15,7 +15,7 @@
       "title": "Levels are infinite + generated, and must be guaranteed solvable",
       "type": "decision",
       "hook": "Generator + solver; every level provably winnable.",
-      "body": "No hand-authored level packs in v1. A generator produces endless levels on a rising difficulty curve. Because the classic rule makes random shuffles often impossible, generation must guarantee solvability. As of E5 this is done by random-fill + solver verification (see m11), NOT the original reverse-move scrambling — that produced trivial levels. The solver doubles as the hints engine.",
+      "body": "No hand-authored level packs in v1. A generator produces endless levels on a rising difficulty curve. Because the classic rule makes random shuffles often impossible, generation must guarantee solvability. As of E5 this is done by random-fill + solver verification (see m11), NOT the original reverse-move scrambling \u2014 that produced trivial levels. The solver doubles as the hints engine.",
       "created": "2026-06-25"
     },
     {
@@ -31,7 +31,7 @@
       "title": "v1 is free, no ads, no SDKs",
       "type": "decision",
       "hook": "Free launch, monetize later.",
-      "body": "v1 ships free with zero ad/analytics SDKs — cleanest build, fastest to store, trivial privacy nutrition label. Monetization (ads + remove-ads IAP, or paid, or skins-as-IAP) is deferred post-launch.",
+      "body": "v1 ships free with zero ad/analytics SDKs \u2014 cleanest build, fastest to store, trivial privacy nutrition label. Monetization (ads + remove-ads IAP, or paid, or skins-as-IAP) is deferred post-launch.",
       "created": "2026-06-25"
     },
     {
@@ -44,15 +44,15 @@
     },
     {
       "id": "m6",
-      "title": "Apple Developer enrollment is the long-pole external blocker — Tom owns it",
+      "title": "Apple Developer enrollment is the long-pole external blocker \u2014 Tom owns it",
       "type": "risk",
       "hook": "Not enrolled yet; gates Game Center, TestFlight, submission. Start now.",
-      "body": "No Apple Developer account yet (~$99/yr, payment + Apple ID, approval can take a day+). It blocks Game Center, TestFlight, and submission. Per how we work, prod/account/payment actions are Tom's to run. Game Center (E10) and Release (E11) are intentionally late, isolated epics so the playable core is never blocked — but enrollment should start day one to overlap the build.",
+      "body": "No Apple Developer account yet (~$99/yr, payment + Apple ID, approval can take a day+). It blocks Game Center, TestFlight, and submission. Per how we work, prod/account/payment actions are Tom's to run. Game Center (E10) and Release (E11) are intentionally late, isolated epics so the playable core is never blocked \u2014 but enrollment should start day one to overlap the build.",
       "created": "2026-06-25"
     },
     {
       "id": "m7",
-      "title": "Genre is saturated — pick a differentiator before store assets",
+      "title": "Genre is saturated \u2014 pick a differentiator before store assets",
       "type": "risk",
       "hook": "A faithful clone risks invisibility; differentiation deferred but mandatory to revisit.",
       "body": "Ball-sort/water-sort is a crowded genre. v1 scope is intentionally a clean classic build, but a 1:1 clone risks zero discoverability. Before spending on store screenshots/metadata (E11), decide on a hook: signature theme/skin identity, a twist mechanic, or a daily shared puzzle. Flagged, not yet scoped.",
@@ -68,26 +68,26 @@
     },
     {
       "id": "m9",
-      "title": "Dev machine has only Command Line Tools — SwiftPM is broken, no Swift builds/tests until full Xcode",
+      "title": "Dev machine has only Command Line Tools \u2014 SwiftPM is broken, no Swift builds/tests until full Xcode",
       "type": "risk",
-      "hook": "RESOLVED 2026-06-25 — full Xcode 26.5 installed; `swift test` + `xcodebuild test` both green.",
-      "body": "RESOLVED. Earlier on 2026-06-25 the Mac had only Command Line Tools (Swift 6.1.2), whose PackageDescription ManifestAPI was missing Package.__allocating_init, so SwiftPM couldn't link ANY manifest (even `swift package init` failed) — blocking all Swift build/test. Tom then installed full Xcode 26.5 (17F42); xcode-select now points at /Applications/Xcode.app. Verified working: `swift test` passes BallColor in BallSortCore, and `xcodegen generate` + `xcodebuild test -scheme BallSortApp` on the iPhone 17 Pro simulator passes the app SmokeTests. Keep for the lesson: a CLT-only Mac cannot build SwiftPM; full Xcode is required.",
+      "hook": "RESOLVED 2026-06-25 \u2014 full Xcode 26.5 installed; `swift test` + `xcodebuild test` both green.",
+      "body": "RESOLVED. Earlier on 2026-06-25 the Mac had only Command Line Tools (Swift 6.1.2), whose PackageDescription ManifestAPI was missing Package.__allocating_init, so SwiftPM couldn't link ANY manifest (even `swift package init` failed) \u2014 blocking all Swift build/test. Tom then installed full Xcode 26.5 (17F42); xcode-select now points at /Applications/Xcode.app. Verified working: `swift test` passes BallColor in BallSortCore, and `xcodegen generate` + `xcodebuild test -scheme BallSortApp` on the iPhone 17 Pro simulator passes the app SmokeTests. Keep for the lesson: a CLT-only Mac cannot build SwiftPM; full Xcode is required.",
       "created": "2026-06-25"
     },
     {
       "id": "m10",
-      "title": "E0 architecture is decided — see docs/TECHNICAL_DECISIONS.md; don't re-litigate",
+      "title": "E0 architecture is decided \u2014 see docs/TECHNICAL_DECISIONS.md; don't re-litigate",
       "type": "decision",
       "hook": "Layered MVVM (@Observable, iOS 17) over pure Core; Codable-to-disk persistence; snapshot+VM tests; XcodeGen.",
-      "body": "ADRs 0001–0004 lock: (1) Views→ViewModels(@Observable, Observation)→Core(BallSortCore, pure value types), DI via LevelGenerating/Solving/PersistenceStore protocols, min iOS 17. (2) Persistence = Codable JSON in Application Support behind a PersistenceStore protocol, + @AppStorage for settings; SwiftData rejected. (3) Testing = exhaustive Core+ViewModel unit tests primary, targeted swift-snapshot-testing for ball/tube/board primitives, PR screenshot rule; ViewInspector rejected. (4) Xcode app target defined as code via XcodeGen project.yml (Claude authors, Tom runs xcodegen), app consumes local ./BallSortCore package. Full rationale + rejected alternatives in docs/TECHNICAL_DECISIONS.md.",
+      "body": "ADRs 0001\u20130004 lock: (1) Views\u2192ViewModels(@Observable, Observation)\u2192Core(BallSortCore, pure value types), DI via LevelGenerating/Solving/PersistenceStore protocols, min iOS 17. (2) Persistence = Codable JSON in Application Support behind a PersistenceStore protocol, + @AppStorage for settings; SwiftData rejected. (3) Testing = exhaustive Core+ViewModel unit tests primary, targeted swift-snapshot-testing for ball/tube/board primitives, PR screenshot rule; ViewInspector rejected. (4) Xcode app target defined as code via XcodeGen project.yml (Claude authors, Tom runs xcodegen), app consumes local ./BallSortCore package. Full rationale + rejected alternatives in docs/TECHNICAL_DECISIONS.md.",
       "created": "2026-06-25"
     },
     {
       "id": "m11",
-      "title": "Generator is random-fill + solver-verified — reverse-move scramble made trivial levels",
+      "title": "Generator is random-fill + solver-verified \u2014 reverse-move scramble made trivial levels",
       "type": "decision",
-      "hook": "Difficulty = solver min-moves; rejection sampling; ≤5 colors; async in the VM.",
-      "body": "E5 (PR #17) replaced the E3 reverse-move scramble generator. Measured: reverse scrambling produced trivial ~2-move levels at ANY depth (depth 10→2.0 moves, depth 160→1.9) because the random forward walk equilibrates near the solved attractor — the scrambleDepth lever was inert. New approach: random-fill the exact ball multiset, verify with the Solver, accept only a solvable non-won board meeting a minMoves floor (rejection sampling); else the hardest found in the attempt budget. Random solvable fills are genuinely hard (~14 moves 4c/2e … ~22 5c/1e). API is now generate(colors:capacity:emptyTubes:minMoves:using:); Generator takes a Solving; capped at ≤5 colors because solver verification is infeasible at 6 colors. The App-layer DifficultyCurve (BallSortApp/Game/DifficultyCurve.swift) maps level→params over a rising minMoves floor (+ more colors, fewer empty tubes). Because generation runs the solver (~0.1–0.5s), BoardViewModel generates OFF the main actor behind an isGenerating flag. Amends m2; supersedes E3.2's original note.",
+      "hook": "Difficulty = solver min-moves; rejection sampling; \u22645 colors; async in the VM.",
+      "body": "E5 (PR #17) replaced the E3 reverse-move scramble generator. Measured: reverse scrambling produced trivial ~2-move levels at ANY depth (depth 10\u21922.0 moves, depth 160\u21921.9) because the random forward walk equilibrates near the solved attractor \u2014 the scrambleDepth lever was inert. New approach: random-fill the exact ball multiset, verify with the Solver, accept only a solvable non-won board meeting a minMoves floor (rejection sampling); else the hardest found in the attempt budget. Random solvable fills are genuinely hard (~14 moves 4c/2e \u2026 ~22 5c/1e). API is now generate(colors:capacity:emptyTubes:minMoves:using:); Generator takes a Solving; capped at \u22645 colors because solver verification is infeasible at 6 colors. The App-layer DifficultyCurve (BallSortApp/Game/DifficultyCurve.swift) maps level\u2192params over a rising minMoves floor (+ more colors, fewer empty tubes). Because generation runs the solver (~0.1\u20130.5s), BoardViewModel generates OFF the main actor behind an isGenerating flag. Amends m2; supersedes E3.2's original note.",
       "created": "2026-06-26"
     },
     {
@@ -95,7 +95,7 @@
       "title": "Repo is public so GitHub Actions (macOS CI) is free",
       "type": "context",
       "hook": "Made public 2026-06-26 after a private-repo Actions billing block halted CI.",
-      "body": "tomzohar/ball-sort-game was made public on 2026-06-26. Reason: as a private repo, CI on macOS runners (billed at 10× minutes) hit a GitHub Actions billing block ('job not started because recent account payments have failed or your spending limit needs to be increased') — jobs failed instantly with 0 steps. Public repos get free unlimited Actions including macOS, so going public unblocked CI at no cost. iOS/Xcode CI MUST use macOS runners (Linux can't build SwiftUI/xcodebuild). If the repo ever goes private again, expect the billing gate to return.",
+      "body": "tomzohar/ball-sort-game was made public on 2026-06-26. Reason: as a private repo, CI on macOS runners (billed at 10\u00d7 minutes) hit a GitHub Actions billing block ('job not started because recent account payments have failed or your spending limit needs to be increased') \u2014 jobs failed instantly with 0 steps. Public repos get free unlimited Actions including macOS, so going public unblocked CI at no cost. iOS/Xcode CI MUST use macOS runners (Linux can't build SwiftUI/xcodebuild). If the repo ever goes private again, expect the billing gate to return.",
       "created": "2026-06-26"
     },
     {
@@ -110,7 +110,7 @@
       "title": "E7 persistence seam: PersistenceStore + SavedGame + StatsStore",
       "type": "decision",
       "hook": "Codable-to-JSON behind an injected protocol (ADR-0002); composition root restores on launch.",
-      "body": "E7 (ADR-0002) persists via a generic key-based PersistenceStore protocol (BallSortApp/Persistence/) with JSONFileStore (writes <Application Support>/BallSort/<key>.json atomically) and an InMemoryPersistenceStore fake for tests/previews. Two payloads, keyed by PersistenceKeys: (1) SavedGame envelope {level, gameState, initialState, moveCount, elapsedSeconds} — undo history intentionally dropped — written by BoardViewModel.persistProgress() after every move/undo/restart/install; restored on launch via BoardViewModel(restoring:). (2) GameStats (Core value type) owned by StatsStore (@Observable, App layer) which loads on init and re-saves after BoardViewModel calls statsStore.recordWin(moves:seconds:) on win. Daily streak uses a yyyymmdd Int day-key; GameStats.recordingWin is pure (adjacency via Foundation Calendar, correct across month/year/leap); StatsStore.currentDayKey() supplies today's local-calendar key. BallSortApp.init() is the composition root: constructs JSONFileStore + StatsStore, loads SavedGame, picks BoardViewModel(restoring:) vs the generating init, injects both into RootView. Stats UI: chart-icon button in RootView top bar -> StatsScreen sheet maps GameStats to the dumb StatsView. Persistence/statsStore are optional (nil) on the pinned init(initialState:) so test/snapshot boards don't touch disk. Built as the /batch integration step after 4 parallel foundation PRs (#24 Codable core, #25 GameStats, #26 store, #27 StatsView). The restore init + persistProgress() live in a same-file `extension BoardViewModel` (// MARK: Persistence) so private state stays accessible while keeping the class body under SwiftLint's type_body_length — mirroring PR #30's generation-extension split.",
+      "body": "E7 (ADR-0002) persists via a generic key-based PersistenceStore protocol (BallSortApp/Persistence/) with JSONFileStore (writes <Application Support>/BallSort/<key>.json atomically) and an InMemoryPersistenceStore fake for tests/previews. Two payloads, keyed by PersistenceKeys: (1) SavedGame envelope {level, gameState, initialState, moveCount, elapsedSeconds} \u2014 undo history intentionally dropped \u2014 written by BoardViewModel.persistProgress() after every move/undo/restart/install; restored on launch via BoardViewModel(restoring:). (2) GameStats (Core value type) owned by StatsStore (@Observable, App layer) which loads on init and re-saves after BoardViewModel calls statsStore.recordWin(moves:seconds:) on win. Daily streak uses a yyyymmdd Int day-key; GameStats.recordingWin is pure (adjacency via Foundation Calendar, correct across month/year/leap); StatsStore.currentDayKey() supplies today's local-calendar key. BallSortApp.init() is the composition root: constructs JSONFileStore + StatsStore, loads SavedGame, picks BoardViewModel(restoring:) vs the generating init, injects both into RootView. Stats UI: chart-icon button in RootView top bar -> StatsScreen sheet maps GameStats to the dumb StatsView. Persistence/statsStore are optional (nil) on the pinned init(initialState:) so test/snapshot boards don't touch disk. Built as the /batch integration step after 4 parallel foundation PRs (#24 Codable core, #25 GameStats, #26 store, #27 StatsView). The restore init + persistProgress() live in a same-file `extension BoardViewModel` (// MARK: Persistence) so private state stays accessible while keeping the class body under SwiftLint's type_body_length \u2014 mirroring PR #30's generation-extension split.",
       "created": "2026-06-27"
     },
     {
@@ -118,7 +118,7 @@
       "title": "v1 visual identity = Zen Garden (resolves m7)",
       "type": "decision",
       "hook": "Serene Zen Garden skin selected over Stitch's output; tracked as E12; m7 differentiator resolved.",
-      "body": "The m7 saturated-genre differentiator is resolved on the VISUAL axis: v1 ships a 'Serene Zen Garden' identity — polished river-stones in frosted glass on a raked-sand bed, light-hero, premium-calm. Re-tuned 6-stone palette (Amber/Persimmon/Plum/Moss/Pond/Iris) each with a built-in colorblind texture; SF Rounded body + Spectral brand accent; zen-cairn app icon. Authored in Claude Design (preferred over a parallel Google Stitch pass); canvas at https://claude.ai/design/p/f2dfea89-cb9c-4551-b0cf-77dc498e5580 , captured in docs/design/ZEN_GARDEN.md. Implementation tracked as epic E12 (visual reskin only — Core/generator/solver/ViewModels and classic rules unchanged; App-layer mapping + Views only). Claude Design MCP import was blocked (interactive /design-login unavailable); design captured via authenticated browser instead.",
+      "body": "The m7 saturated-genre differentiator is resolved on the VISUAL axis: v1 ships a 'Serene Zen Garden' identity \u2014 polished river-stones in frosted glass on a raked-sand bed, light-hero, premium-calm. Re-tuned 6-stone palette (Amber/Persimmon/Plum/Moss/Pond/Iris) each with a built-in colorblind texture; SF Rounded body + Spectral brand accent; zen-cairn app icon. Authored in Claude Design (preferred over a parallel Google Stitch pass); canvas at https://claude.ai/design/p/f2dfea89-cb9c-4551-b0cf-77dc498e5580 , captured in docs/design/ZEN_GARDEN.md. Implementation tracked as epic E12 (visual reskin only \u2014 Core/generator/solver/ViewModels and classic rules unchanged; App-layer mapping + Views only). Claude Design MCP import was blocked (interactive /design-login unavailable); design captured via authenticated browser instead.",
       "created": "2026-06-27"
     },
     {
@@ -126,7 +126,7 @@
       "title": "Board layout = single-row, screen-filling (overrides E12 two-row spec)",
       "type": "decision",
       "hook": "All tubes in one row; board fills the screen via height-aware ball sizing + dynamic inter-ball gap.",
-      "body": "Post-E12 UX iteration (Tom-directed, on main). The board renders ALL tubes in a single HStack — the ZEN_GARDEN canvas's '≤5 one row else two balanced rows' rule was tried then DROPPED. BoardLayout.fittedBallSize picks the largest ball that fits both the row width and the tray height; BoardLayout.filledBallGap stretches the inter-ball gap to spread the column down the tray, capped at 0.45×ball so tubes read as neat columns (an earlier 2× cap looked floaty). Balls a bit larger via trimmed overhead (tubeGap 8→6, tubeHorizontalPadding 5→4). RootView lets the tray fill the space between HUD and controls; iPad (regular width) gets roomier margins. Trade-off: with 6–7 width-bound tubes the column is shorter than the tall tray, leaving centered vertical margin (acceptable; alt knob = shrink tray to hug the board). Do NOT restore two rows per the design doc without a fresh decision.",
+      "body": "Post-E12 UX iteration (Tom-directed, on main). The board renders ALL tubes in a single HStack \u2014 the ZEN_GARDEN canvas's '\u22645 one row else two balanced rows' rule was tried then DROPPED. BoardLayout.fittedBallSize picks the largest ball that fits both the row width and the tray height; BoardLayout.filledBallGap stretches the inter-ball gap to spread the column down the tray, capped at 0.45\u00d7ball so tubes read as neat columns (an earlier 2\u00d7 cap looked floaty). Balls a bit larger via trimmed overhead (tubeGap 8\u21926, tubeHorizontalPadding 5\u21924). RootView lets the tray fill the space between HUD and controls; iPad (regular width) gets roomier margins. Trade-off: with 6\u20137 width-bound tubes the column is shorter than the tall tray, leaving centered vertical margin (acceptable; alt knob = shrink tray to hug the board). Do NOT restore two rows per the design doc without a fresh decision.",
       "created": "2026-06-27"
     },
     {
@@ -134,7 +134,7 @@
       "title": "E12 Zen Garden reskin shipped to main",
       "type": "context",
       "hook": "Foundation + 10 component reskins + snapshot reconcile on main; Spectral font stubbed; a few follow-ups deferred.",
-      "body": "E12 (visual-only reskin) is on main: ZenTheme tokens (semantic light+dark colors, spacing/radius/elevation in BallSortApp/Game/Theme/), ZenTypography, re-tuned 6-stone palette + per-stone colorblind textures (BallColor+Texture), Zen motion (AnimationConstants), and every per-screen reskin. Exact tokens are captured in docs/design/ZEN_TOKENS.md (read off the live Claude Design canvas via the Omelette GetProject API, since DesignSync/design-login was unavailable). KNOWN FOLLOW-UPS: the Spectral brand font is STUBBED with the system serif (ZenFont.brand) — real .ttf bundling + project.yml UIAppFonts registration still TODO; E12.14 app icon (Tom's call), E12.16 explicit light/dark pass, and E12.17 iPad form-sheets remain backlog todo.",
+      "body": "E12 (visual-only reskin) is on main: ZenTheme tokens (semantic light+dark colors, spacing/radius/elevation in BallSortApp/Game/Theme/), ZenTypography, re-tuned 6-stone palette + per-stone colorblind textures (BallColor+Texture), Zen motion (AnimationConstants), and every per-screen reskin. Exact tokens are captured in docs/design/ZEN_TOKENS.md (read off the live Claude Design canvas via the Omelette GetProject API, since DesignSync/design-login was unavailable). KNOWN FOLLOW-UPS: the Spectral brand font is STUBBED with the system serif (ZenFont.brand) \u2014 real .ttf bundling + project.yml UIAppFonts registration still TODO; E12.14 app icon (Tom's call), E12.16 explicit light/dark pass, and E12.17 iPad form-sheets remain backlog todo.",
       "created": "2026-06-27"
     },
     {
@@ -142,7 +142,15 @@
       "title": "iOS dev-env gotchas (parallel builds, xcodegen scheme, snapshot record)",
       "type": "risk",
       "hook": "Don't fan out many local xcodebuilds; clean-regen for the app scheme; re-record snapshots via TEST_RUNNER env.",
-      "body": "(1) Fanning out ~10 parallel `xcodebuild test` runs (e.g. background worktree agents) melted this Mac (load ~400–600) and the agents stalled before committing — cap concurrency, or have agents only edit+lint+commit and let GitHub CI build each PR, then do ONE serialized integration build at the end. (2) xcodegen does NOT emit a shared BallSortApp scheme; `xcodebuild test -scheme BallSortApp` won't autocreate it from a stale project — on 'scheme not found' run `rm -rf BallSort.xcodeproj && xcodegen generate`. (3) Re-record snapshot baselines with `TEST_RUNNER_SNAPSHOT_TESTING_RECORD=all xcodebuild test …` (forwards the env to the test process) for plain assertSnapshot tests; tests pinned `withSnapshotTesting(record: .missing)` ignore it — flip those to .all, run, flip back. (4) Per-PR CI goes red for component-slice PRs over a shared visual foundation (each re-records only its own snapshots + CI sim ≠ local sim) — reconcile all baselines in one pass.",
+      "body": "(1) Fanning out ~10 parallel `xcodebuild test` runs (e.g. background worktree agents) melted this Mac (load ~400\u2013600) and the agents stalled before committing \u2014 cap concurrency, or have agents only edit+lint+commit and let GitHub CI build each PR, then do ONE serialized integration build at the end. (2) xcodegen does NOT emit a shared BallSortApp scheme; `xcodebuild test -scheme BallSortApp` won't autocreate it from a stale project \u2014 on 'scheme not found' run `rm -rf BallSort.xcodeproj && xcodegen generate`. (3) Re-record snapshot baselines with `TEST_RUNNER_SNAPSHOT_TESTING_RECORD=all xcodebuild test \u2026` (forwards the env to the test process) for plain assertSnapshot tests; tests pinned `withSnapshotTesting(record: .missing)` ignore it \u2014 flip those to .all, run, flip back. (4) Per-PR CI goes red for component-slice PRs over a shared visual foundation (each re-records only its own snapshots + CI sim \u2260 local sim) \u2014 reconcile all baselines in one pass.",
+      "created": "2026-06-27"
+    },
+    {
+      "id": "m19",
+      "title": "E13: replay stores a board snapshot; replay is a non-progressing side excursion",
+      "type": "decision",
+      "hook": "Retry a past level replays its exact saved board; doesn't touch the curve.",
+      "body": "Per-level run history (E13) records WINS ONLY as LevelRun, each embedding the level's STARTING board snapshot. We snapshot the board rather than persist a seed because production levels are generated with the SYSTEM RNG (no persisted seed), so they aren't reproducible by number; a snapshot also survives generator/curve changes. Retry replays that exact board as a SIDE EXCURSION: the current level is stashed and persistProgress() is suppressed (saved-game.json keeps pointing at the real level; relaunch resumes it), exitReplay() restores it. A replay win sharpens best-moves/best-time (GameStats.improvingBests) but does NOT increment levelsSolved, the streak, or advance the difficulty curve \u2014 it's practice. Appearance toggle (System/Light/Dark) is @AppStorage(\"appearanceMode\") + .preferredColorScheme app-wide; Zen tokens already had light/dark.",
       "created": "2026-06-27"
     }
   ]

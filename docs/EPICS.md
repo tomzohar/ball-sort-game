@@ -56,6 +56,10 @@ Apple Developer enrollment (**Tom's task**, payment + Apple ID), signing/provisi
 Reskin the app to the locked Zen Garden identity (river-stones in frosted glass on a raked-sand bed, light-hero) — resolves the m7 differentiation risk (see m15). **Visual only:** Core, generator/solver, ViewModels, and classic rules are unchanged; only the App-layer `BallColor`→`Color` mapping and SwiftUI Views change. Foundation (`ZenTheme` tokens, typography, re-tuned 6-stone palette + colorblind textures, motion) + the per-component reskins (ball, tube, raked-sand tray, badge, HUD, buttons, overlay, stats, settings, launch) shipped to `main`; snapshot baselines reconciled (E12.18). The board layout was also reworked to fill the screen as a **single row** (memory m16). **Deferred:** E12.14 app icon (Tom's call), E12.16 light/dark verification pass, E12.17 iPad layouts (now single-row board + iPad form-sheets). Spec: `docs/design/ZEN_GARDEN.md` + exact tokens in `docs/design/ZEN_TOKENS.md`.
 **Depends on:** E4–E9 + m15. **Deliverable:** premium, on-identity look.
 
+## E13 — Level history, replay & appearance toggle _(shipped)_
+Tom-requested post-E12 features (2026-06-27). (1) **Per-level run history** — every win is recorded as a `LevelRun` (level, moves, time, date) embedding the level's *starting board snapshot*; surfaced in a Summary/History tab on the stats sheet. (2) **Retry a specific level** — replays that exact saved board as a *side excursion*: the current level is stashed and its saved snapshot left untouched (relaunch resumes the real level), and a replay win sharpens records but doesn't advance the curve or inflate solved-count/streak (memory m19). (3) **Appearance toggle** — System/Light/Dark via `@AppStorage` + app-wide `.preferredColorScheme`; Zen tokens already carried light/dark, so this also advances E12.16. Board snapshots are stored rather than seeds because production levels use the system RNG and aren't reproducible by number.
+**Depends on:** E5, E7, E12. **Deliverable:** history + replay + dark-mode preference.
+
 ---
 
 ### Critical path

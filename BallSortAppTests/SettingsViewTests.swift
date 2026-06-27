@@ -19,6 +19,7 @@ import SwiftUI
 final class SettingsViewTests: XCTestCase {
     private let soundKey = "soundEnabled"
     private let hapticsKey = "hapticsEnabled"
+    private let appearanceKey = AppearanceMode.storageKey
 
     override func setUp() {
         super.setUp()
@@ -33,6 +34,7 @@ final class SettingsViewTests: XCTestCase {
     private func clearKeys() {
         UserDefaults.standard.removeObject(forKey: soundKey)
         UserDefaults.standard.removeObject(forKey: hapticsKey)
+        UserDefaults.standard.removeObject(forKey: appearanceKey)
     }
 
     /// The view binds to the documented keys; constructing it with no stored values
@@ -87,5 +89,26 @@ final class SettingsViewTests: XCTestCase {
 
         view.hapticsEnabledBinding.wrappedValue.toggle()
         XCTAssertTrue(UserDefaults.standard.object(forKey: hapticsKey) as? Bool ?? false)
+    }
+
+    /// With nothing stored, the appearance binding reports the `.system` default —
+    /// the app root reads the same key and follows the device.
+    func testAppearanceDefaultsToSystemWhenAbsent() {
+        let view = SettingsView(onClose: {})
+
+        XCTAssertNil(UserDefaults.standard.object(forKey: appearanceKey))
+        XCTAssertEqual(view.appearanceBinding.wrappedValue, AppearanceMode.system.rawValue)
+    }
+
+    /// Choosing an appearance writes the raw mode string so the app root re-reads it
+    /// and applies `.preferredColorScheme` live.
+    func testSelectingAppearanceWritesTheAppearanceKey() {
+        let view = SettingsView(onClose: {})
+
+        view.appearanceBinding.wrappedValue = AppearanceMode.dark.rawValue
+        XCTAssertEqual(UserDefaults.standard.string(forKey: appearanceKey), "dark")
+
+        view.appearanceBinding.wrappedValue = AppearanceMode.light.rawValue
+        XCTAssertEqual(UserDefaults.standard.string(forKey: appearanceKey), "light")
     }
 }

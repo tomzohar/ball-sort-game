@@ -40,6 +40,14 @@ final class StatsStore {
         try? persistence?.save(stats, forKey: PersistenceKeys.stats)
     }
 
+    /// Improve only the best-moves / best-time records, leaving the solved count and
+    /// streak untouched, then persist. Called by `BoardViewModel` on a replay win —
+    /// a practice excursion sharpens records without advancing progression (E13).
+    func recordBests(moves: Int, seconds: TimeInterval) {
+        stats = stats.improvingBests(moves: moves, seconds: seconds)
+        try? persistence?.save(stats, forKey: PersistenceKeys.stats)
+    }
+
     /// The current calendar day as a `yyyymmdd` key, in the user's local calendar.
     static func currentDayKey() -> Int {
         let components = Calendar.current.dateComponents([.year, .month, .day], from: Date())
