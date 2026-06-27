@@ -131,7 +131,7 @@ final class BoardLayoutTests: XCTestCase {
     /// tubeWidth = ballSize + 2× horizontal padding
     func testTubeWidthDerivation() {
         let ball: CGFloat = 50
-        let expected: CGFloat = 50 + 2 * 5  // ball + 2× horizontal padding (5) = 60
+        let expected: CGFloat = 50 + 2 * 4  // ball + 2× horizontal padding (4) = 58
         XCTAssertEqual(BoardLayout.tubeWidth(ballSize: ball), expected)
     }
 
@@ -162,21 +162,21 @@ final class BoardLayoutTests: XCTestCase {
 
     // MARK: - Filled ball gap (stretch the column down the tray)
 
-    /// A tall tray stretches the gap, capped at 2× the ball size.
-    func testFilledGapCapsAtTwiceBall() {
+    /// A tall tray stretches the gap, capped at 0.45× the ball size.
+    func testFilledGapCapsAtFractionOfBall() {
         // height 480, cap 4, ball 40: slack = 480 - 12 - 160 = 308; raw gap = 308/3 ≈ 102.7;
-        // capped at 2*40 = 80.
+        // capped at 0.45*40 = 18.
         let gap = BoardLayout.filledBallGap(availableHeight: 480, capacity: 4, ballSize: 40)
-        XCTAssertEqual(gap, 80, accuracy: 0.001)
+        XCTAssertEqual(gap, 18, accuracy: 0.001)
     }
 
-    /// With slack between zero and the cap, the gap exactly fills the height.
+    /// With slack below the cap, the gap exactly fills the height.
     func testFilledGapFillsHeight() {
-        // height 320, cap 4, ball 40: slack = 320 - 12 - 160 = 148; gap = 148/3 ≈ 49.33 (< cap 80).
-        let gap = BoardLayout.filledBallGap(availableHeight: 320, capacity: 4, ballSize: 40)
-        XCTAssertEqual(gap, 148.0 / 3.0, accuracy: 0.001)
+        // height 220, cap 4, ball 40: slack = 220 - 12 - 160 = 48; gap = 48/3 = 16 (< cap 18).
+        let gap = BoardLayout.filledBallGap(availableHeight: 220, capacity: 4, ballSize: 40)
+        XCTAssertEqual(gap, 16, accuracy: 0.001)
         // The resulting column height matches the available height.
-        XCTAssertEqual(BoardLayout.tubeHeight(ballSize: 40, capacity: 4, ballGap: gap), 320, accuracy: 0.001)
+        XCTAssertEqual(BoardLayout.tubeHeight(ballSize: 40, capacity: 4, ballGap: gap), 220, accuracy: 0.001)
     }
 
     /// No slack (short tray) falls back to the base gap, never below.
@@ -215,23 +215,23 @@ final class BoardLayoutTests: XCTestCase {
     /// Binds on width when the area is tall and narrow.
     func testFittedBindsOnWidth() {
         // 4 tubes, capacity 4, width 300, tall height:
-        // rowWidth = 300 - 8*3 = 276; widthFit = 276/4 - 10 = 69 - 10 = 59.
+        // rowWidth = 300 - 6*3 = 282; widthFit = 282/4 - 8 = 70.5 - 8 = 62.5 -> 62.
         let size = BoardLayout.fittedBallSize(
             available: CGSize(width: 300, height: 4000),
             tubeCount: 4, capacity: 4, maxBall: 200
         )
-        XCTAssertEqual(size, 59)
+        XCTAssertEqual(size, 62)
     }
 
     /// More tubes in the single row shrink the width-bound ball size.
     func testFittedMoreTubesShrinkWidth() {
-        // 7 tubes, width 390, tall height: rowWidth = 390 - 8*6 = 342;
-        // widthFit = 342/7 - 10 = 48.857… -> floor(38.857) = 38.
+        // 7 tubes, width 390, tall height: rowWidth = 390 - 6*6 = 354;
+        // widthFit = 354/7 - 8 = 50.571… - 8 = 42.571 -> floor 42.
         let size = BoardLayout.fittedBallSize(
             available: CGSize(width: 390, height: 4000),
             tubeCount: 7, capacity: 4, maxBall: 200
         )
-        XCTAssertEqual(size, 38)
+        XCTAssertEqual(size, 42)
     }
 
     /// Clamps to maxBall when both dimensions are huge.

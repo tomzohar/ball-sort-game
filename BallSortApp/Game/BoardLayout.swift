@@ -19,14 +19,15 @@ enum BoardLayout {
 
     // MARK: - Ported spacing constants (prototype CSS)
 
-    /// Horizontal gap between adjacent tubes.
-    static let tubeGap: CGFloat = 8
+    /// Horizontal gap between adjacent tubes. Tightened so balls get a bit more width.
+    static let tubeGap: CGFloat = 6
     /// Vertical gap between stacked balls inside a tube.
     static let ballGap: CGFloat = 8
     /// Tube inner padding, vertical (top/bottom).
     static let tubeVerticalPadding: CGFloat = 6
-    /// Tube inner padding, horizontal (leading/trailing).
-    static let tubeHorizontalPadding: CGFloat = 5
+    /// Tube inner padding, horizontal (leading/trailing). Trimmed so the ball fills
+    /// a bit more of the tube width.
+    static let tubeHorizontalPadding: CGFloat = 4
     /// Tube corner radius.
     static let tubeCornerRadius: CGFloat = 16
 
@@ -116,13 +117,14 @@ enum BoardLayout {
     /// board uses the vertical space instead of hugging a short stack.
     ///
     /// Falls back to the base ``ballGap`` when there's no slack, and is capped at
-    /// `2×ballSize` so balls never float absurdly far apart.
+    /// `0.45×ballSize` so the balls stay comfortably spaced (a neat tube) rather than
+    /// floating far apart.
     static func filledBallGap(availableHeight: CGFloat, capacity: Int, ballSize: CGFloat) -> CGFloat {
         let cap = max(1, capacity)
         guard cap > 1, availableHeight.isFinite, ballSize.isFinite else { return ballGap }
         let slack = availableHeight - 2 * tubeVerticalPadding - CGFloat(cap) * ballSize
         let gap = slack / CGFloat(cap - 1)
-        let maxGap = max(ballGap, ballSize * 2)
+        let maxGap = max(ballGap, ballSize * 0.45)
         return min(maxGap, max(ballGap, gap))
     }
 
