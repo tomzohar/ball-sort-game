@@ -7,7 +7,7 @@
       "title": "Classic move rule, not the prototype's lenient rule",
       "type": "decision",
       "hook": "Drop only onto empty tube or same-color top.",
-      "body": "The shipped game uses the classic ball-sort rule: a ball may move only onto an empty tube or onto a tube whose top ball is the same color (and not full). The ballsortgame.html prototype used a lenient any-ball-any-space rule — do NOT carry that over. Classic is the proven, strategic, monetizable formula and is what requires the solver/generator.",
+      "body": "The shipped game uses the classic ball-sort rule: a ball may move only onto an empty tube or onto a tube whose top ball is the same color (and not full). The ballsortgame.html prototype used a lenient any-ball-any-space rule \u2014 do NOT carry that over. Classic is the proven, strategic, monetizable formula and is what requires the solver/generator.",
       "created": "2026-06-25"
     },
     {
@@ -15,7 +15,7 @@
       "title": "Levels are infinite + generated, and must be guaranteed solvable",
       "type": "decision",
       "hook": "Generator + solver; every level provably winnable.",
-      "body": "No hand-authored level packs in v1. A generator produces endless levels on a rising difficulty curve. Because the classic rule makes random shuffles often impossible, generation must guarantee solvability. As of E5 this is done by random-fill + solver verification (see m11), NOT the original reverse-move scrambling — that produced trivial levels. The solver doubles as the hints engine.",
+      "body": "No hand-authored level packs in v1. A generator produces endless levels on a rising difficulty curve. Because the classic rule makes random shuffles often impossible, generation must guarantee solvability. As of E5 this is done by random-fill + solver verification (see m11), NOT the original reverse-move scrambling \u2014 that produced trivial levels. The solver doubles as the hints engine.",
       "created": "2026-06-25"
     },
     {
@@ -31,7 +31,7 @@
       "title": "v1 is free, no ads, no SDKs",
       "type": "decision",
       "hook": "Free launch, monetize later.",
-      "body": "v1 ships free with zero ad/analytics SDKs — cleanest build, fastest to store, trivial privacy nutrition label. Monetization (ads + remove-ads IAP, or paid, or skins-as-IAP) is deferred post-launch.",
+      "body": "v1 ships free with zero ad/analytics SDKs \u2014 cleanest build, fastest to store, trivial privacy nutrition label. Monetization (ads + remove-ads IAP, or paid, or skins-as-IAP) is deferred post-launch.",
       "created": "2026-06-25"
     },
     {
@@ -44,15 +44,15 @@
     },
     {
       "id": "m6",
-      "title": "Apple Developer enrollment is the long-pole external blocker — Tom owns it",
+      "title": "Apple Developer enrollment is the long-pole external blocker \u2014 Tom owns it",
       "type": "risk",
       "hook": "Not enrolled yet; gates Game Center, TestFlight, submission. Start now.",
-      "body": "No Apple Developer account yet (~$99/yr, payment + Apple ID, approval can take a day+). It blocks Game Center, TestFlight, and submission. Per how we work, prod/account/payment actions are Tom's to run. Game Center (E10) and Release (E11) are intentionally late, isolated epics so the playable core is never blocked — but enrollment should start day one to overlap the build.",
+      "body": "No Apple Developer account yet (~$99/yr, payment + Apple ID, approval can take a day+). It blocks Game Center, TestFlight, and submission. Per how we work, prod/account/payment actions are Tom's to run. Game Center (E10) and Release (E11) are intentionally late, isolated epics so the playable core is never blocked \u2014 but enrollment should start day one to overlap the build.",
       "created": "2026-06-25"
     },
     {
       "id": "m7",
-      "title": "Genre is saturated — pick a differentiator before store assets",
+      "title": "Genre is saturated \u2014 pick a differentiator before store assets",
       "type": "risk",
       "hook": "A faithful clone risks invisibility; differentiation deferred but mandatory to revisit.",
       "body": "Ball-sort/water-sort is a crowded genre. v1 scope is intentionally a clean classic build, but a 1:1 clone risks zero discoverability. Before spending on store screenshots/metadata (E11), decide on a hook: signature theme/skin identity, a twist mechanic, or a daily shared puzzle. Flagged, not yet scoped.",
@@ -68,26 +68,26 @@
     },
     {
       "id": "m9",
-      "title": "Dev machine has only Command Line Tools — SwiftPM is broken, no Swift builds/tests until full Xcode",
+      "title": "Dev machine has only Command Line Tools \u2014 SwiftPM is broken, no Swift builds/tests until full Xcode",
       "type": "risk",
-      "hook": "RESOLVED 2026-06-25 — full Xcode 26.5 installed; `swift test` + `xcodebuild test` both green.",
-      "body": "RESOLVED. Earlier on 2026-06-25 the Mac had only Command Line Tools (Swift 6.1.2), whose PackageDescription ManifestAPI was missing Package.__allocating_init, so SwiftPM couldn't link ANY manifest (even `swift package init` failed) — blocking all Swift build/test. Tom then installed full Xcode 26.5 (17F42); xcode-select now points at /Applications/Xcode.app. Verified working: `swift test` passes BallColor in BallSortCore, and `xcodegen generate` + `xcodebuild test -scheme BallSortApp` on the iPhone 17 Pro simulator passes the app SmokeTests. Keep for the lesson: a CLT-only Mac cannot build SwiftPM; full Xcode is required.",
+      "hook": "RESOLVED 2026-06-25 \u2014 full Xcode 26.5 installed; `swift test` + `xcodebuild test` both green.",
+      "body": "RESOLVED. Earlier on 2026-06-25 the Mac had only Command Line Tools (Swift 6.1.2), whose PackageDescription ManifestAPI was missing Package.__allocating_init, so SwiftPM couldn't link ANY manifest (even `swift package init` failed) \u2014 blocking all Swift build/test. Tom then installed full Xcode 26.5 (17F42); xcode-select now points at /Applications/Xcode.app. Verified working: `swift test` passes BallColor in BallSortCore, and `xcodegen generate` + `xcodebuild test -scheme BallSortApp` on the iPhone 17 Pro simulator passes the app SmokeTests. Keep for the lesson: a CLT-only Mac cannot build SwiftPM; full Xcode is required.",
       "created": "2026-06-25"
     },
     {
       "id": "m10",
-      "title": "E0 architecture is decided — see docs/TECHNICAL_DECISIONS.md; don't re-litigate",
+      "title": "E0 architecture is decided \u2014 see docs/TECHNICAL_DECISIONS.md; don't re-litigate",
       "type": "decision",
       "hook": "Layered MVVM (@Observable, iOS 17) over pure Core; Codable-to-disk persistence; snapshot+VM tests; XcodeGen.",
-      "body": "ADRs 0001–0004 lock: (1) Views→ViewModels(@Observable, Observation)→Core(BallSortCore, pure value types), DI via LevelGenerating/Solving/PersistenceStore protocols, min iOS 17. (2) Persistence = Codable JSON in Application Support behind a PersistenceStore protocol, + @AppStorage for settings; SwiftData rejected. (3) Testing = exhaustive Core+ViewModel unit tests primary, targeted swift-snapshot-testing for ball/tube/board primitives, PR screenshot rule; ViewInspector rejected. (4) Xcode app target defined as code via XcodeGen project.yml (Claude authors, Tom runs xcodegen), app consumes local ./BallSortCore package. Full rationale + rejected alternatives in docs/TECHNICAL_DECISIONS.md.",
+      "body": "ADRs 0001\u20130004 lock: (1) Views\u2192ViewModels(@Observable, Observation)\u2192Core(BallSortCore, pure value types), DI via LevelGenerating/Solving/PersistenceStore protocols, min iOS 17. (2) Persistence = Codable JSON in Application Support behind a PersistenceStore protocol, + @AppStorage for settings; SwiftData rejected. (3) Testing = exhaustive Core+ViewModel unit tests primary, targeted swift-snapshot-testing for ball/tube/board primitives, PR screenshot rule; ViewInspector rejected. (4) Xcode app target defined as code via XcodeGen project.yml (Claude authors, Tom runs xcodegen), app consumes local ./BallSortCore package. Full rationale + rejected alternatives in docs/TECHNICAL_DECISIONS.md.",
       "created": "2026-06-25"
     },
     {
       "id": "m11",
-      "title": "Generator is random-fill + solver-verified — reverse-move scramble made trivial levels",
+      "title": "Generator is random-fill + solver-verified \u2014 reverse-move scramble made trivial levels",
       "type": "decision",
-      "hook": "Difficulty = solver min-moves; rejection sampling; ≤5 colors; async in the VM.",
-      "body": "E5 (PR #17) replaced the E3 reverse-move scramble generator. Measured: reverse scrambling produced trivial ~2-move levels at ANY depth (depth 10→2.0 moves, depth 160→1.9) because the random forward walk equilibrates near the solved attractor — the scrambleDepth lever was inert. New approach: random-fill the exact ball multiset, verify with the Solver, accept only a solvable non-won board meeting a minMoves floor (rejection sampling); else the hardest found in the attempt budget. Random solvable fills are genuinely hard (~14 moves 4c/2e … ~22 5c/1e). API is now generate(colors:capacity:emptyTubes:minMoves:using:); Generator takes a Solving; capped at ≤5 colors because solver verification is infeasible at 6 colors. The App-layer DifficultyCurve (BallSortApp/Game/DifficultyCurve.swift) maps level→params over a rising minMoves floor (+ more colors, fewer empty tubes). Because generation runs the solver (~0.1–0.5s), BoardViewModel generates OFF the main actor behind an isGenerating flag. Amends m2; supersedes E3.2's original note.",
+      "hook": "Difficulty = solver min-moves; rejection sampling; \u22645 colors; async in the VM.",
+      "body": "E5 (PR #17) replaced the E3 reverse-move scramble generator. Measured: reverse scrambling produced trivial ~2-move levels at ANY depth (depth 10\u21922.0 moves, depth 160\u21921.9) because the random forward walk equilibrates near the solved attractor \u2014 the scrambleDepth lever was inert. New approach: random-fill the exact ball multiset, verify with the Solver, accept only a solvable non-won board meeting a minMoves floor (rejection sampling); else the hardest found in the attempt budget. Random solvable fills are genuinely hard (~14 moves 4c/2e \u2026 ~22 5c/1e). API is now generate(colors:capacity:emptyTubes:minMoves:using:); Generator takes a Solving; capped at \u22645 colors because solver verification is infeasible at 6 colors. The App-layer DifficultyCurve (BallSortApp/Game/DifficultyCurve.swift) maps level\u2192params over a rising minMoves floor (+ more colors, fewer empty tubes). Because generation runs the solver (~0.1\u20130.5s), BoardViewModel generates OFF the main actor behind an isGenerating flag. Amends m2; supersedes E3.2's original note.",
       "created": "2026-06-26"
     },
     {
@@ -95,8 +95,15 @@
       "title": "Repo is public so GitHub Actions (macOS CI) is free",
       "type": "context",
       "hook": "Made public 2026-06-26 after a private-repo Actions billing block halted CI.",
-      "body": "tomzohar/ball-sort-game was made public on 2026-06-26. Reason: as a private repo, CI on macOS runners (billed at 10× minutes) hit a GitHub Actions billing block ('job not started because recent account payments have failed or your spending limit needs to be increased') — jobs failed instantly with 0 steps. Public repos get free unlimited Actions including macOS, so going public unblocked CI at no cost. iOS/Xcode CI MUST use macOS runners (Linux can't build SwiftUI/xcodebuild). If the repo ever goes private again, expect the billing gate to return.",
+      "body": "tomzohar/ball-sort-game was made public on 2026-06-26. Reason: as a private repo, CI on macOS runners (billed at 10\u00d7 minutes) hit a GitHub Actions billing block ('job not started because recent account payments have failed or your spending limit needs to be increased') \u2014 jobs failed instantly with 0 steps. Public repos get free unlimited Actions including macOS, so going public unblocked CI at no cost. iOS/Xcode CI MUST use macOS runners (Linux can't build SwiftUI/xcodebuild). If the repo ever goes private again, expect the billing gate to return.",
       "created": "2026-06-26"
+    },
+    {
+      "id": "m13",
+      "title": "E6 hint = solver.solve().first, off-main",
+      "type": "decision",
+      "hook": "requestHint() is the rewarded-ad seam; gold source/dashed dest highlight.",
+      "body": "E6 hints reuse E3's Solver: BoardViewModel.requestHint() runs solver.solve(state).first off the main actor (Task.detached, like grading) and stores it as hintMove; the board highlights it (TubeView isHintSource = solid gold border, isHintTarget = dashed gold border). hintMove is cleared on any board mutation (tap/undo/restart/level change) and the hint Task is cancelled. requestHint() is the clean seam a future rewarded-ad gate would wrap. canHint = !isGenerating && !isWon drives the gold Hint pill in BoardControlsView."
     }
   ]
 }

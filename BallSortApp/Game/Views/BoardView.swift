@@ -37,6 +37,8 @@ struct BoardView: View {
                     ballSize: ballSize,
                     isSelected: model.isSelected(i),
                     isTarget: isTarget(i),
+                    isHintSource: model.isHintSource(i),
+                    isHintTarget: model.isHintTarget(i),
                     onTap: { withAnimation(dropAnimation) { model.tap(i) } }
                 )
             }

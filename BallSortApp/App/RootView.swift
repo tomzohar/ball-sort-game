@@ -30,7 +30,9 @@ struct RootView: View {
                     .padding(.horizontal, 12)
 
                 BoardControlsView(
+                    canHint: model.canHint,
                     canUndo: model.canUndo,
+                    onHint: { withAnimation(.easeInOut) { model.requestHint() } },
                     onUndo: { withAnimation(.easeInOut) { model.undo() } },
                     onRestart: { withAnimation(.easeInOut) { model.restart() } }
                 )
