@@ -13,7 +13,31 @@ struct WinOverlayView: View {
     let onNextLevel: () -> Void
     let onReplay: () -> Void
 
+    /// When `true`, the card renders in its settled (fully-visible) state instead of
+    /// running the entrance animation. Snapshots/previews pass `true` for a stable,
+    /// content-bearing baseline; production uses the default and animates in.
+    var startsSettled: Bool = false
+
     private static var cornerRadius: CGFloat { 24 }
+
+    /// Drives the staggered cascade entrance (emoji bounce → stats → buttons).
+    /// Flips to `true` on appear so each element eases in on its own delay.
+    @State private var appeared: Bool
+
+    init(
+        moves: Int,
+        elapsed: TimeInterval,
+        startsSettled: Bool = false,
+        onNextLevel: @escaping () -> Void,
+        onReplay: @escaping () -> Void
+    ) {
+        self.moves = moves
+        self.elapsed = elapsed
+        self.startsSettled = startsSettled
+        self.onNextLevel = onNextLevel
+        self.onReplay = onReplay
+        _appeared = State(initialValue: startsSettled)
+    }
 
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous)
@@ -22,13 +46,22 @@ struct WinOverlayView: View {
             Text("🎉")
                 .font(.system(size: 52))
                 .accessibilityHidden(true)
+                .scaleEffect(appeared ? 1 : 0.3)
+                .opacity(appeared ? 1 : 0)
+                .animation(AnimationConstants.winCelebration, value: appeared)
 
             Text("Solved!")
                 .font(.largeTitle.bold())
                 .foregroundStyle(.white)
                 .shadow(color: .black.opacity(0.35), radius: 2, x: 0, y: 1)
+                .opacity(appeared ? 1 : 0)
+                .offset(y: appeared ? 0 : 8)
+                .animation(AnimationConstants.winCelebration.delay(AnimationConstants.winStagger), value: appeared)
 
             stats
+                .opacity(appeared ? 1 : 0)
+                .scaleEffect(appeared ? 1 : 0.85)
+                .animation(AnimationConstants.winCelebration.delay(AnimationConstants.winStagger * 2), value: appeared)
 
             VStack(spacing: 12) {
                 Button(action: onNextLevel) {
@@ -50,6 +83,9 @@ struct WinOverlayView: View {
                 .tint(.white)
             }
             .padding(.top, 4)
+            .opacity(appeared ? 1 : 0)
+            .scaleEffect(appeared ? 1 : 0.9)
+            .animation(AnimationConstants.winCelebration.delay(AnimationConstants.winStagger * 3), value: appeared)
         }
         .padding(28)
         .frame(maxWidth: 320)
@@ -60,6 +96,7 @@ struct WinOverlayView: View {
         )
         .shadow(color: .black.opacity(0.55), radius: 24, x: 0, y: 18)
         .transition(.scale.combined(with: .opacity))
+        .onAppear { appeared = true }
     }
 
     /// "18 moves" + the formatted clock, shown as two labelled pills.

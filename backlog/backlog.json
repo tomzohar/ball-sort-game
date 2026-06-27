@@ -309,8 +309,8 @@
         {
           "id": "E8.3",
           "title": "Animation polish",
-          "status": "todo",
-          "note": ""
+          "status": "done",
+          "note": "AnimationConstants single source of truth; eased ball lift, illegal-move shake (illegalMoveNonce), tube-complete flourish, staggered win-overlay entrance."
         }
       ]
     },

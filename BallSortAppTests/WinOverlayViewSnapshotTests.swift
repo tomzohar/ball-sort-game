@@ -21,6 +21,7 @@ final class WinOverlayViewSnapshotTests: XCTestCase {
             WinOverlayView(
                 moves: 18,
                 elapsed: 95,
+                startsSettled: true, // skip the entrance animation for a stable baseline
                 onNextLevel: {},
                 onReplay: {}
             )

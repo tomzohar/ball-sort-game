@@ -30,6 +30,8 @@ struct BallView: View {
             .shadow(color: .black.opacity(0.45), radius: 3, x: 0, y: 4)
             // Prototype `.ball.lifted` outer glow: `0 0 16px 4px rgba(255,255,255,.55)`.
             .shadow(color: isLifted ? .white.opacity(0.55) : .clear, radius: 8)
+            // Ease the scale/glow in/out instead of snapping (E8.3).
+            .animation(AnimationConstants.ballLift, value: isLifted)
     }
 
     /// Body: ball color held to 55%, then darkening to `black .25` at the rim.
