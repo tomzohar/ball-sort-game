@@ -7,9 +7,10 @@ import SwiftUI
 /// real stats model in and decides *when* to present it. Record fields are optional:
 /// a `nil` best-moves / best-time means "no record yet" and renders as an em dash.
 ///
-/// Styling borrows the prototype's wooden-tray theme (warm gradient card, dark border,
-/// glossy top highlight) so the screen sits of-a-piece with the board and win overlay
-/// (PROJECT_BRIEF, m3). Numbers use monospaced digits to match the HUD.
+/// Styled in the "Zen Garden" identity (E12.11): a light `elevated` card framed by a
+/// `stoneFrame` hairline, each stat a `sandBed` pill with an uppercase `zenCaption`
+/// label and a tabular `numeric` value. Tokens come from `ZenTheme` / `ZenTypography`
+/// so the screen sits of-a-piece with the board, HUD, and overlays.
 struct StatsView: View {
     let levelsSolved: Int
     let bestMoves: Int?
@@ -17,21 +18,18 @@ struct StatsView: View {
     let currentStreak: Int
     let longestStreak: Int
 
-    private static var cornerRadius: CGFloat { 24 }
-
     /// Em dash shown when a record hasn't been set yet.
     private static var emptyRecord: String { "—" }
 
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous)
+        let shape = RoundedRectangle(cornerRadius: ZenRadius.xl, style: .continuous)
 
-        VStack(spacing: 18) {
+        VStack(spacing: ZenSpacing.lg) {
             Text("Stats")
-                .font(.largeTitle.bold())
-                .foregroundStyle(.white)
-                .shadow(color: .black.opacity(0.35), radius: 2, x: 0, y: 1)
+                .font(ZenFont.title)
+                .foregroundStyle(ZenColor.textPrimary)
 
-            VStack(spacing: 10) {
+            VStack(spacing: ZenSpacing.sm) {
                 statRow("Levels Solved", value: "\(levelsSolved)")
                 statRow("Best Moves", value: bestMoves.map(String.init) ?? Self.emptyRecord)
                 statRow(
@@ -42,64 +40,45 @@ struct StatsView: View {
                 statRow("Longest Streak", value: "\(longestStreak)")
             }
         }
-        .padding(28)
+        .padding(ZenSpacing.xl)
         .frame(maxWidth: 320)
-        .background(cardBackground(shape: shape))
+        .background(ZenColor.elevated, in: shape)
         .overlay(
-            shape.strokeBorder(Color(hex: 0x5E3C1C), lineWidth: 5)
+            shape.strokeBorder(ZenColor.stoneFrame, lineWidth: 1)
                 .allowsHitTesting(false)
         )
-        .shadow(color: .black.opacity(0.55), radius: 24, x: 0, y: 18)
+        .zenShadow(.modal)
     }
 
-    /// A labelled stat row: caption-style label on the left, monospaced value on the
-    /// right, on a translucent dark capsule echoing the HUD pills.
+    /// A labelled stat row rendered as a Zen pill: uppercase caption label on the left,
+    /// tabular numeric value on the right, on a `sandBed` surface.
     ///
     /// The label is a `LocalizedStringResource` so it localizes (E9.5); we resolve it
     /// to a `String` to apply `.uppercased()`, keeping the same uppercased styling.
     private func statRow(_ label: LocalizedStringResource, value: String) -> some View {
         HStack {
             Text(String(localized: label).uppercased())
-                .font(.caption.weight(.semibold))
-                .tracking(0.8)
-                .foregroundStyle(.white.opacity(0.7))
-            Spacer(minLength: 12)
+                .zenCaption()
+                .foregroundStyle(ZenColor.textSecondary)
+            Spacer(minLength: ZenSpacing.md)
             Text(value)
-                .font(.title3.bold().monospacedDigit())
-                .foregroundStyle(.white)
+                .font(ZenFont.numeric)
+                .foregroundStyle(ZenColor.textPrimary)
         }
         .lineLimit(1)
         .minimumScaleFactor(0.7)
-        .padding(.vertical, 10)
-        .padding(.horizontal, 16)
+        .padding(.vertical, ZenSpacing.md)
+        .padding(.horizontal, ZenSpacing.lg)
         .background(
-            Color.black.opacity(0.18),
-            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+            ZenColor.sandBed,
+            in: RoundedRectangle(cornerRadius: ZenRadius.md, style: .continuous)
         )
-    }
-
-    /// Warm wooden gradient with a glossy top highlight, mirroring `WoodenTray`.
-    private func cardBackground(shape: RoundedRectangle) -> some View {
-        LinearGradient(
-            colors: [Color(hex: 0xC98A4B), Color(hex: 0x8A5A2B)],
-            startPoint: .top,
-            endPoint: .bottom
-        )
-        .overlay(
-            LinearGradient(
-                colors: [Color.white.opacity(0.28), Color.clear],
-                startPoint: .top,
-                endPoint: .center
-            )
-            .allowsHitTesting(false)
-        )
-        .clipShape(shape)
     }
 }
 
 #Preview("Populated") {
     ZStack {
-        GameBackground()
+        ZenColor.stage.ignoresSafeArea()
         StatsView(
             levelsSolved: 42,
             bestMoves: 14,
@@ -112,7 +91,7 @@ struct StatsView: View {
 
 #Preview("Empty records") {
     ZStack {
-        GameBackground()
+        ZenColor.stage.ignoresSafeArea()
         StatsView(
             levelsSolved: 0,
             bestMoves: nil,
