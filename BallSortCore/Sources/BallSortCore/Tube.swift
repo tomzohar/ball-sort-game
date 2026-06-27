@@ -2,7 +2,7 @@
 ///
 /// Balls are stored bottom→top: `balls[0]` is the bottom of the tube and
 /// `balls.last` is the top — the only ball that can be lifted out.
-public struct Tube: Equatable, Hashable, Sendable {
+public struct Tube: Equatable, Hashable, Sendable, Codable {
     /// The balls in the tube, ordered bottom (`[0]`) to top (`.last`).
     public var balls: [BallColor]
     /// The maximum number of balls the tube can hold.
