@@ -449,7 +449,7 @@
         {
           "id": "E12.2",
           "title": "Textured colorblind cue on stones",
-          "status": "in_progress",
+          "status": "done",
           "note": "Per-stone dots/stripes/rings texture so hue isn't the only differentiator. Rework BallView + BallColor+Accessibility.swift (replaces/augments SF-Symbol cues). Verify in grayscale."
         },
         {
@@ -461,61 +461,61 @@
         {
           "id": "E12.4",
           "title": "ZenBall view (frosted river-stone)",
-          "status": "todo",
+          "status": "done",
           "note": "Rework BallView: gloss + texture sphere, states idle/lifted/target. Update snapshot baselines + PR screenshot."
         },
         {
           "id": "E12.5",
           "title": "ZenTube view (frosted glass in sand)",
-          "status": "todo",
+          "status": "done",
           "note": "Rework TubeView: capacity 4, gravity-stacked, dimple slots; states idle/selected/target/complete/empty. Snapshots."
         },
         {
           "id": "E12.6",
           "title": "Raked-sand garden tray + background",
-          "status": "todo",
+          "status": "done",
           "note": "Replace wooden tray/dark backdrop in TrayBackground.swift with the raked-sand bed. Light-hero. Snapshots."
         },
         {
           "id": "E12.7",
           "title": "Difficulty badge restyle + level-label wrap fix",
-          "status": "todo",
+          "status": "done",
           "note": "DifficultyBadgeView: 5 bands, Zen styling; fix the 'Level N' wrapping the designer flagged."
         },
         {
           "id": "E12.8",
           "title": "HUD pills restyle",
-          "status": "todo",
+          "status": "done",
           "note": "GameHUDView: Moves/Timer/Sorted pills in Zen tokens."
         },
         {
           "id": "E12.9",
           "title": "Buttons + icon buttons restyle",
-          "status": "todo",
+          "status": "done",
           "note": "Primary/secondary + Hint/Undo/Restart/Settings/Stats icon buttons. BoardControlsView + RootView top bar. >=44pt targets."
         },
         {
           "id": "E12.10",
           "title": "Overlay card: Win + Loading/Generating",
-          "status": "todo",
+          "status": "done",
           "note": "Shared overlay card. Rework WinOverlayView (moves/time, Next Level primary, Replay secondary) + generating overlay in RootView."
         },
         {
           "id": "E12.11",
           "title": "Stats screen restyle",
-          "status": "todo",
+          "status": "done",
           "note": "StatsScreen/StatsView in Zen tokens. Behavioral test (snapshot OS-fragile per m-snapshot)."
         },
         {
           "id": "E12.12",
           "title": "Settings screen restyle",
-          "status": "todo",
+          "status": "done",
           "note": "SettingsView (Sound/Haptics) in Zen tokens, minimal. Behavioral test."
         },
         {
           "id": "E12.13",
           "title": "Launch screen redesign",
-          "status": "todo",
+          "status": "done",
           "note": "Zen-branded launch (wordmark + stone motif)."
         },
         {
@@ -545,7 +545,7 @@
         {
           "id": "E12.18",
           "title": "Snapshot baselines + PR screenshots refresh",
-          "status": "todo",
+          "status": "done",
           "note": "Regenerate snapshot baselines for reskinned primitives; attach running-app portrait screenshots per ADR-0003. Re-check localization (E9) strings still fit."
         }
       ]
