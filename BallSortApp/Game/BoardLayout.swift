@@ -77,69 +77,34 @@ enum BoardLayout {
         return min(cap, max(minBall, perTube))
     }
 
-    // MARK: - Row layout (fill the screen)
-
-    /// Most tubes shown in a single row before the board wraps to two balanced rows.
-    /// Matches the design rule "≤5 tubes one row, else two balanced rows".
-    static let maxTubesSingleRow = 5
-
-    /// Vertical gap between the two tube rows when the board wraps.
-    static let rowGap: CGFloat = 16
-
-    /// Number of tube rows for a given tube count: one row for ≤5 tubes, two otherwise.
-    static func rowCount(tubeCount: Int) -> Int {
-        tubeCount <= maxTubesSingleRow ? 1 : 2
-    }
-
-    /// Tube count in the widest row (the top row keeps the extra tube when odd).
-    static func tubesInWidestRow(tubeCount: Int) -> Int {
-        let n = max(0, tubeCount)
-        let rows = rowCount(tubeCount: n)
-        return Int((Double(n) / Double(rows)).rounded(.up))
-    }
-
-    /// Split `tubeCount` tube indices into contiguous rows, the top row keeping the
-    /// extra when the count is odd (e.g. 7 → [0..<4, 4..<7]).
-    static func rowRanges(tubeCount: Int) -> [Range<Int>] {
-        let n = max(0, tubeCount)
-        guard n > 0 else { return [] }
-        let rows = rowCount(tubeCount: n)
-        guard rows > 1 else { return [0..<n] }
-        let top = tubesInWidestRow(tubeCount: n)
-        return [0..<top, top..<n]
-    }
-
     // MARK: - Fitted ball size (fills both width and height)
 
-    /// The largest ball diameter that fills a board area of `rowCount` rows — the
-    /// widest holding `tubesPerRow` tubes, each tube stacking `capacity` balls — so
-    /// the board stretches to fill BOTH the available width and height.
+    /// The largest ball diameter that fills a board area holding all `tubeCount` tubes
+    /// in a **single row**, each stacking `capacity` balls — so the board stretches to
+    /// fill BOTH the available width and height.
     ///
     /// Unlike ``ballSize(availableWidth:tubeCount:maxBall:)`` (width only, intrinsic
     /// height), this binds on whichever of width/height is tighter, so the board no
-    /// longer leaves large unused vertical space. Clamped to `[minBall, maxBall]` and
-    /// robust to NaN/infinite/negative inputs.
+    /// longer leaves large unused space. Clamped to `[minBall, maxBall]` and robust to
+    /// NaN/infinite/negative inputs.
     static func fittedBallSize(
         available: CGSize,
-        tubesPerRow: Int,
-        rowCount: Int,
+        tubeCount: Int,
         capacity: Int,
         maxBall: CGFloat
     ) -> CGFloat {
         guard available.width.isFinite, available.height.isFinite, maxBall.isFinite else { return minBall }
-        let perRow = CGFloat(max(1, tubesPerRow))
-        let rows = CGFloat(max(1, rowCount))
+        let count = CGFloat(max(1, tubeCount))
         let cap = CGFloat(max(1, capacity))
 
         // Width: tubes share the row width with `tubeGap` between them; ball is the
         // tube's inner width (tube width minus its horizontal padding on both sides).
-        let rowWidth = available.width - tubeGap * (perRow - 1)
-        let widthFit = rowWidth / perRow - 2 * tubeHorizontalPadding
+        let rowWidth = available.width - tubeGap * (count - 1)
+        let widthFit = rowWidth / count - 2 * tubeHorizontalPadding
 
-        // Height: rows share the height with `rowGap` between them; each row holds one
-        // tube column of `capacity` balls plus interior gaps and top/bottom padding.
-        let perRowHeight = (available.height - rowGap * (rows - 1)) / rows
-        let heightFit = (perRowHeight - 2 * tubeVerticalPadding - (cap - 1) * ballGap) / cap
+        // Height: the row holds one tube column of `capacity` balls plus interior gaps
+        // and top/bottom padding.
+        let heightFit = (available.height - 2 * tubeVerticalPadding - (cap - 1) * ballGap) / cap
 
         let fit = min(widthFit, heightFit)
         guard fit.isFinite else { return minBall }

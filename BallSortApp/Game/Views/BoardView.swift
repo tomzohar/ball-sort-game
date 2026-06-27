@@ -32,43 +32,35 @@ struct BoardView: View {
     var body: some View {
         let tubes = model.gameState.tubes
         let capacity = model.gameState.capacity
-        let n = tubes.count
-        let rows = BoardLayout.rowCount(tubeCount: n)
-        let perRow = BoardLayout.tubesInWidestRow(tubeCount: n)
-        // Generous caps; the board now fills the available area, so width/height is the
+        // Generous caps; the board fills the available area, so width/height is the
         // binding constraint rather than an artificially small ball size. iPad goes larger.
         let maxBall = horizontalSizeClass == .regular ? 170.0 : 120.0
 
-        // Fill the whole tray: size balls to the largest that fits both the available
-        // width and height, then centre the rows within the area.
+        // Fill the whole tray: all tubes in one row, sized to the largest ball that fits
+        // both the available width and height, centred within the area.
         GeometryReader { proxy in
             let ballSize = BoardLayout.fittedBallSize(
                 available: proxy.size,
-                tubesPerRow: perRow,
-                rowCount: rows,
+                tubeCount: tubes.count,
                 capacity: capacity,
                 maxBall: maxBall
             )
 
-            VStack(spacing: BoardLayout.rowGap) {
-                ForEach(BoardLayout.rowRanges(tubeCount: n), id: \.lowerBound) { range in
-                    HStack(alignment: .bottom, spacing: BoardLayout.tubeGap) {
-                        ForEach(range, id: \.self) { i in
-                            TubeView(
-                                tube: tubes[i],
-                                tubeIndex: i,
-                                capacity: capacity,
-                                ballSize: ballSize,
-                                isSelected: model.isSelected(i),
-                                isTarget: isTarget(i),
-                                isHintSource: model.isHintSource(i),
-                                isHintTarget: model.isHintTarget(i),
-                                flourishing: flourishTube == i,
-                                onTap: { withAnimation(dropAnimation) { model.tap(i) } }
-                            )
-                            .offset(x: shakeTube == i ? shakeOffset : 0)
-                        }
-                    }
+            HStack(alignment: .bottom, spacing: BoardLayout.tubeGap) {
+                ForEach(tubes.indices, id: \.self) { i in
+                    TubeView(
+                        tube: tubes[i],
+                        tubeIndex: i,
+                        capacity: capacity,
+                        ballSize: ballSize,
+                        isSelected: model.isSelected(i),
+                        isTarget: isTarget(i),
+                        isHintSource: model.isHintSource(i),
+                        isHintTarget: model.isHintTarget(i),
+                        flourishing: flourishTube == i,
+                        onTap: { withAnimation(dropAnimation) { model.tap(i) } }
+                    )
+                    .offset(x: shakeTube == i ? shakeOffset : 0)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

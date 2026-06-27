@@ -154,74 +154,46 @@ final class BoardLayoutTests: XCTestCase {
         XCTAssertEqual(BoardLayout.tubeHeight(ballSize: 50, capacity: -3), 12)
     }
 
-    // MARK: - Row layout
-
-    /// ≤5 tubes stay in one row; 6+ wrap to two.
-    func testRowCountThreshold() {
-        for n in 1...5 { XCTAssertEqual(BoardLayout.rowCount(tubeCount: n), 1, "\(n) tubes") }
-        for n in 6...12 { XCTAssertEqual(BoardLayout.rowCount(tubeCount: n), 2, "\(n) tubes") }
-    }
-
-    /// The widest row gets the extra tube when the count is odd.
-    func testTubesInWidestRow() {
-        XCTAssertEqual(BoardLayout.tubesInWidestRow(tubeCount: 5), 5)   // single row
-        XCTAssertEqual(BoardLayout.tubesInWidestRow(tubeCount: 6), 3)   // 3 / 3
-        XCTAssertEqual(BoardLayout.tubesInWidestRow(tubeCount: 7), 4)   // 4 / 3
-        XCTAssertEqual(BoardLayout.tubesInWidestRow(tubeCount: 8), 4)   // 4 / 4
-    }
-
-    /// Row ranges are contiguous, cover every index once, and the top row keeps the extra.
-    func testRowRanges() {
-        XCTAssertEqual(BoardLayout.rowRanges(tubeCount: 0), [])
-        XCTAssertEqual(BoardLayout.rowRanges(tubeCount: 4), [0..<4])
-        XCTAssertEqual(BoardLayout.rowRanges(tubeCount: 7), [0..<4, 4..<7])
-        // Cover-once invariant across the wrapping range.
-        for n in 1...12 {
-            let flattened = BoardLayout.rowRanges(tubeCount: n).flatMap { Array($0) }
-            XCTAssertEqual(flattened, Array(0..<n), "\(n) tubes")
-        }
-    }
-
-    // MARK: - Fitted ball size (fills width AND height)
+    // MARK: - Fitted ball size (single row, fills width AND height)
 
     /// Binds on height when the area is short and wide.
     func testFittedBindsOnHeight() {
-        // 1 row, 4 tubes, capacity 4, generous width, short height 300:
-        // perRowHeight = 300; heightFit = (300 - 12 - 3*8)/4 = (300-36)/4 = 66.
+        // 4 tubes, capacity 4, generous width, short height 300:
+        // heightFit = (300 - 12 - 3*8)/4 = (300-36)/4 = 66.
         let size = BoardLayout.fittedBallSize(
             available: CGSize(width: 4000, height: 300),
-            tubesPerRow: 4, rowCount: 1, capacity: 4, maxBall: 200
+            tubeCount: 4, capacity: 4, maxBall: 200
         )
         XCTAssertEqual(size, 66)
     }
 
     /// Binds on width when the area is tall and narrow.
     func testFittedBindsOnWidth() {
-        // 1 row, 4 tubes, capacity 4, width 300, tall height:
+        // 4 tubes, capacity 4, width 300, tall height:
         // rowWidth = 300 - 8*3 = 276; widthFit = 276/4 - 10 = 69 - 10 = 59.
         let size = BoardLayout.fittedBallSize(
             available: CGSize(width: 300, height: 4000),
-            tubesPerRow: 4, rowCount: 1, capacity: 4, maxBall: 200
+            tubeCount: 4, capacity: 4, maxBall: 200
         )
         XCTAssertEqual(size, 59)
     }
 
-    /// Two rows split the height, so each row's column gets roughly half.
-    func testFittedTwoRowsSplitHeight() {
-        // 2 rows, capacity 4, height 700 (rowGap 16): perRowHeight = (700-16)/2 = 342;
-        // heightFit = (342 - 12 - 24)/4 = 306/4 = 76.5 -> width must be the looser bound.
+    /// More tubes in the single row shrink the width-bound ball size.
+    func testFittedMoreTubesShrinkWidth() {
+        // 7 tubes, width 390, tall height: rowWidth = 390 - 8*6 = 342;
+        // widthFit = 342/7 - 10 = 48.857… -> floor(38.857) = 38.
         let size = BoardLayout.fittedBallSize(
-            available: CGSize(width: 4000, height: 700),
-            tubesPerRow: 4, rowCount: 2, capacity: 4, maxBall: 200
+            available: CGSize(width: 390, height: 4000),
+            tubeCount: 7, capacity: 4, maxBall: 200
         )
-        XCTAssertEqual(size, 76)  // floor(76.5)
+        XCTAssertEqual(size, 38)
     }
 
     /// Clamps to maxBall when both dimensions are huge.
     func testFittedClampsToMax() {
         let size = BoardLayout.fittedBallSize(
             available: CGSize(width: 9000, height: 9000),
-            tubesPerRow: 3, rowCount: 1, capacity: 4, maxBall: 120
+            tubeCount: 3, capacity: 4, maxBall: 120
         )
         XCTAssertEqual(size, 120)
     }
@@ -232,7 +204,7 @@ final class BoardLayoutTests: XCTestCase {
             for h in [CGFloat(-100), 0, .nan, .infinity] {
                 let size = BoardLayout.fittedBallSize(
                     available: CGSize(width: w, height: h),
-                    tubesPerRow: 6, rowCount: 2, capacity: 4, maxBall: 120
+                    tubeCount: 6, capacity: 4, maxBall: 120
                 )
                 XCTAssertTrue(size.isFinite)
                 XCTAssertGreaterThanOrEqual(size, BoardLayout.minBall)
