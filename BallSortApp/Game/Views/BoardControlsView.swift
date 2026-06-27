@@ -3,10 +3,10 @@ import SwiftUI
 /// The per-level controls: get a hint, undo the last move, and restart the level.
 /// A dumb view driven by plain values and callbacks (ADR-0001) — no game logic.
 ///
-/// Three pill buttons styled for the wooden-tray theme (TrayBackground.swift):
-/// a glowing gold **Hint** (E6) that dims when no hint is available, a warm amber
-/// **Undo** that dims when there's nothing to undo, and a darker **Restart** that's
-/// always tappable.
+/// Three Zen Garden pill buttons (E12.9): a calm **water-teal Hint** (E6, the
+/// primary action) that dims when no hint is available, and two quieter
+/// **elevated/stone-framed** secondary pills — **Undo** (dims when there's nothing
+/// to undo) and an always-tappable **Restart**.
 struct BoardControlsView: View {
     let canHint: Bool
     let canUndo: Bool
@@ -15,12 +15,12 @@ struct BoardControlsView: View {
     let onRestart: () -> Void
 
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: ZenSpacing.lg) {
             Button(action: onHint) {
                 ControlPillLabel(
                     title: "Hint",
                     systemImage: "lightbulb.fill",
-                    tint: Color(hex: 0xE0A106)
+                    style: .primary
                 )
             }
             .buttonStyle(ControlPillButtonStyle())
@@ -34,7 +34,7 @@ struct BoardControlsView: View {
                 ControlPillLabel(
                     title: "Undo",
                     systemImage: "arrow.uturn.backward",
-                    tint: Color(hex: 0xC98A4B)
+                    style: .secondary
                 )
             }
             .buttonStyle(ControlPillButtonStyle())
@@ -48,7 +48,7 @@ struct BoardControlsView: View {
                 ControlPillLabel(
                     title: "Restart",
                     systemImage: "arrow.clockwise",
-                    tint: Color(hex: 0x5E3C1C)
+                    style: .secondary
                 )
             }
             .buttonStyle(ControlPillButtonStyle())
@@ -58,55 +58,70 @@ struct BoardControlsView: View {
     }
 }
 
-/// The contents of a control pill: an SF Symbol + label over a glossy, rounded
-/// amber/wood capsule that echoes the wooden-tray look.
+/// The contents of a control pill in the Zen Garden tokens.
+///
+/// `.primary` is the water-teal accent fill (primary action); `.secondary` is a
+/// calm `elevated` surface with a hairline `stoneFrame` border. Both ride a full
+/// (capsule) radius and a soft `rest` elevation, with a minimum 44pt touch target.
 private struct ControlPillLabel: View {
+    enum Style {
+        case primary
+        case secondary
+    }
+
     /// `LocalizedStringKey` so the visible button title auto-localizes (E9.5).
     let title: LocalizedStringKey
     let systemImage: String
-    let tint: Color
+    let style: Style
+
+    private var foreground: Color {
+        switch style {
+        case .primary: return .white
+        case .secondary: return ZenColor.textPrimary
+        }
+    }
+
+    @ViewBuilder
+    private var fill: some View {
+        switch style {
+        case .primary: ZenColor.accent
+        case .secondary: ZenColor.elevated
+        }
+    }
+
+    private var borderColor: Color {
+        switch style {
+        case .primary: return ZenColor.accent
+        case .secondary: return ZenColor.stoneFrame
+        }
+    }
 
     var body: some View {
         let shape = Capsule(style: .continuous)
 
         Label(title, systemImage: systemImage)
-            .font(.headline)
-            .foregroundStyle(.white)
-            .padding(.vertical, 12)
-            .padding(.horizontal, 22)
-            .background(
-                LinearGradient(
-                    colors: [tint.opacity(0.95), tint.opacity(0.7)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-            )
-            // Inset top highlight, mirroring WoodenTray's inset 0 3px highlight.
-            .overlay(
-                LinearGradient(
-                    colors: [Color.white.opacity(0.30), Color.clear],
-                    startPoint: .top,
-                    endPoint: .center
-                )
-                .allowsHitTesting(false)
-            )
+            .font(ZenFont.body)
+            .foregroundStyle(foreground)
+            .padding(.vertical, ZenSpacing.md)
+            .padding(.horizontal, ZenSpacing.xl)
+            // ≥44pt touch target (canvas minimum).
+            .frame(minHeight: 44)
+            .background(fill)
             .clipShape(shape)
-            // Border: darker wood edge, matching the tray's #5e3c1c stroke.
             .overlay(
-                shape.strokeBorder(Color(hex: 0x5E3C1C), lineWidth: 1.5)
+                shape.strokeBorder(borderColor, lineWidth: 1)
                     .allowsHitTesting(false)
             )
-            // Outer drop shadow, a lighter version of the tray's drop shadow.
-            .shadow(color: Color.black.opacity(0.45), radius: 6, x: 0, y: 4)
+            .zenShadow(.rest)
     }
 }
 
-/// Press feedback: a subtle scale + dim, no platform tint.
+/// Press feedback: a calm, water-like scale + dim — no platform tint, never bouncy.
 private struct ControlPillButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
-            .brightness(configuration.isPressed ? -0.05 : 0)
+            .brightness(configuration.isPressed ? -0.04 : 0)
             .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
     }
 }
@@ -114,7 +129,7 @@ private struct ControlPillButtonStyle: ButtonStyle {
 #Preview {
     ZStack {
         GameBackground()
-        VStack(spacing: 32) {
+        VStack(spacing: ZenSpacing.xxl) {
             BoardControlsView(canHint: true, canUndo: true, onHint: {}, onUndo: {}, onRestart: {})
             BoardControlsView(canHint: false, canUndo: false, onHint: {}, onUndo: {}, onRestart: {})
         }

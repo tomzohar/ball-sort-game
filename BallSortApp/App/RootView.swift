@@ -74,32 +74,26 @@ struct RootView: View {
     }
 
     /// A slim top bar carrying the settings and stats buttons at the trailing edge.
+    /// Zen Garden secondary icon buttons (E12.9): calm `elevated` discs with a
+    /// hairline `stoneFrame` border and a soft `rest` elevation, ≥44pt touch targets.
     private var topBar: some View {
-        HStack {
+        HStack(spacing: ZenSpacing.sm) {
             Spacer()
             Button {
                 showingSettings = true
             } label: {
-                Image(systemName: "gearshape.fill")
-                    .font(.title3)
-                    .foregroundStyle(.white)
-                    .padding(10)
-                    .background(Color.black.opacity(0.25), in: Circle())
+                ZenIconButtonLabel(systemImage: "gearshape.fill")
             }
             .accessibilityLabel("Settings")
 
             Button {
                 showingStats = true
             } label: {
-                Image(systemName: "chart.bar.fill")
-                    .font(.title3)
-                    .foregroundStyle(.white)
-                    .padding(10)
-                    .background(Color.black.opacity(0.25), in: Circle())
+                ZenIconButtonLabel(systemImage: "chart.bar.fill")
             }
             .accessibilityLabel("Stats")
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, ZenSpacing.lg)
     }
 
     private var generatingOverlay: some View {
@@ -113,6 +107,23 @@ struct RootView: View {
         }
         .padding(28)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+    }
+}
+
+/// A Zen Garden secondary icon button face: an SF Symbol centred on a calm
+/// `elevated` disc with a hairline `stoneFrame` border and a soft `rest` shadow.
+/// Sized to a ≥44pt touch target.
+private struct ZenIconButtonLabel: View {
+    let systemImage: String
+
+    var body: some View {
+        Image(systemName: systemImage)
+            .font(.title3)
+            .foregroundStyle(ZenColor.textPrimary)
+            .frame(width: 44, height: 44)
+            .background(ZenColor.elevated, in: Circle())
+            .overlay(Circle().strokeBorder(ZenColor.stoneFrame, lineWidth: 1))
+            .zenShadow(.rest)
     }
 }
 
