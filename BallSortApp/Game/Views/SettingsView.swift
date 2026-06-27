@@ -58,7 +58,7 @@ struct SettingsView: View {
                     RoundedRectangle(cornerRadius: ZenRadius.md, style: .continuous)
                         .strokeBorder(ZenColor.stoneFrame, lineWidth: 1)
                 )
-                .zenShadow(.soft)
+                .zenShadow(.card)
                 .padding(.horizontal, ZenSpacing.lg)
 
                 Button(action: onClose) {
@@ -69,7 +69,7 @@ struct SettingsView: View {
                         .padding(.horizontal, ZenSpacing.xl + ZenSpacing.xs)
                         .background(ZenColor.elevated, in: Capsule())
                         .overlay(Capsule().strokeBorder(ZenColor.stoneFrame, lineWidth: 1))
-                        .zenShadow(.soft)
+                        .zenShadow(.card)
                 }
             }
         }
