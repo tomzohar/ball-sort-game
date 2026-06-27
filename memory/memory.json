@@ -152,6 +152,14 @@
       "hook": "Retry a past level replays its exact saved board; doesn't touch the curve.",
       "body": "Per-level run history (E13) records WINS ONLY as LevelRun, each embedding the level's STARTING board snapshot. We snapshot the board rather than persist a seed because production levels are generated with the SYSTEM RNG (no persisted seed), so they aren't reproducible by number; a snapshot also survives generator/curve changes. Retry replays that exact board as a SIDE EXCURSION: the current level is stashed and persistProgress() is suppressed (saved-game.json keeps pointing at the real level; relaunch resumes it), exitReplay() restores it. A replay win sharpens best-moves/best-time (GameStats.improvingBests) but does NOT increment levelsSolved, the streak, or advance the difficulty curve \u2014 it's practice. Appearance toggle (System/Light/Dark) is @AppStorage(\"appearanceMode\") + .preferredColorScheme app-wide; Zen tokens already had light/dark.",
       "created": "2026-06-27"
+    },
+    {
+      "id": "m20",
+      "title": "E14 gameplay-depth direction: feel + guidance, not a twist",
+      "type": "decision",
+      "hook": "Improve the core loop's feel + guidance; differentiation stays the Zen skin.",
+      "body": "Tom (2026-06-27) wants gameplay improvement but chose game-FEEL + DIFFICULTY/GUIDANCE over adding a differentiating twist mechanic, and accepted scope expansion (launch may slip). Captured as epic E14, extending E8/E6/E3 with no rule change (GAME_RULES out-of-scope list untouched). Key finding driving B1: DifficultyCurve.swift PLATEAUS by ~level 9 (colors capped 5, empty tubes floored 1, capacity fixed 4, min-moves capped 24), contradicting PROJECT_BRIEF's 'infinite rising difficulty' promise \u2014 fix is the recommended first task (pure Core, full TDD). Other gaps: no first-run tutorial (players land cold on L1), move animation is a straight spring not a pour-arc, tap-only (no drag), hint event is silent, win is just a card cascade. Differentiation question stays RESOLVED by the Zen skin (m15); E14 is depth, not a hook.",
+      "created": "2026-06-27"
     }
   ]
 }

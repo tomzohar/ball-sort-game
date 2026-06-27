@@ -581,6 +581,62 @@
           "note": "BoardViewModel.replay(_:)/exitReplay(): install a past run's EXACT board as a side excursion; current level stashed + persistProgress suppressed so relaunch resumes the real level; exit restores it. Replay win sharpens records (GameStats.improvingBests) but does NOT advance the curve or inflate levelsSolved/streak (practice, per Tom). RootView replay banner + Exit; win overlay primary action becomes Done while replaying. Full TDD (BoardViewModelReplayTests)."
         }
       ]
+    },
+    {
+      "id": "E14",
+      "title": "Gameplay depth \u2014 feel + guidance",
+      "criticalPath": false,
+      "summary": "Deepen the core loop without a twist mechanic: richer game-feel (pour-arc, drag, win/completion payoff) plus difficulty & guidance fixes (curve plateau, first-run tutorial, smarter hints). Tom-requested 2026-06-27, scope-expansion accepted (launch can slip to get gameplay right). Extends E8 (juice), E6 (hints), E3 (difficulty); not a new rule, so GAME_RULES out-of-scope list is unchanged.",
+      "tasks": [
+        {
+          "id": "E14.1",
+          "title": "Fix difficulty-curve plateau (Core)",
+          "status": "done",
+          "note": "B1. DifficultyCurve currently flatlines by ~level 9: colors capped at 5, empty tubes floored at 1, capacity fixed at 4, min-moves capped at 24 \u2014 contradicts PROJECT_BRIEF 'infinite rising difficulty'. Grow capacity (4->5->6) and raise color/min-move ceilings on a continued curve while keeping every level solvable (Generator rejection-sampling + solver). Pure Core/App-curve work, full TDD. Recommended FIRST task. Watch solver feasibility cap (grader limited to 5 colors). SHIPPED: capacity grows 4->5->6 (L11/L16) gated behind the 1-empty-tube transition; min-moves ceiling 24->48; colors stay <=5. Difficulty potential rises through L20 (was flat from L8). Probe found solver cost scales with empty-tube count, not board size. 160 app tests green; capacity-6 board renders cleanly. Branch feat/e14.1-difficulty-curve-plateau."
+        },
+        {
+          "id": "E14.2",
+          "title": "First-run interactive tutorial",
+          "status": "todo",
+          "note": "B2. No onboarding exists today \u2014 players land cold on L1. Add first-run detection (@AppStorage) + a short interactive walkthrough of the classic move rule (lift top ball; drop on empty or same-color non-full). Skippable, replayable from Settings. Behavioral VM tests + screenshot per UI rule. Biggest early-churn reducer for the store launch."
+        },
+        {
+          "id": "E14.3",
+          "title": "Pour-arc move animation",
+          "status": "todo",
+          "note": "A1. Today a moved ball springs straight to the destination (BoardView dropAnimation). Replace with a real arc travelling from source tube mouth to destination mouth \u2014 the signature ball-sort feel. Keep existing lift spring + tube-complete flourish. Snapshot the primitive + device recording."
+        },
+        {
+          "id": "E14.4",
+          "title": "Drag-to-pour gesture",
+          "status": "todo",
+          "note": "A2. Tap-to-lift/tap-to-drop is the only interaction (BoardView/TubeView). Add a drag gesture (drag a source tube onto a destination) alongside taps, sharing the same legality + feedback path. Pairs with E14.3. Reject with the existing shake. Device recording required."
+        },
+        {
+          "id": "E14.5",
+          "title": "Win-moment particle payoff",
+          "status": "todo",
+          "note": "A3. WinOverlayView is just a staggered card cascade today. Add a particle/confetti burst behind the card so victory lands. Respect reduce-motion. Snapshot static frame + recording."
+        },
+        {
+          "id": "E14.6",
+          "title": "Tube-completion settle polish",
+          "status": "todo",
+          "note": "A4. Tube completion currently = scale pulse + moss glow + two-note tone (TubeView/BoardView). Add a tactile 'lock/settle' finish on the final ball (small overshoot + ripple) to make completion feel decisive. Extends E8."
+        },
+        {
+          "id": "E14.7",
+          "title": "Smarter hints + hint feedback",
+          "status": "todo",
+          "note": "B3. Hints are highlight-only and the hint event is silent (no sound/haptic). Add an animated nudge toward source/dest and wire a hint GameEvent into the feedback service. Keep solver-derived (E6). VM tests for the new event."
+        },
+        {
+          "id": "E14.8",
+          "title": "Difficulty label on level intro",
+          "status": "todo",
+          "note": "B4. DifficultyGrader already computes a band (trivial..expert) that's barely surfaced. Show the grade on the level-intro/HUD so players can gauge the climb. Small App-layer surfacing; behavioral test."
+        }
+      ]
     }
   ]
 }
