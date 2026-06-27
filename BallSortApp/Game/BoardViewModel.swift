@@ -347,6 +347,11 @@ final class BoardViewModel {
         frozenElapsed = 0
         startedAt = nil
     }
+}
+
+// MARK: - Level generation & difficulty grading
+
+extension BoardViewModel {
 
     // MARK: - Generation
 
