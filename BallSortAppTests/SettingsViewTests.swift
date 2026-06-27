@@ -20,6 +20,7 @@ final class SettingsViewTests: XCTestCase {
     private let soundKey = "soundEnabled"
     private let hapticsKey = "hapticsEnabled"
     private let appearanceKey = AppearanceMode.storageKey
+    private let tutorialKey = Tutorial.hasSeenKey
 
     override func setUp() {
         super.setUp()
@@ -35,6 +36,28 @@ final class SettingsViewTests: XCTestCase {
         UserDefaults.standard.removeObject(forKey: soundKey)
         UserDefaults.standard.removeObject(forKey: hapticsKey)
         UserDefaults.standard.removeObject(forKey: appearanceKey)
+        UserDefaults.standard.removeObject(forKey: tutorialKey)
+    }
+
+    /// With nothing stored, the tutorial flag is absent so the `= false` default makes
+    /// `RootView` show the first-run walkthrough — the gate fresh installs hit (E14.2).
+    func testTutorialFlagDefaultsToUnseenWhenAbsent() {
+        let view = SettingsView(onClose: {})
+
+        XCTAssertNil(UserDefaults.standard.object(forKey: tutorialKey))
+        XCTAssertFalse(view.hasSeenTutorialBinding.wrappedValue)
+    }
+
+    /// "How to Play" clears the seen flag (and dismisses the sheet) so the walkthrough
+    /// replays. This pins the write the button performs through the same binding.
+    func testReplayTutorialClearsTheSeenFlag() {
+        UserDefaults.standard.set(true, forKey: tutorialKey)
+        let view = SettingsView(onClose: {})
+        XCTAssertTrue(view.hasSeenTutorialBinding.wrappedValue)
+
+        view.hasSeenTutorialBinding.wrappedValue = false
+
+        XCTAssertFalse(UserDefaults.standard.object(forKey: tutorialKey) as? Bool ?? true)
     }
 
     /// The view binds to the documented keys; constructing it with no stored values

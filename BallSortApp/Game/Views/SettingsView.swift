@@ -17,6 +17,9 @@ struct SettingsView: View {
     /// The light/dark appearance preference. Backs the app root's
     /// `.preferredColorScheme`; defaults to `.system` (follow the device).
     @AppStorage(AppearanceMode.storageKey) private var appearanceRaw = AppearanceMode.system.rawValue
+    /// First-run tutorial flag (E14.2). "How to Play" clears it so `RootView` shows
+    /// the walkthrough again.
+    @AppStorage(Tutorial.hasSeenKey) private var hasSeenTutorial = false
 
     /// Invoked when the player taps Done.
     let onClose: () -> Void
@@ -29,6 +32,8 @@ struct SettingsView: View {
     var hapticsEnabledBinding: Binding<Bool> { $hapticsEnabled }
     /// Test-facing handle on the appearance binding (see `soundEnabledBinding`).
     var appearanceBinding: Binding<String> { $appearanceRaw }
+    /// Test-facing handle on the tutorial flag (see `soundEnabledBinding`).
+    var hasSeenTutorialBinding: Binding<Bool> { $hasSeenTutorial }
 
     var body: some View {
         ZStack {
@@ -69,6 +74,28 @@ struct SettingsView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.vertical, ZenSpacing.md)
                     .padding(.horizontal, ZenSpacing.lg)
+
+                    Divider()
+                        .overlay(ZenColor.stoneFrame)
+
+                    // Replays the first-run walkthrough: clear the flag and dismiss the
+                    // sheet so RootView presents the tutorial over the board (E14.2).
+                    Button {
+                        hasSeenTutorial = false
+                        onClose()
+                    } label: {
+                        HStack {
+                            Text("How to Play")
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(ZenFont.caption)
+                                .foregroundStyle(ZenColor.textSecondary)
+                        }
+                        .padding(.vertical, ZenSpacing.md)
+                        .padding(.horizontal, ZenSpacing.lg)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
                 }
                 .font(ZenFont.headline)
                 .foregroundStyle(ZenColor.textPrimary)
