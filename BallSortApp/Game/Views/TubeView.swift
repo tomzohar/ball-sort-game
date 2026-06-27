@@ -21,6 +21,8 @@ struct TubeView: View {
     var isHintSource: Bool = false
     /// `true` when this tube is the destination of an active hint (E6).
     var isHintTarget: Bool = false
+    /// `true` for the brief "tube complete" flourish (scale-bounce + glow pulse).
+    var flourishing: Bool = false
     /// Invoked when the tube is tapped.
     let onTap: () -> Void
 
@@ -37,6 +39,9 @@ struct TubeView: View {
             height: BoardLayout.tubeHeight(ballSize: ballSize, capacity: capacity)
         )
         .background(highlight)
+        .scaleEffect(flourishing ? 1.08 : 1.0)
+        // "Tube complete" glow pulse (E8.3); inert otherwise.
+        .shadow(color: flourishing ? Color(hex: 0x36D44A).opacity(0.85) : .clear, radius: 16)
         .contentShape(Rectangle())
         .onTapGesture(perform: onTap)
     }
@@ -67,6 +72,7 @@ struct TubeView: View {
             BallView(color: color, size: ballSize, isLifted: lifted)
                 // Prototype lifts the selected top ball ~10px (`translateY(-10px)`).
                 .offset(y: lifted ? -10 : 0)
+                .animation(AnimationConstants.ballLift, value: lifted)
         } else {
             EmptyCell(size: ballSize)
         }

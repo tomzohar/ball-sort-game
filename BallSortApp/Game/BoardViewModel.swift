@@ -31,6 +31,11 @@ final class BoardViewModel {
     /// drop animation — or `nil` when the last interaction wasn't a move.
     private(set) var lastDrop: Int?
 
+    /// Bumped each time a move is rejected as illegal — drives the source-tube
+    /// shake animation (E8.3). Monotonic; the value itself is meaningless, only
+    /// the change matters.
+    private(set) var illegalMoveNonce = 0
+
     /// The 1-based level the player is on.
     private(set) var level: Int
 
@@ -238,6 +243,7 @@ final class BoardViewModel {
                 feedback.play(.drop)
             }
         } else {
+            illegalMoveNonce += 1
             lastDrop = nil
             selectedTube = isEmptyTube(index) ? nil : index
             // The `source == index` re-selection case returned earlier, so reaching

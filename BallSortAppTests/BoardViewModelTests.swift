@@ -194,6 +194,32 @@ final class BoardViewModelTests: XCTestCase {
         XCTAssertEqual(sut.gameState, legalMoveState())
     }
 
+    // MARK: - Illegal-move shake nonce (E8.3)
+
+    func testIllegalMoveBumpsNonce() {
+        let sut = BoardViewModel(initialState: colorMismatchState())
+        XCTAssertEqual(sut.illegalMoveNonce, 0)
+        sut.tap(0) // lift yellow (selection only — no bump)
+        XCTAssertEqual(sut.illegalMoveNonce, 0)
+        sut.tap(1) // blue top — illegal -> bump
+        XCTAssertEqual(sut.illegalMoveNonce, 1)
+    }
+
+    func testLegalMoveDoesNotBumpNonce() {
+        let sut = BoardViewModel(initialState: legalMoveState())
+        sut.tap(0) // lift yellow
+        sut.tap(1) // legal move -> no bump
+        XCTAssertEqual(sut.illegalMoveNonce, 0)
+    }
+
+    func testPlainSelectionDoesNotBumpNonce() {
+        let sut = BoardViewModel(initialState: colorMismatchState())
+        sut.tap(0) // lift (select) — no source yet, so the else branch never runs
+        XCTAssertEqual(sut.illegalMoveNonce, 0)
+        sut.tap(0) // tap same tube -> cancel selection, still no bump
+        XCTAssertEqual(sut.illegalMoveNonce, 0)
+    }
+
     // MARK: - Restart
 
     func testRestartResetsEverything() {
