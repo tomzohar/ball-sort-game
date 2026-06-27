@@ -24,6 +24,9 @@ struct TubeView: View {
     let capacity: Int
     /// Ball diameter for this layout, from `BoardLayout.ballSize`.
     let ballSize: CGFloat
+    /// Vertical gap between stacked balls. Stretches the column to fill the tray
+    /// height (`BoardLayout.filledBallGap`); defaults to the base gap for previews.
+    var ballGap: CGFloat = BoardLayout.ballGap
     /// `true` when this is the lifted source tube (highlight + lift the top ball).
     let isSelected: Bool
     /// `true` when a selection exists and this tube is a legal destination.
@@ -52,7 +55,7 @@ struct TubeView: View {
     private var cornerRadius: CGFloat { ZenRadius.lg }
 
     var body: some View {
-        VStack(spacing: BoardLayout.ballGap) {
+        VStack(spacing: ballGap) {
             ForEach(0..<capacity, id: \.self) { slot in
                 cell(at: slot)
             }
@@ -61,7 +64,7 @@ struct TubeView: View {
         .padding(.horizontal, BoardLayout.tubeHorizontalPadding)
         .frame(
             width: BoardLayout.tubeWidth(ballSize: ballSize),
-            height: BoardLayout.tubeHeight(ballSize: ballSize, capacity: capacity)
+            height: BoardLayout.tubeHeight(ballSize: ballSize, capacity: capacity, ballGap: ballGap)
         )
         .background(frostedGlass)
         .overlay(rim)

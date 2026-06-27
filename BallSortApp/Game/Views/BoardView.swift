@@ -45,6 +45,12 @@ struct BoardView: View {
                 capacity: capacity,
                 maxBall: maxBall
             )
+            // Stretch each column down the tray height with extra air between balls.
+            let ballGap = BoardLayout.filledBallGap(
+                availableHeight: proxy.size.height,
+                capacity: capacity,
+                ballSize: ballSize
+            )
 
             HStack(alignment: .bottom, spacing: BoardLayout.tubeGap) {
                 ForEach(tubes.indices, id: \.self) { i in
@@ -53,6 +59,7 @@ struct BoardView: View {
                         tubeIndex: i,
                         capacity: capacity,
                         ballSize: ballSize,
+                        ballGap: ballGap,
                         isSelected: model.isSelected(i),
                         isTarget: isTarget(i),
                         isHintSource: model.isHintSource(i),

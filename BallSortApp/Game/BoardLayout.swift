@@ -111,6 +111,21 @@ enum BoardLayout {
         return min(max(minBall, maxBall), max(minBall, fit.rounded(.down)))
     }
 
+    /// The vertical gap between stacked balls that stretches a tube column down to
+    /// fill `availableHeight` — taller columns with more air between balls, so the
+    /// board uses the vertical space instead of hugging a short stack.
+    ///
+    /// Falls back to the base ``ballGap`` when there's no slack, and is capped at
+    /// `2×ballSize` so balls never float absurdly far apart.
+    static func filledBallGap(availableHeight: CGFloat, capacity: Int, ballSize: CGFloat) -> CGFloat {
+        let cap = max(1, capacity)
+        guard cap > 1, availableHeight.isFinite, ballSize.isFinite else { return ballGap }
+        let slack = availableHeight - 2 * tubeVerticalPadding - CGFloat(cap) * ballSize
+        let gap = slack / CGFloat(cap - 1)
+        let maxGap = max(ballGap, ballSize * 2)
+        return min(maxGap, max(ballGap, gap))
+    }
+
     // MARK: - Derived dimensions
 
     /// Tube outer width for a given ball diameter.
@@ -123,6 +138,14 @@ enum BoardLayout {
     /// `capacity` balls stacked with `capacity − 1` interior gaps plus top/bottom padding.
     /// A `capacity` of 0 yields just the padding (no balls, no gaps).
     static func tubeHeight(ballSize: CGFloat, capacity: Int) -> CGFloat {
+        tubeHeight(ballSize: ballSize, capacity: capacity, ballGap: ballGap)
+    }
+
+    /// Tube outer height for a given ball diameter, capacity, and explicit inter-ball gap.
+    ///
+    /// `capacity` balls stacked with `capacity − 1` interior gaps plus top/bottom padding.
+    /// A `capacity` of 0 yields just the padding (no balls, no gaps).
+    static func tubeHeight(ballSize: CGFloat, capacity: Int, ballGap: CGFloat) -> CGFloat {
         let n = max(0, capacity)
         let balls = CGFloat(n) * ballSize
         let gaps = CGFloat(max(0, n - 1)) * ballGap

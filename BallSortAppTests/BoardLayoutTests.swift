@@ -154,6 +154,51 @@ final class BoardLayoutTests: XCTestCase {
         XCTAssertEqual(BoardLayout.tubeHeight(ballSize: 50, capacity: -3), 12)
     }
 
+    /// tubeHeight with an explicit (larger) gap grows the column.
+    func testTubeHeightWithExplicitGap() {
+        // ball 40, capacity 4, gap 60: 4*40 + 3*60 + 12 = 160 + 180 + 12 = 352.
+        XCTAssertEqual(BoardLayout.tubeHeight(ballSize: 40, capacity: 4, ballGap: 60), 352)
+    }
+
+    // MARK: - Filled ball gap (stretch the column down the tray)
+
+    /// A tall tray stretches the gap, capped at 2× the ball size.
+    func testFilledGapCapsAtTwiceBall() {
+        // height 480, cap 4, ball 40: slack = 480 - 12 - 160 = 308; raw gap = 308/3 ≈ 102.7;
+        // capped at 2*40 = 80.
+        let gap = BoardLayout.filledBallGap(availableHeight: 480, capacity: 4, ballSize: 40)
+        XCTAssertEqual(gap, 80, accuracy: 0.001)
+    }
+
+    /// With slack between zero and the cap, the gap exactly fills the height.
+    func testFilledGapFillsHeight() {
+        // height 320, cap 4, ball 40: slack = 320 - 12 - 160 = 148; gap = 148/3 ≈ 49.33 (< cap 80).
+        let gap = BoardLayout.filledBallGap(availableHeight: 320, capacity: 4, ballSize: 40)
+        XCTAssertEqual(gap, 148.0 / 3.0, accuracy: 0.001)
+        // The resulting column height matches the available height.
+        XCTAssertEqual(BoardLayout.tubeHeight(ballSize: 40, capacity: 4, ballGap: gap), 320, accuracy: 0.001)
+    }
+
+    /// No slack (short tray) falls back to the base gap, never below.
+    func testFilledGapFallsBackWhenTight() {
+        let gap = BoardLayout.filledBallGap(availableHeight: 150, capacity: 4, ballSize: 40)
+        XCTAssertEqual(gap, BoardLayout.ballGap)
+    }
+
+    /// Single-ball tubes have no interior gap to stretch.
+    func testFilledGapSingleCapacity() {
+        XCTAssertEqual(BoardLayout.filledBallGap(availableHeight: 480, capacity: 1, ballSize: 40), BoardLayout.ballGap)
+    }
+
+    /// Degenerate inputs fall back to the base gap.
+    func testFilledGapRobustness() {
+        for h in [CGFloat(-100), .nan, .infinity] {
+            let gap = BoardLayout.filledBallGap(availableHeight: h, capacity: 4, ballSize: 40)
+            XCTAssertTrue(gap.isFinite)
+            XCTAssertGreaterThanOrEqual(gap, BoardLayout.ballGap)
+        }
+    }
+
     // MARK: - Fitted ball size (single row, fills width AND height)
 
     /// Binds on height when the area is short and wide.
