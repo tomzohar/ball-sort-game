@@ -41,6 +41,7 @@ final class BoardViewSnapshotTests: XCTestCase {
         let host = UIHostingController(rootView: fixture)
         host.view.frame = CGRect(x: 0, y: 0, width: 390, height: 360)
 
+        withSnapshotTesting(record: .missing) {
         assertSnapshot(
             of: host.view,
             as: .image(
@@ -49,6 +50,7 @@ final class BoardViewSnapshotTests: XCTestCase {
                 traits: .init(userInterfaceStyle: .light)
             )
         )
+        }
     }
 
     /// The board with an active hint: gold source/destination highlights (E6).
@@ -68,6 +70,7 @@ final class BoardViewSnapshotTests: XCTestCase {
         let host = UIHostingController(rootView: view)
         host.view.frame = CGRect(x: 0, y: 0, width: 390, height: 360)
 
+        withSnapshotTesting(record: .missing) {
         assertSnapshot(
             of: host.view,
             as: .image(
@@ -76,6 +79,7 @@ final class BoardViewSnapshotTests: XCTestCase {
                 traits: .init(userInterfaceStyle: .light)
             )
         )
+        }
     }
 }
 
