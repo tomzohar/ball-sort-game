@@ -13,6 +13,8 @@ struct RootView: View {
 
     /// Whether the stats sheet is presented.
     @State private var showingStats = false
+    /// Whether the settings sheet is presented.
+    @State private var showingSettings = false
 
     var body: some View {
         ZStack {
@@ -66,12 +68,26 @@ struct RootView: View {
         .sheet(isPresented: $showingStats) {
             StatsScreen(stats: statsStore.stats) { showingStats = false }
         }
+        .sheet(isPresented: $showingSettings) {
+            SettingsView { showingSettings = false }
+        }
     }
 
-    /// A slim top bar carrying the stats button at the trailing edge.
+    /// A slim top bar carrying the settings and stats buttons at the trailing edge.
     private var topBar: some View {
         HStack {
             Spacer()
+            Button {
+                showingSettings = true
+            } label: {
+                Image(systemName: "gearshape.fill")
+                    .font(.title3)
+                    .foregroundStyle(.white)
+                    .padding(10)
+                    .background(Color.black.opacity(0.25), in: Circle())
+            }
+            .accessibilityLabel("Settings")
+
             Button {
                 showingStats = true
             } label: {
