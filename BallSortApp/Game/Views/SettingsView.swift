@@ -26,44 +26,50 @@ struct SettingsView: View {
 
     var body: some View {
         ZStack {
-            GameBackground()
+            // Raked-sand garden bed: light-hero stage backdrop (ZEN_GARDEN.md).
+            ZenColor.stage
+                .ignoresSafeArea()
 
-            VStack(spacing: 24) {
+            VStack(spacing: ZenSpacing.xl) {
                 Text("Settings")
-                    .font(.largeTitle.bold())
-                    .foregroundStyle(.white)
+                    .font(ZenFont.title)
+                    .foregroundStyle(ZenColor.textPrimary)
 
                 VStack(spacing: 0) {
                     Toggle("Sound", isOn: $soundEnabled)
-                        .padding(.vertical, 14)
-                        .padding(.horizontal, 18)
+                        .padding(.vertical, ZenSpacing.md)
+                        .padding(.horizontal, ZenSpacing.lg)
 
                     Divider()
-                        .overlay(Color.white.opacity(0.12))
+                        .overlay(ZenColor.stoneFrame)
 
                     Toggle("Haptics", isOn: $hapticsEnabled)
-                        .padding(.vertical, 14)
-                        .padding(.horizontal, 18)
+                        .padding(.vertical, ZenSpacing.md)
+                        .padding(.horizontal, ZenSpacing.lg)
                 }
-                .font(.headline)
-                .foregroundStyle(.white)
-                .tint(.green)
+                .font(ZenFont.headline)
+                .foregroundStyle(ZenColor.textPrimary)
+                .tint(ZenColor.accent)
                 .background(
-                    Color.black.opacity(0.25),
-                    in: RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    ZenColor.elevated,
+                    in: RoundedRectangle(cornerRadius: ZenRadius.md, style: .continuous)
                 )
-                .padding(.horizontal, 24)
+                .overlay(
+                    RoundedRectangle(cornerRadius: ZenRadius.md, style: .continuous)
+                        .strokeBorder(ZenColor.stoneFrame, lineWidth: 1)
+                )
+                .zenShadow(.card)
+                .padding(.horizontal, ZenSpacing.lg)
 
                 Button(action: onClose) {
                     Text("Done")
-                        .font(.headline)
-                        .foregroundStyle(.white)
-                        .padding(.vertical, 12)
-                        .padding(.horizontal, 36)
-                        .background(
-                            Color.black.opacity(0.25),
-                            in: Capsule()
-                        )
+                        .font(ZenFont.button)
+                        .foregroundStyle(ZenColor.textPrimary)
+                        .padding(.vertical, ZenSpacing.sm + ZenSpacing.xs)
+                        .padding(.horizontal, ZenSpacing.xl + ZenSpacing.xs)
+                        .background(ZenColor.elevated, in: Capsule())
+                        .overlay(Capsule().strokeBorder(ZenColor.stoneFrame, lineWidth: 1))
+                        .zenShadow(.card)
                 }
             }
         }
