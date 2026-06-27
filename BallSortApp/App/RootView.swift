@@ -18,6 +18,10 @@ struct RootView: View {
     /// Whether the settings sheet is presented.
     @State private var showingSettings = false
 
+    /// First-run tutorial gate (E14.2). Absent/`false` ⇒ show the walkthrough over the
+    /// board; set `true` when finished/skipped. Settings can reset it to replay.
+    @AppStorage(Tutorial.hasSeenKey) private var hasSeenTutorial = false
+
     /// Regular width (iPad) gets roomier margins around the (now screen-filling) board.
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     private var isRegular: Bool { horizontalSizeClass == .regular }
@@ -82,10 +86,21 @@ struct RootView: View {
                     onReplay: { withAnimation(.easeInOut) { model.restart() } }
                 )
             }
+
+            // First-run walkthrough, layered above everything so it greets the player
+            // on launch and after a "How to play" replay from Settings (E14.2).
+            if !hasSeenTutorial {
+                ZenColor.scrim.ignoresSafeArea()
+                    .transition(.opacity)
+                TutorialOverlayView {
+                    withAnimation(.easeInOut) { hasSeenTutorial = true }
+                }
+            }
         }
         .animation(.easeInOut, value: model.isWon)
         .animation(.easeInOut, value: model.isGenerating)
         .animation(.easeInOut, value: model.isReplaying)
+        .animation(.easeInOut, value: hasSeenTutorial)
         .sheet(isPresented: $showingStats) {
             StatsScreen(
                 stats: statsStore.stats,
