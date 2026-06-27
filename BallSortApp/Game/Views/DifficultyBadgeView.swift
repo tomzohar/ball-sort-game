@@ -5,9 +5,12 @@ import BallSortCore
 /// "Level 3 · Hard". A dumb view (ADR-0001) driven by plain values; the only Core
 /// type it knows is `Difficulty.Band`.
 ///
-/// The pill is colour-coded by band (green → easy, up to red → expert) and tuned to
-/// read well on the dark, warm `GameBackground`: a translucent tinted fill, a thin
-/// band-coloured border, and a matching status dot.
+/// Restyled for the "Zen Garden" identity (E12.7): an elevated sand-tone pill that
+/// reads calmly on the bright stage. The level number sits in `ZenColor.textPrimary`;
+/// the band is colour-coded along a five-step ramp drawn *within* the Zen palette —
+/// cool moss/water for easy levels warming to persimmon/plum for the hard end — never
+/// the old hot green→red alarm. The token sheet leaves the per-band hues to this unit
+/// (docs/design/ZEN_TOKENS.md), so the ramp is derived here.
 struct DifficultyBadgeView: View {
     /// The 1-based level number shown to the player.
     let level: Int
@@ -15,31 +18,40 @@ struct DifficultyBadgeView: View {
     let band: Difficulty.Band
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: ZenSpacing.sm) {
             Circle()
                 .fill(accent)
                 .frame(width: 8, height: 8)
-                // A soft glow so the dot reads as a status light on the dark backdrop.
-                .shadow(color: accent.opacity(0.8), radius: 3)
+                // A soft glow so the dot reads as a calm status light, not an alarm.
+                .shadow(color: accent.opacity(0.6), radius: 3)
 
             Text("Level \(level)")
-                .foregroundStyle(.white)
+                .font(ZenFont.title)
+                .foregroundStyle(ZenColor.textPrimary)
+                // Keep "Level N" on a single line — the designer flagged it wrapping
+                // to two lines on the narrow pill. `fixedSize` lets the label claim its
+                // natural width; `lineLimit(1)` is a belt-and-braces guard.
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
 
             Text("·")
-                .foregroundStyle(.white.opacity(0.5))
+                .font(ZenFont.title)
+                .foregroundStyle(ZenColor.textSecondary)
 
             Text(label)
+                .zenCaption()
                 .foregroundStyle(accent)
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
         }
-        .font(.subheadline.weight(.semibold))
-        .padding(.horizontal, 14)
-        .padding(.vertical, 7)
-        .background(accent.opacity(0.18), in: Capsule())
+        .padding(.horizontal, ZenSpacing.lg)
+        .padding(.vertical, ZenSpacing.sm)
+        .background(ZenColor.elevated, in: Capsule())
         .overlay(
-            Capsule().strokeBorder(accent.opacity(0.55), lineWidth: 1)
+            Capsule().strokeBorder(accent.opacity(0.45), lineWidth: 1)
         )
-        // Lift the pill slightly off the wooden tray, matching the board's depth cues.
-        .shadow(color: .black.opacity(0.35), radius: 4, y: 2)
+        // Lift the pill softly off the sand bed, matching the board's depth cues.
+        .zenShadow(.rest)
         .accessibilityElement(children: .ignore)
         // Composed VoiceOver label: built as a String for the non-localized
         // `accessibilityLabel(_:)` overload, so route it through `String(localized:)`
@@ -75,29 +87,31 @@ struct DifficultyBadgeView: View {
         }
     }
 
-    /// Band accent colour: green (easy) → red (expert). Tuned to stay legible on the
-    /// dark warm backdrop. Reuses `Color(hex:)` from BallColor+Color.swift.
+    /// Band accent colour: a calm five-step ramp drawn entirely from the Zen palette,
+    /// cool (low difficulty) → warm (high). Moss and water are the semantic tokens;
+    /// the warm end reuses the stone hues (Amber/Persimmon/Plum) from the ball palette.
+    /// The token sheet intentionally leaves these to the badge (docs/design/ZEN_TOKENS.md).
     private var accent: Color {
         switch band {
-        case .trivial: Color(hex: 0x8BD450) // light green
-        case .easy:    Color(hex: 0x36D44A) // green
-        case .medium:  Color(hex: 0xFFD21A) // amber
-        case .hard:    Color(hex: 0xFF7A18) // orange
-        case .expert:  Color(hex: 0xFF3B30) // red
+        case .trivial: ZenColor.success            // moss   #6E9E62
+        case .easy:    ZenColor.accent             // water  #4F9D8B
+        case .medium:  Color(hex: 0xDDA63A)        // Amber
+        case .hard:    Color(hex: 0xD27845)        // Persimmon
+        case .expert:  Color(hex: 0xCC6B86)        // Plum
         }
     }
 }
 
 #Preview {
     ZStack {
-        GameBackground()
-        VStack(spacing: 16) {
+        ZenColor.stage.ignoresSafeArea()
+        VStack(spacing: ZenSpacing.lg) {
             DifficultyBadgeView(level: 1, band: .trivial)
             DifficultyBadgeView(level: 2, band: .easy)
             DifficultyBadgeView(level: 5, band: .medium)
             DifficultyBadgeView(level: 8, band: .hard)
             DifficultyBadgeView(level: 12, band: .expert)
         }
-        .padding(40)
+        .padding(ZenSpacing.xxl)
     }
 }
