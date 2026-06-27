@@ -54,9 +54,12 @@ struct StatsView: View {
 
     /// A labelled stat row: caption-style label on the left, monospaced value on the
     /// right, on a translucent dark capsule echoing the HUD pills.
-    private func statRow(_ label: String, value: String) -> some View {
+    ///
+    /// The label is a `LocalizedStringResource` so it localizes (E9.5); we resolve it
+    /// to a `String` to apply `.uppercased()`, keeping the same uppercased styling.
+    private func statRow(_ label: LocalizedStringResource, value: String) -> some View {
         HStack {
-            Text(label.uppercased())
+            Text(String(localized: label).uppercased())
                 .font(.caption.weight(.semibold))
                 .tracking(0.8)
                 .foregroundStyle(.white.opacity(0.7))

@@ -102,17 +102,27 @@ struct WinOverlayView: View {
     /// "18 moves" + the formatted clock, shown as two labelled pills.
     private var stats: some View {
         HStack(spacing: 14) {
-            statPill(value: "\(moves)", label: moves == 1 ? "move" : "moves")
-            statPill(value: formatClock(elapsed), label: "time")
+            // The "move"/"moves" label is pluralized via the String Catalog (E9.5).
+            // Because the label shows only the word (the count lives in the adjacent
+            // value pill), a varies-by-plural rule isn't usable — xcstringstool requires
+            // a plural to reference its number. So two top-level keys are selected by
+            // count, the sanctioned pattern for a number-less plural.
+            statPill(value: "\(moves)", label: Text(movesLabelKey))
+            statPill(value: formatClock(elapsed), label: Text("time"))
         }
     }
 
-    private func statPill(value: String, label: String) -> some View {
+    /// The singular/plural moves word, as a `LocalizedStringKey` so `Text` localizes it.
+    private var movesLabelKey: LocalizedStringKey {
+        moves == 1 ? "win.move" : "win.moves"
+    }
+
+    private func statPill(value: String, label: Text) -> some View {
         VStack(spacing: 2) {
             Text(value)
                 .font(.title3.bold().monospacedDigit())
                 .foregroundStyle(.white)
-            Text(label)
+            label
                 .font(.caption)
                 .textCase(.uppercase)
                 .foregroundStyle(.white.opacity(0.7))

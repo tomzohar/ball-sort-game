@@ -323,32 +323,32 @@
         {
           "id": "E9.1",
           "title": "App icon",
-          "status": "todo",
-          "note": ""
+          "status": "done",
+          "note": "PR #32. Branded placeholder app icon; replace with real art before submission."
         },
         {
           "id": "E9.2",
           "title": "Launch screen",
-          "status": "todo",
-          "note": ""
+          "status": "done",
+          "note": "PR #33. Branded LaunchScreen.storyboard via UILaunchStoryboardName."
         },
         {
           "id": "E9.3",
           "title": "Settings screen (sound / haptics toggles)",
-          "status": "todo",
-          "note": ""
+          "status": "done",
+          "note": "PR #34. Settings sheet; @AppStorage toggles drive live sound/haptics gating."
         },
         {
           "id": "E9.4",
           "title": "Accessibility (VoiceOver, Dynamic Type, color-blind-safe ball cues)",
-          "status": "todo",
-          "note": ""
+          "status": "done",
+          "note": "PR #35. Ball/tube VoiceOver labels + per-color SF Symbol badges."
         },
         {
           "id": "E9.5",
           "title": "Localization scaffold",
-          "status": "todo",
-          "note": "Even if English-only."
+          "status": "done",
+          "note": "Localizable.xcstrings String Catalog; all user-facing strings routed through localization (English-only scaffold)."
         }
       ]
     },

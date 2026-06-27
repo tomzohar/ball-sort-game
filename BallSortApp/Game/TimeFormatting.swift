@@ -2,6 +2,10 @@ import Foundation
 
 /// Formats an elapsed duration as `m:ss` (and `h:mm:ss` once past an hour) for the
 /// HUD and win overlay. Shared so both surfaces render the clock identically.
+///
+/// The `%d:%02d:%02d` / `%d:%02d` pattern is an intentionally locale-neutral numeric
+/// clock, not translatable prose, so it is NOT routed through the String Catalog
+/// (E9.5). Locale-aware duration formatting is a possible post-v1 follow-up.
 func formatClock(_ seconds: TimeInterval) -> String {
     let total = max(0, Int(seconds))
     let secs = total % 60

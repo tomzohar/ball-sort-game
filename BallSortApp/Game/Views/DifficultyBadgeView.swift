@@ -41,17 +41,37 @@ struct DifficultyBadgeView: View {
         // Lift the pill slightly off the wooden tray, matching the board's depth cues.
         .shadow(color: .black.opacity(0.35), radius: 4, y: 2)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Level \(level), \(label) difficulty")
+        // Composed VoiceOver label: built as a String for the non-localized
+        // `accessibilityLabel(_:)` overload, so route it through `String(localized:)`
+        // with a stable key (E9.5). `bandName` is the localized band word.
+        .accessibilityLabel(
+            String(
+                localized: "difficulty.accessibility",
+                defaultValue: "Level \(level), \(bandName) difficulty"
+            )
+        )
     }
 
-    /// Human-facing label for each band.
-    private var label: String {
+    /// Human-facing label for each band, as a `LocalizedStringKey` so the visible
+    /// `Text(label)` auto-localizes against `Localizable.xcstrings` (E9.5).
+    private var label: LocalizedStringKey {
         switch band {
         case .trivial: "Trivial"
         case .easy:    "Easy"
         case .medium:  "Medium"
         case .hard:    "Hard"
         case .expert:  "Expert"
+        }
+    }
+
+    /// The localized band word as a plain `String`, for composing the VoiceOver label.
+    private var bandName: String {
+        switch band {
+        case .trivial: String(localized: "Trivial")
+        case .easy:    String(localized: "Easy")
+        case .medium:  String(localized: "Medium")
+        case .hard:    String(localized: "Hard")
+        case .expert:  String(localized: "Expert")
         }
     }
 

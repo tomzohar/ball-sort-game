@@ -61,7 +61,8 @@ struct BoardControlsView: View {
 /// The contents of a control pill: an SF Symbol + label over a glossy, rounded
 /// amber/wood capsule that echoes the wooden-tray look.
 private struct ControlPillLabel: View {
-    let title: String
+    /// `LocalizedStringKey` so the visible button title auto-localizes (E9.5).
+    let title: LocalizedStringKey
     let systemImage: String
     let tint: Color
 

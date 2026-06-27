@@ -24,12 +24,15 @@ struct GameHUDView: View {
 
     /// A single rounded stat pill: large monospaced value over an uppercase label,
     /// on a translucent dark capsule with a thin warm border and soft drop shadow.
-    private func statPill(_ label: String, value: String) -> some View {
+    ///
+    /// The label is a `LocalizedStringResource` so it localizes (E9.5); we resolve it
+    /// to a `String` to apply `.uppercased()`, keeping the same uppercased styling.
+    private func statPill(_ label: LocalizedStringResource, value: String) -> some View {
         VStack(spacing: 2) {
             Text(value)
                 .font(.title3.weight(.bold).monospacedDigit())
                 .foregroundStyle(.white)
-            Text(label.uppercased())
+            Text(String(localized: label).uppercased())
                 .font(.caption2.weight(.semibold))
                 .tracking(0.8)
                 .foregroundStyle(.white.opacity(0.6))
