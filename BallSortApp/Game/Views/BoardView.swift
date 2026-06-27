@@ -13,7 +13,6 @@ struct BoardView: View {
     let model: BoardViewModel
 
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-    @State private var availableWidth: CGFloat = 0
 
     /// Horizontal shake offset applied to the rejected source tube. Driven by
     /// `model.illegalMoveNonce`; eased back to 0 by `AnimationConstants.shake`.
@@ -33,37 +32,47 @@ struct BoardView: View {
     var body: some View {
         let tubes = model.gameState.tubes
         let capacity = model.gameState.capacity
-        let maxBall = horizontalSizeClass == .regular ? 80.0 : BoardLayout.defaultMaxBall
-        let ballSize = BoardLayout.ballSize(
-            availableWidth: availableWidth,
-            tubeCount: max(1, tubes.count),
-            maxBall: maxBall
-        )
+        let n = tubes.count
+        let rows = BoardLayout.rowCount(tubeCount: n)
+        let perRow = BoardLayout.tubesInWidestRow(tubeCount: n)
+        // Generous caps; the board now fills the available area, so width/height is the
+        // binding constraint rather than an artificially small ball size. iPad goes larger.
+        let maxBall = horizontalSizeClass == .regular ? 170.0 : 120.0
 
-        HStack(alignment: .bottom, spacing: BoardLayout.tubeGap) {
-            ForEach(tubes.indices, id: \.self) { i in
-                TubeView(
-                    tube: tubes[i],
-                    tubeIndex: i,
-                    capacity: capacity,
-                    ballSize: ballSize,
-                    isSelected: model.isSelected(i),
-                    isTarget: isTarget(i),
-                    isHintSource: model.isHintSource(i),
-                    isHintTarget: model.isHintTarget(i),
-                    flourishing: flourishTube == i,
-                    onTap: { withAnimation(dropAnimation) { model.tap(i) } }
-                )
-                .offset(x: shakeTube == i ? shakeOffset : 0)
+        // Fill the whole tray: size balls to the largest that fits both the available
+        // width and height, then centre the rows within the area.
+        GeometryReader { proxy in
+            let ballSize = BoardLayout.fittedBallSize(
+                available: proxy.size,
+                tubesPerRow: perRow,
+                rowCount: rows,
+                capacity: capacity,
+                maxBall: maxBall
+            )
+
+            VStack(spacing: BoardLayout.rowGap) {
+                ForEach(BoardLayout.rowRanges(tubeCount: n), id: \.lowerBound) { range in
+                    HStack(alignment: .bottom, spacing: BoardLayout.tubeGap) {
+                        ForEach(range, id: \.self) { i in
+                            TubeView(
+                                tube: tubes[i],
+                                tubeIndex: i,
+                                capacity: capacity,
+                                ballSize: ballSize,
+                                isSelected: model.isSelected(i),
+                                isTarget: isTarget(i),
+                                isHintSource: model.isHintSource(i),
+                                isHintTarget: model.isHintTarget(i),
+                                flourishing: flourishTube == i,
+                                onTap: { withAnimation(dropAnimation) { model.tap(i) } }
+                            )
+                            .offset(x: shakeTube == i ? shakeOffset : 0)
+                        }
+                    }
+                }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .frame(maxWidth: .infinity)
-        .background(
-            GeometryReader { proxy in
-                Color.clear.preference(key: BoardWidthKey.self, value: proxy.size.width)
-            }
-        )
-        .onPreferenceChange(BoardWidthKey.self) { availableWidth = $0 }
         .onChange(of: model.illegalMoveNonce) { _, _ in playShake() }
         .onChange(of: model.lastDrop) { _, _ in playFlourishIfTubeCompleted() }
     }
@@ -102,14 +111,6 @@ struct BoardView: View {
     private func isTarget(_ i: Int) -> Bool {
         guard let from = model.selectedTube, from != i else { return false }
         return model.gameState.isLegal(Move(from: from, to: i))
-    }
-}
-
-/// Preference carrying the board's available width up to its own layout pass.
-private struct BoardWidthKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
     }
 }
 

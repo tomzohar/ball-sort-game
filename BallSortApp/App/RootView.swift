@@ -16,6 +16,10 @@ struct RootView: View {
     /// Whether the settings sheet is presented.
     @State private var showingSettings = false
 
+    /// Regular width (iPad) gets roomier margins around the (now screen-filling) board.
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    private var isRegular: Bool { horizontalSizeClass == .regular }
+
     var body: some View {
         ZStack {
             GameBackground()
@@ -35,8 +39,11 @@ struct RootView: View {
                     )
                 }
 
+                // The tray stretches to fill the space between the HUD and the controls,
+                // so the board uses the screen instead of leaving a tall empty gap below.
                 WoodenTray { BoardView(model: model) }
-                    .padding(.horizontal, 12)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding(.horizontal, isRegular ? 48 : 12)
 
                 BoardControlsView(
                     canHint: model.canHint,
@@ -45,10 +52,10 @@ struct RootView: View {
                     onUndo: { withAnimation(.easeInOut) { model.undo() } },
                     onRestart: { withAnimation(.easeInOut) { model.restart() } }
                 )
-
-                Spacer(minLength: 0)
             }
             .padding(.top, 12)
+            .padding(.bottom, isRegular ? 28 : 10)
+            .padding(.horizontal, isRegular ? 24 : 0)
 
             if model.isGenerating {
                 ZenColor.scrim.ignoresSafeArea()
