@@ -1,9 +1,14 @@
 import SwiftUI
 import BallSortCore
 
-/// The stats sheet: the dark game backdrop behind the `StatsView` card, with a
-/// Done button to dismiss. Maps the durable `GameStats` model onto `StatsView`'s
-/// primitive inputs (E7.4) — the view itself stays model-agnostic and dumb.
+/// The stats sheet: the light Zen "stage" behind the `StatsView` card, with a Done
+/// button to dismiss. Maps the durable `GameStats` model onto `StatsView`'s primitive
+/// inputs (E7.4) — the view itself stays model-agnostic and dumb.
+///
+/// Restyled in the "Zen Garden" identity (E12.11): the dark game backdrop is replaced
+/// by the light `ZenColor.stage`, and Done becomes a calm `accent` pill. Inputs (the
+/// `GameStats` values), the localized strings, and the `onClose` dismissal are
+/// unchanged.
 struct StatsScreen: View {
     /// The stats to display.
     let stats: GameStats
@@ -12,9 +17,9 @@ struct StatsScreen: View {
 
     var body: some View {
         ZStack {
-            GameBackground()
+            ZenColor.stage.ignoresSafeArea()
 
-            VStack(spacing: 24) {
+            VStack(spacing: ZenSpacing.xl) {
                 StatsView(
                     levelsSolved: stats.levelsSolved,
                     bestMoves: stats.bestMoves,
@@ -25,14 +30,12 @@ struct StatsScreen: View {
 
                 Button(action: onClose) {
                     Text("Done")
-                        .font(.headline)
-                        .foregroundStyle(.white)
-                        .padding(.vertical, 12)
-                        .padding(.horizontal, 36)
-                        .background(
-                            Color.black.opacity(0.25),
-                            in: Capsule()
-                        )
+                        .font(ZenFont.body)
+                        .foregroundStyle(ZenColor.elevated)
+                        .padding(.vertical, ZenSpacing.md)
+                        .padding(.horizontal, ZenSpacing.xxl)
+                        .background(ZenColor.accent, in: Capsule(style: .continuous))
+                        .zenShadow(.rest)
                 }
             }
         }
