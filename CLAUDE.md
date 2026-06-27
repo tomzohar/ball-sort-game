@@ -9,7 +9,7 @@ Native iOS (SwiftUI) **ball-sort puzzle** game, built up from the `ballsortgame.
 ## Pillar docs (read first, source of truth)
 
 - `docs/PROJECT_BRIEF.md` — locked decisions, scope (in/out), raised risks. The contract.
-- `docs/EPICS.md` — E0–E11 narrative, dependencies, critical path.
+- `docs/EPICS.md` — E0–E14 narrative, dependencies, critical path.
 - `docs/GAME_RULES.md` — the game mechanic spec (move rule, win condition, generation, difficulty).
 - `docs/TECHNICAL_DECISIONS.md` — binding engineering ADRs (architecture, persistence, testing, project layout).
 - `backlog/backlog.json` — tracked work, source of truth for **status**. `dashboard/index.html` renders it.

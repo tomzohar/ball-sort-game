@@ -597,7 +597,7 @@
         {
           "id": "E14.2",
           "title": "First-run interactive tutorial",
-          "status": "todo",
+          "status": "in_progress",
           "note": "B2. No onboarding exists today \u2014 players land cold on L1. Add first-run detection (@AppStorage) + a short interactive walkthrough of the classic move rule (lift top ball; drop on empty or same-color non-full). Skippable, replayable from Settings. Behavioral VM tests + screenshot per UI rule. Biggest early-churn reducer for the store launch."
         },
         {
