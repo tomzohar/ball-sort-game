@@ -77,6 +77,10 @@ final class BoardViewModel {
     /// Records wins into durable stats on win (E7.2), or `nil` to skip recording.
     private let statsStore: StatsStore?
 
+    /// Records each win as a replayable run in the per-level history (E13), or `nil`
+    /// to skip recording.
+    private let historyStore: HistoryStore?
+
     // MARK: - Timer
 
     private var startedAt: TimeInterval?
@@ -103,7 +107,8 @@ final class BoardViewModel {
         now: @escaping () -> TimeInterval,
         feedback: any GameFeedbackPlaying,
         persistence: (any PersistenceStore)?,
-        statsStore: StatsStore?
+        statsStore: StatsStore?,
+        historyStore: HistoryStore?
     ) {
         self.gameState = state
         self.initialState = state
@@ -121,6 +126,7 @@ final class BoardViewModel {
         self.feedback = feedback
         self.persistence = persistence
         self.statsStore = statsStore
+        self.historyStore = historyStore
     }
 
     /// Pins a fixed board with progression disabled — for tests and snapshots.
@@ -132,7 +138,8 @@ final class BoardViewModel {
         now: @escaping () -> TimeInterval = { Date().timeIntervalSinceReferenceDate },
         feedback: (any GameFeedbackPlaying)? = nil,
         persistence: (any PersistenceStore)? = nil,
-        statsStore: StatsStore? = nil
+        statsStore: StatsStore? = nil,
+        historyStore: HistoryStore? = nil
     ) {
         self.init(
             state: initialState,
@@ -145,7 +152,8 @@ final class BoardViewModel {
             now: now,
             feedback: feedback ?? NoFeedback(),
             persistence: persistence,
-            statsStore: statsStore
+            statsStore: statsStore,
+            historyStore: historyStore
         )
         startTimer()
     }
@@ -163,7 +171,8 @@ final class BoardViewModel {
         now: @escaping () -> TimeInterval = { Date().timeIntervalSinceReferenceDate },
         feedback: (any GameFeedbackPlaying)? = nil,
         persistence: (any PersistenceStore)? = nil,
-        statsStore: StatsStore? = nil
+        statsStore: StatsStore? = nil,
+        historyStore: HistoryStore? = nil
     ) {
         let lvl = max(1, startingLevel)
         let placeholder = Self.placeholder(for: curve.parameters(forLevel: lvl))
@@ -178,7 +187,8 @@ final class BoardViewModel {
             now: now,
             feedback: feedback ?? GameFeedbackService(),
             persistence: persistence,
-            statsStore: statsStore
+            statsStore: statsStore,
+            historyStore: historyStore
         )
         startGeneration(forLevel: lvl)
     }
@@ -256,6 +266,14 @@ final class BoardViewModel {
             if gameState.isWon {
                 stopTimer()
                 statsStore?.recordWin(moves: moveCount, seconds: elapsed)
+                // `initialState` is this level's starting board — snapshot it so the
+                // run can be replayed as the exact same puzzle (E13).
+                historyStore?.record(
+                    level: level,
+                    board: initialState,
+                    moves: moveCount,
+                    seconds: elapsed
+                )
                 feedback.play(.win)
             } else if completedAfter > completedBefore {
                 feedback.play(.tubeComplete)
@@ -502,7 +520,8 @@ extension BoardViewModel {
         now: @escaping () -> TimeInterval = { Date().timeIntervalSinceReferenceDate },
         feedback: (any GameFeedbackPlaying)? = nil,
         persistence: (any PersistenceStore)? = nil,
-        statsStore: StatsStore? = nil
+        statsStore: StatsStore? = nil,
+        historyStore: HistoryStore? = nil
     ) {
         self.init(
             state: saved.gameState,
@@ -515,7 +534,8 @@ extension BoardViewModel {
             now: now,
             feedback: feedback ?? GameFeedbackService(),
             persistence: persistence,
-            statsStore: statsStore
+            statsStore: statsStore,
+            historyStore: historyStore
         )
         restore(from: saved)
     }

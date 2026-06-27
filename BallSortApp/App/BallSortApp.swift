@@ -11,6 +11,7 @@ import BallSortCore
 struct BallSortApp: App {
     @State private var model: BoardViewModel
     @State private var statsStore: StatsStore
+    @State private var historyStore: HistoryStore
 
     /// The user's light/dark preference (Settings → Appearance). Read here so the
     /// choice is applied app-wide via `.preferredColorScheme`; `SettingsView` writes
@@ -20,6 +21,7 @@ struct BallSortApp: App {
     init() {
         let persistence = JSONFileStore()
         let statsStore = StatsStore(persistence: persistence)
+        let historyStore = HistoryStore(persistence: persistence)
 
         let savedGame: SavedGame?
         if let loaded = try? persistence.load(SavedGame.self, forKey: PersistenceKeys.savedGame) {
@@ -33,14 +35,20 @@ struct BallSortApp: App {
             model = BoardViewModel(
                 restoring: savedGame,
                 persistence: persistence,
-                statsStore: statsStore
+                statsStore: statsStore,
+                historyStore: historyStore
             )
         } else {
-            model = BoardViewModel(persistence: persistence, statsStore: statsStore)
+            model = BoardViewModel(
+                persistence: persistence,
+                statsStore: statsStore,
+                historyStore: historyStore
+            )
         }
 
         _model = State(initialValue: model)
         _statsStore = State(initialValue: statsStore)
+        _historyStore = State(initialValue: historyStore)
     }
 
     var body: some Scene {

@@ -7,4 +7,6 @@ enum PersistenceKeys {
     static let savedGame = "saved-game"
     /// Durable aggregate `GameStats` (levels solved, records, streak).
     static let stats = "stats"
+    /// The player's per-level run history (`LevelHistory`) — E13.
+    static let history = "history"
 }
