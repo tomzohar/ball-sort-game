@@ -37,10 +37,14 @@ targets:
         # Portrait-only (PROJECT_BRIEF). iPhone strictly portrait; iPad allows both portrait orientations.
         INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait"
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown"
-        # Branded launch screen (E9.2): a warm wooden-tray background (~#8A5A2B, the
-        # tray gradient's bottom tone) via LaunchScreen.storyboard. project.yml stays
-        # the source of truth (ADR-0004) — it owns the storyboard reference, and the
-        # storyboard is a checked-in resource compiled from BallSortApp sources.
+        # Branded launch screen (E12.13, "Zen Garden"): a light-hero raked-sand stage
+        # background (#F4EDDE, the ZenColor.stage light value) with the "Ball Sort"
+        # wordmark (text-primary #3B362C) and a zen stone-cairn motif (stone-frame
+        # #C9BBA0) via LaunchScreen.storyboard. Storyboards render before SwiftUI, so
+        # the storyboard uses these literal hexes rather than the ZenTheme Swift tokens.
+        # project.yml stays the source of truth (ADR-0004) — it owns the storyboard
+        # reference, and the storyboard is a checked-in resource compiled from
+        # BallSortApp sources.
         #
         # Tradeoff note: the keys-only UILaunchScreen route can't set a background
         # color — this Xcode only synthesizes an *empty* UILaunchScreen dict from
