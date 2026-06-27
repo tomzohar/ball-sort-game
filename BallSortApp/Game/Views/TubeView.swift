@@ -9,6 +9,9 @@ import BallSortCore
 struct TubeView: View {
     /// The tube to render (balls ordered bottom `[0]` → top `.last`).
     let tube: Tube
+    /// 0-based position of this tube on the board; surfaced 1-based in the
+    /// VoiceOver label (E9.4). Defaults to 0 for previews / standalone use.
+    var tubeIndex: Int = 0
     /// Shared tube capacity (number of slots, filled bottom-up).
     let capacity: Int
     /// Ball diameter for this layout, from `BoardLayout.ballSize`.
@@ -44,6 +47,37 @@ struct TubeView: View {
         .shadow(color: flourishing ? Color(hex: 0x36D44A).opacity(0.85) : .clear, radius: 16)
         .contentShape(Rectangle())
         .onTapGesture(perform: onTap)
+        // Treat the whole tube as one VoiceOver element with a descriptive label
+        // (index, fill, top color, and a state suffix) — the stacked balls are
+        // decorative detail VoiceOver shouldn't read one-by-one (E9.4).
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityAddTraits(.isButton)
+    }
+
+    // MARK: - Accessibility
+
+    /// A spoken description of this tube: its 1-based index, fill level, top ball
+    /// color (or "empty"), plus a selected / target / complete suffix (E9.4).
+    private var accessibilityLabel: String {
+        var parts = ["Tube \(tubeIndex + 1)"]
+        if tube.isEmpty {
+            parts.append("empty")
+        } else {
+            parts.append("\(tube.count) of \(capacity) balls")
+            if let top = tube.top {
+                parts.append("top \(top.accessibilityColorName)")
+            }
+            if tube.isComplete {
+                parts.append("complete")
+            }
+        }
+        if isSelected {
+            parts.append("selected")
+        } else if isTarget {
+            parts.append("can drop here")
+        }
+        return parts.joined(separator: ", ")
     }
 
     // MARK: - Slots

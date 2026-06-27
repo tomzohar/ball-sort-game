@@ -16,6 +16,9 @@ struct BallView: View {
     /// When `true`, the ball is "picked up": it scales up slightly and gains a
     /// white glow ring (prototype's `.ball.lifted`).
     var isLifted: Bool = false
+    /// When `true` (default), overlays a color-blind-safe SF Symbol badge so the
+    /// six colors are distinguishable by shape, not hue alone (E9.4).
+    var showsColorBlindBadge: Bool = true
 
     var body: some View {
         Circle()
@@ -23,6 +26,7 @@ struct BallView: View {
             .overlay { bodyShading }       // color body, darkening to the rim
             .overlay { lowerRightShading } // shadow in the lower-right
             .overlay { specularHighlight } // bright spot, upper-left
+            .overlay { colorBlindBadge }   // shape glyph for color-blind safety
             .overlay { liftRing }          // white ring when lifted
             .frame(width: size, height: size)
             .scaleEffect(isLifted ? 1.06 : 1.0)
@@ -32,6 +36,23 @@ struct BallView: View {
             .shadow(color: isLifted ? .white.opacity(0.55) : .clear, radius: 8)
             // Ease the scale/glow in/out instead of snapping (E8.3).
             .animation(AnimationConstants.ballLift, value: isLifted)
+            // Collapse the decorative gradient/highlight layers into one VoiceOver
+            // element that simply names the color (E9.4).
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(color.ballAccessibilityLabel)
+    }
+
+    /// Color-blind-safe cue: a small, subtly-tinted SF Symbol centered on the ball
+    /// so each color reads as a distinct shape regardless of hue perception (E9.4).
+    /// Purely decorative — VoiceOver ignores it via the ball's combined element.
+    @ViewBuilder private var colorBlindBadge: some View {
+        if showsColorBlindBadge {
+            Image(systemName: color.accessibilitySymbolName)
+                .font(.system(size: size * 0.34, weight: .bold))
+                .foregroundStyle(.white.opacity(0.85))
+                .shadow(color: .black.opacity(0.35), radius: 1, x: 0, y: 1)
+                .accessibilityHidden(true)
+        }
     }
 
     /// Body: ball color held to 55%, then darkening to `black .25` at the rim.
