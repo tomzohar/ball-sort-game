@@ -51,10 +51,10 @@ struct RootView: View {
             .padding(.top, 12)
 
             if model.isGenerating {
-                Color.black.opacity(0.35).ignoresSafeArea()
+                ZenColor.scrim.ignoresSafeArea()
                 generatingOverlay
             } else if model.isWon {
-                Color.black.opacity(0.35).ignoresSafeArea()
+                ZenColor.scrim.ignoresSafeArea()
                 WinOverlayView(
                     moves: model.moveCount,
                     elapsed: model.elapsed,
@@ -103,16 +103,51 @@ struct RootView: View {
     }
 
     private var generatingOverlay: some View {
-        VStack(spacing: 12) {
-            ProgressView()
-                .controlSize(.large)
-                .tint(.white)
-            Text("Generating level…")
-                .font(.headline)
-                .foregroundStyle(.white)
+        ZenOverlayCard {
+            VStack(spacing: ZenSpacing.lg) {
+                RakeLineSweep()
+                Text("Generating level…")
+                    .font(ZenFont.status)
+                    .foregroundStyle(ZenColor.textSecondary)
+            }
         }
-        .padding(28)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .transition(.scale.combined(with: .opacity))
+    }
+}
+
+/// A single rake line that sweeps the empty sand bed, looping calmly — the
+/// Zen-Garden "loading" motif (E12.10). A thin accent line glides top→bottom over a
+/// faint raked-bed backdrop, driven by `AnimationConstants.generatingSweep`.
+private struct RakeLineSweep: View {
+    @State private var sweeping = false
+
+    private let bedHeight: CGFloat = 56
+    private let bedWidth: CGFloat = 180
+
+    var body: some View {
+        ZStack {
+            // Faint static "raked bed" lines so the swept line has something to comb.
+            VStack(spacing: 7) {
+                ForEach(0..<6, id: \.self) { _ in
+                    Capsule()
+                        .fill(ZenColor.stoneFrame.opacity(0.5))
+                        .frame(height: 1.5)
+                }
+            }
+
+            // The single rake line that sweeps across the bed.
+            Capsule()
+                .fill(ZenColor.accent)
+                .frame(height: 2.5)
+                .shadow(color: ZenColor.accent.opacity(0.5), radius: 4)
+                .offset(y: sweeping ? bedHeight / 2 : -bedHeight / 2)
+        }
+        .frame(width: bedWidth, height: bedHeight)
+        .clipShape(RoundedRectangle(cornerRadius: ZenRadius.sm, style: .continuous))
+        .onAppear {
+            withAnimation(AnimationConstants.generatingSweep) { sweeping = true }
+        }
+        .accessibilityHidden(true)
     }
 }
 
