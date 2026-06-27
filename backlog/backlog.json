@@ -16,7 +16,7 @@
       "tasks": [
         {
           "id": "E0.1",
-          "title": "ADR: MVVM boundaries (logic core \u2194 ViewModel \u2194 View)",
+          "title": "ADR: MVVM boundaries (logic core ↔ ViewModel ↔ View)",
           "status": "done",
           "note": "ADR-0001. Layered MVVM, @Observable, iOS 17 floor, protocol DI."
         },
@@ -50,7 +50,7 @@
           "id": "E1.0",
           "title": "Install full Xcode",
           "status": "done",
-          "note": "DONE \u2014 Xcode 26.5 (17F42) installed, toolchain switched (xcode-select -p \u2192 /Applications/Xcode.app). iOS 26.5 SDK + simulator runtime (26.5 / 23F77) installed; iPhone 17/17 Pro/Pro Max/17e/Air + iPad Pro/Air/mini/A16 simulators all available. xcodebuild + simctl verified working."
+          "note": "DONE — Xcode 26.5 (17F42) installed, toolchain switched (xcode-select -p → /Applications/Xcode.app). iOS 26.5 SDK + simulator runtime (26.5 / 23F77) installed; iPhone 17/17 Pro/Pro Max/17e/Air + iPad Pro/Air/mini/A16 simulators all available. xcodebuild + simctl verified working."
         },
         {
           "id": "E1.1",
@@ -60,7 +60,7 @@
         },
         {
           "id": "E1.2",
-          "title": "Test target + first red\u2192green trace",
+          "title": "Test target + first red→green trace",
           "status": "done",
           "note": "VERIFIED GREEN. `swift test` passes BallColor in Core; `xcodebuild test` passes 2 SmokeTests (Core linked + color mapping) on iPhone 17 Pro sim."
         },
@@ -74,7 +74,7 @@
           "id": "E1.4",
           "title": "GitHub Actions CI (xcodebuild test on simulator)",
           "status": "done",
-          "note": ".github/workflows/ci.yml (macos-15): SwiftLint + core swift test + xcodegen + xcodebuild test on a dynamically-picked iPhone sim. VERIFIED GREEN \u2014 first run passed in 3m0s. Pushed to public repo tomzohar/ball-sort-game."
+          "note": ".github/workflows/ci.yml (macos-15): SwiftLint + core swift test + xcodegen + xcodebuild test on a dynamically-picked iPhone sim. VERIFIED GREEN — first run passed in 3m0s. Pushed to public repo tomzohar/ball-sort-game."
         },
         {
           "id": "E1.5",
@@ -130,27 +130,27 @@
       "tasks": [
         {
           "id": "E3.1",
-          "title": "Solver (BFS/A*) \u2192 move sequence or nil",
+          "title": "Solver (BFS/A*) → move sequence or nil",
           "status": "done",
-          "note": "PR #3. Solving protocol + Solver struct (Solving.swift/Solver.swift). BFS over GameState, visited set keyed on .canonical (collapses tube-permutation symmetry \u2192 terminates without depth cap). Returns [] for already-won, a SHORTEST (min-moves) legal sequence for solvable, nil for unsolvable. Also powers hints (E6) and feeds E3.4 min-moves."
+          "note": "PR #3. Solving protocol + Solver struct (Solving.swift/Solver.swift). BFS over GameState, visited set keyed on .canonical (collapses tube-permutation symmetry → terminates without depth cap). Returns [] for already-won, a SHORTEST (min-moves) legal sequence for solvable, nil for unsolvable. Also powers hints (E6) and feeds E3.4 min-moves."
         },
         {
           "id": "E3.2",
           "title": "Generator (random-fill + solver-verification)",
           "status": "done",
-          "note": "PR #4 (reverse-move scramble), REPLACED in PR #17. Reverse-move scrambling produced trivial ~2-move levels at any depth (random walk equilibrates near solved), so it was replaced with random-fill + solver verification (rejection sampling) tuned to a minMoves difficulty floor. New API generate(colors:capacity:emptyTubes:minMoves:using:); Generator takes a Solving; bounded to \u22645 colors (solver-feasible). SeededRandomNumberGenerator (SplitMix64) retained. See memory m11."
+          "note": "PR #4 (reverse-move scramble), REPLACED in PR #17. Reverse-move scrambling produced trivial ~2-move levels at any depth (random walk equilibrates near solved), so it was replaced with random-fill + solver verification (rejection sampling) tuned to a minMoves difficulty floor. New API generate(colors:capacity:emptyTubes:minMoves:using:); Generator takes a Solving; bounded to ≤5 colors (solver-feasible). SeededRandomNumberGenerator (SplitMix64) retained. See memory m11."
         },
         {
           "id": "E3.3",
           "title": "Solvability-guarantee test harness",
           "status": "done",
-          "note": "PR #5. Test-only SolvabilityHarnessTests: parameter sweep colors 2\u20265 \u00d7 capacity 3\u20264 \u00d7 emptyTubes 1\u20262 \u00d7 scrambleDepth {10,30,60} \u00d7 8 fixed seeds = 384 generated levels; each asserted structurally valid, Solver-solvable, and the solution replays to isWon. Seed+params in failure messages for reproducibility. Matrix capped colors\u22645/capacity\u22644 to keep BFS bounded."
+          "note": "PR #5. Test-only SolvabilityHarnessTests: parameter sweep colors 2…5 × capacity 3…4 × emptyTubes 1…2 × scrambleDepth {10,30,60} × 8 fixed seeds = 384 generated levels; each asserted structurally valid, Solver-solvable, and the solution replays to isWon. Seed+params in failure messages for reproducibility. Matrix capped colors≤5/capacity≤4 to keep BFS bounded."
         },
         {
           "id": "E3.4",
           "title": "Difficulty grading (colors, tubes, min-moves)",
           "status": "done",
-          "note": "PR #6. DifficultyGrader + Difficulty type (Band trivial/easy/medium/hard/expert + numeric score; Sendable/Equatable/Comparable). grade(_:using: some Solving) \u2014 solver injected (DI). score = minMoves*3 + tubeCount + colorCount (monotonic in every dimension, strictly increasing in min-moves). Unsolvable \u2192 Difficulty.maximum. Feeds E5's rising curve."
+          "note": "PR #6. DifficultyGrader + Difficulty type (Band trivial/easy/medium/hard/expert + numeric score; Sendable/Equatable/Comparable). grade(_:using: some Solving) — solver injected (DI). score = minMoves*3 + tubeCount + colorCount (monotonic in every dimension, strictly increasing in min-moves). Unsolvable → Difficulty.maximum. Feeds E5's rising curve."
         }
       ]
     },
@@ -164,37 +164,37 @@
           "id": "E4.1",
           "title": "BoardViewModel (tested)",
           "status": "done",
-          "note": "Done \u2014 @Observable BoardViewModel (tap-lift/tap-drop, restart, isWon) delegating legality/apply to Core; XCTest unit-tested. PR #11."
+          "note": "Done — @Observable BoardViewModel (tap-lift/tap-drop, restart, isWon) delegating legality/apply to Core; XCTest unit-tested. PR #11."
         },
         {
           "id": "E4.2",
           "title": "Tube + ball SwiftUI views (wooden tray, glossy balls)",
           "status": "done",
-          "note": "Done \u2014 BallView (glossy gradient ball, PR #9) + WoodenTray/GameBackground (PR #8) + TubeView (gravity-stacked dimples/balls, selected/target chrome). Snapshot-tested."
+          "note": "Done — BallView (glossy gradient ball, PR #9) + WoodenTray/GameBackground (PR #8) + TubeView (gravity-stacked dimples/balls, selected/target chrome). Snapshot-tested."
         },
         {
           "id": "E4.3",
-          "title": "Adaptive sizing iPhone \u2194 iPad, portrait",
+          "title": "Adaptive sizing iPhone ↔ iPad, portrait",
           "status": "done",
-          "note": "Done \u2014 BoardLayout adaptive sizing (PR #10) + BoardView width-driven layout, 1 row \u22645 tubes else 2 balanced rows, iPhone/iPad maxBall."
+          "note": "Done — BoardLayout adaptive sizing (PR #10) + BoardView width-driven layout, 1 row ≤5 tubes else 2 balanced rows, iPhone/iPad maxBall."
         },
         {
           "id": "E4.4",
           "title": "Tap-lift / tap-drop interaction",
           "status": "done",
-          "note": "Done \u2014 tap-lift/tap-drop wired BoardView \u2192 BoardViewModel; legal-destination highlight via gameState.isLegal."
+          "note": "Done — tap-lift/tap-drop wired BoardView → BoardViewModel; legal-destination highlight via gameState.isLegal."
         },
         {
           "id": "E4.5",
           "title": "Lift + drop animations",
           "status": "done",
-          "note": "Done \u2014 lift (scale+offset+glow) and drop (bouncy spring ~cubic-bezier(.34,1.4,.5,1)) animations on tap."
+          "note": "Done — lift (scale+offset+glow) and drop (bouncy spring ~cubic-bezier(.34,1.4,.5,1)) animations on tap."
         },
         {
           "id": "E4.6",
           "title": "Snapshot tests",
           "status": "done",
-          "note": "Done \u2014 BoardViewSnapshotTests (device-independent fixed-frame baseline) + real running-app screenshot docs/screenshots/e4-board.png."
+          "note": "Done — BoardViewSnapshotTests (device-independent fixed-frame baseline) + real running-app screenshot docs/screenshots/e4-board.png."
         }
       ]
     },
@@ -214,7 +214,7 @@
           "id": "E5.2",
           "title": "Undo (move history) + restart",
           "status": "done",
-          "note": "Logic in BoardViewModel \u2014 snapshot-stack history + undo()/canUndo, restart() clears it (PR #17). Controls UI in BoardControlsView (PR #20)."
+          "note": "Logic in BoardViewModel — snapshot-stack history + undo()/canUndo, restart() clears it (PR #17). Controls UI in BoardControlsView (PR #20)."
         },
         {
           "id": "E5.3",
@@ -232,7 +232,7 @@
           "id": "E5.5",
           "title": "Difficulty-curve advancement",
           "status": "done",
-          "note": "DifficultyCurve (App layer) drives generator-verified levels by a rising minMoves floor (PR #17); DifficultyBadgeView shows band (PR #21). NOTE: required fixing the E3 generator \u2014 reverse-move scramble produced trivial ~2-move levels; now random-fill + solver-verification (see memory m11)."
+          "note": "DifficultyCurve (App layer) drives generator-verified levels by a rising minMoves floor (PR #17); DifficultyBadgeView shows band (PR #21). NOTE: required fixing the E3 generator — reverse-move scramble produced trivial ~2-move levels; now random-fill + solver-verification (see memory m11)."
         }
       ]
     },
@@ -380,9 +380,9 @@
     },
     {
       "id": "E11",
-      "title": "Release engineering (parallel external track \u2014 START NOW)",
+      "title": "Release engineering (parallel external track — START NOW)",
       "criticalPath": false,
-      "summary": "Enrollment \u2192 signing \u2192 TestFlight \u2192 submission.",
+      "summary": "Enrollment → signing → TestFlight → submission.",
       "tasks": [
         {
           "id": "E11.1",
@@ -406,7 +406,7 @@
           "id": "E11.4",
           "title": "Privacy nutrition label",
           "status": "done",
-          "note": "DONE. v1 collects nothing (free, SDK-free, no network, on-device only) \u2192 ASC answer is 'Data Not Collected', App does not track, no ATT. docs/PRIVACY.md (live at https://github.com/tomzohar/ball-sort-game/blob/main/docs/PRIVACY.md — repo public) + docs/STORE_PRIVACY_LABEL.md (paste-ready ASC answers + revisit-before-release checklist). Re-review when E10 Game Center lands."
+          "note": "DONE. v1 collects nothing (free, SDK-free, no network, on-device only) → ASC answer is 'Data Not Collected', App does not track, no ATT. docs/PRIVACY.md (live at https://github.com/tomzohar/ball-sort-game/blob/main/docs/PRIVACY.md — repo public) + docs/STORE_PRIVACY_LABEL.md (paste-ready ASC answers + revisit-before-release checklist). Re-review when E10 Game Center lands."
         },
         {
           "id": "E11.5",
@@ -424,7 +424,129 @@
           "id": "E11.7",
           "title": "Submission & review",
           "status": "blocked",
-          "note": "Needs E9 + E11.1\u2013E11.6."
+          "note": "Needs E9 + E11.1–E11.6."
+        }
+      ]
+    },
+    {
+      "id": "E12",
+      "title": "\"Zen Garden\" visual redesign",
+      "criticalPath": false,
+      "summary": "Reskin the app to the selected Zen Garden identity (river-stones in frosted glass on raked sand, light-hero). Visual only — Core, generator/solver, ViewModels and classic rules unchanged. Resolves m7. See docs/design/ZEN_GARDEN.md + live canvas https://claude.ai/design/p/f2dfea89-cb9c-4551-b0cf-77dc498e5580",
+      "tasks": [
+        {
+          "id": "E12.0",
+          "title": "Foundations: ingest design tokens from canvas",
+          "status": "todo",
+          "note": "Read exact hex/spacing/radius/elevation off the live token sheet (don't guess). Establish a ZenTheme token layer in the App layer (semantic colors light+dark, spacing, radius, elevation scales). See docs/design/ZEN_GARDEN.md + live canvas https://claude.ai/design/p/f2dfea89-cb9c-4551-b0cf-77dc498e5580"
+        },
+        {
+          "id": "E12.1",
+          "title": "Re-tuned 6-stone ball palette",
+          "status": "todo",
+          "note": "Update BallColor+Color.swift App-layer mapping to Amber/Persimmon/Plum/Moss/Pond/Iris. Core BallColor enum unchanged. Snapshot-test the swatch."
+        },
+        {
+          "id": "E12.2",
+          "title": "Textured colorblind cue on stones",
+          "status": "todo",
+          "note": "Per-stone dots/stripes/rings texture so hue isn't the only differentiator. Rework BallView + BallColor+Accessibility.swift (replaces/augments SF-Symbol cues). Verify in grayscale."
+        },
+        {
+          "id": "E12.3",
+          "title": "Typography: SF Rounded body + Spectral brand accent",
+          "status": "todo",
+          "note": "Register fonts, define display/title/body/caption/numeric-HUD text styles, Dynamic Type. Nunito->SF Rounded on-device."
+        },
+        {
+          "id": "E12.4",
+          "title": "ZenBall view (frosted river-stone)",
+          "status": "todo",
+          "note": "Rework BallView: gloss + texture sphere, states idle/lifted/target. Update snapshot baselines + PR screenshot."
+        },
+        {
+          "id": "E12.5",
+          "title": "ZenTube view (frosted glass in sand)",
+          "status": "todo",
+          "note": "Rework TubeView: capacity 4, gravity-stacked, dimple slots; states idle/selected/target/complete/empty. Snapshots."
+        },
+        {
+          "id": "E12.6",
+          "title": "Raked-sand garden tray + background",
+          "status": "todo",
+          "note": "Replace wooden tray/dark backdrop in TrayBackground.swift with the raked-sand bed. Light-hero. Snapshots."
+        },
+        {
+          "id": "E12.7",
+          "title": "Difficulty badge restyle + level-label wrap fix",
+          "status": "todo",
+          "note": "DifficultyBadgeView: 5 bands, Zen styling; fix the 'Level N' wrapping the designer flagged."
+        },
+        {
+          "id": "E12.8",
+          "title": "HUD pills restyle",
+          "status": "todo",
+          "note": "GameHUDView: Moves/Timer/Sorted pills in Zen tokens."
+        },
+        {
+          "id": "E12.9",
+          "title": "Buttons + icon buttons restyle",
+          "status": "todo",
+          "note": "Primary/secondary + Hint/Undo/Restart/Settings/Stats icon buttons. BoardControlsView + RootView top bar. >=44pt targets."
+        },
+        {
+          "id": "E12.10",
+          "title": "Overlay card: Win + Loading/Generating",
+          "status": "todo",
+          "note": "Shared overlay card. Rework WinOverlayView (moves/time, Next Level primary, Replay secondary) + generating overlay in RootView."
+        },
+        {
+          "id": "E12.11",
+          "title": "Stats screen restyle",
+          "status": "todo",
+          "note": "StatsScreen/StatsView in Zen tokens. Behavioral test (snapshot OS-fragile per m-snapshot)."
+        },
+        {
+          "id": "E12.12",
+          "title": "Settings screen restyle",
+          "status": "todo",
+          "note": "SettingsView (Sound/Haptics) in Zen tokens, minimal. Behavioral test."
+        },
+        {
+          "id": "E12.13",
+          "title": "Launch screen redesign",
+          "status": "todo",
+          "note": "Zen-branded launch (wordmark + stone motif)."
+        },
+        {
+          "id": "E12.14",
+          "title": "App icon: zen-stone cairn",
+          "status": "todo",
+          "note": "Replace E9 placeholder AppIcon with the cairn; full icon set 1024->small, verify legibility at 40px. Outward-facing asset — final art is Tom's call."
+        },
+        {
+          "id": "E12.15",
+          "title": "Motion language pass",
+          "status": "todo",
+          "note": "AnimationConstants: lift, drop bouncy-settle, illegal-move shake, tube-complete flourish, win celebration."
+        },
+        {
+          "id": "E12.16",
+          "title": "Light + dark appearance pass",
+          "status": "todo",
+          "note": "Every screen in both appearances. Includes the dark-mode GAME screen the designer hadn't drawn yet."
+        },
+        {
+          "id": "E12.17",
+          "title": "iPad layouts",
+          "status": "todo",
+          "note": "8 tubes -> two balanced rows; Stats/Settings as centered form-sheets (designer follow-up). Adaptive sizing via BoardLayout."
+        },
+        {
+          "id": "E12.18",
+          "title": "Snapshot baselines + PR screenshots refresh",
+          "status": "todo",
+          "note": "Regenerate snapshot baselines for reskinned primitives; attach running-app portrait screenshots per ADR-0003. Re-check localization (E9) strings still fit."
         }
       ]
     }
