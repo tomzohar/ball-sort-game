@@ -253,6 +253,78 @@ final class BoardViewModelTests: XCTestCase {
         XCTAssertEqual(sut.illegalMoveNonce, 0)
     }
 
+    // MARK: - Drag-to-pour (E14.4)
+
+    // `pour(from:to:)` is the drag gesture's intent: a self-contained move that does
+    // not depend on the tap selection toggle. It shares tap's legality + feedback +
+    // animation seam (`commitMove`), so a poured move must look identical to a tapped one.
+
+    func testPourLegalMoveAppliesWithoutPriorSelection() {
+        let sut = BoardViewModel(initialState: legalMoveState())
+        sut.pour(from: 0, to: 1) // drag yellow onto empty — no tap() first
+        XCTAssertEqual(sut.moveCount, 1)
+        XCTAssertEqual(sut.lastDrop, 1)
+        XCTAssertNil(sut.selectedTube)
+        XCTAssertEqual(sut.gameState.tubes[0].balls, [.yellow])
+        XCTAssertEqual(sut.gameState.tubes[1].balls, [.yellow])
+    }
+
+    func testPourRecordsLastMoveForTheArc() {
+        let sut = BoardViewModel(initialState: legalMoveState())
+        sut.pour(from: 0, to: 1)
+        XCTAssertEqual(sut.lastMove, AnimatedMove(from: 0, to: 1, color: .yellow, nonce: 1))
+    }
+
+    func testPourLegalMoveDoesNotBumpIllegalNonce() {
+        let sut = BoardViewModel(initialState: legalMoveState())
+        sut.pour(from: 0, to: 1)
+        XCTAssertEqual(sut.illegalMoveNonce, 0)
+    }
+
+    func testPourIllegalLeavesBoardUnchangedAndShakesSource() {
+        let sut = BoardViewModel(initialState: colorMismatchState())
+        sut.pour(from: 0, to: 1) // yellow onto blue — rejected
+        XCTAssertEqual(sut.moveCount, 0)
+        XCTAssertNil(sut.lastDrop)
+        XCTAssertNil(sut.lastMove, "a rejected pour must not fire a flight")
+        XCTAssertEqual(sut.illegalMoveNonce, 1)
+        // The dragged-from tube stays selected so the existing shake bounces the source.
+        XCTAssertEqual(sut.selectedTube, 0)
+        XCTAssertEqual(sut.gameState, colorMismatchState())
+    }
+
+    func testPourFromEmptySourceIsNoOp() {
+        let sut = BoardViewModel(initialState: legalMoveState())
+        sut.pour(from: 1, to: 0) // tube 1 is empty — nothing to pour
+        XCTAssertEqual(sut.moveCount, 0)
+        XCTAssertEqual(sut.illegalMoveNonce, 0, "an empty source is a cancel, not a rejection")
+        XCTAssertNil(sut.selectedTube)
+        XCTAssertEqual(sut.gameState, legalMoveState())
+    }
+
+    func testPourOntoSameTubeCancels() {
+        let sut = BoardViewModel(initialState: legalMoveState())
+        sut.tap(0) // lift first
+        sut.pour(from: 0, to: 0) // released back over the source
+        XCTAssertNil(sut.selectedTube)
+        XCTAssertEqual(sut.moveCount, 0)
+        XCTAssertEqual(sut.illegalMoveNonce, 0)
+    }
+
+    func testPourCanWinTheLevel() {
+        let state = GameState(
+            tubes: [
+                Tube(balls: [.yellow], capacity: 2),
+                Tube(balls: [.yellow], capacity: 2)
+            ],
+            capacity: 2
+        )
+        let sut = BoardViewModel(initialState: state)
+        XCTAssertFalse(sut.isWon)
+        sut.pour(from: 0, to: 1)
+        XCTAssertTrue(sut.isWon)
+    }
+
     // MARK: - Restart
 
     func testRestartResetsEverything() {
