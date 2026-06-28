@@ -44,6 +44,15 @@ struct TubeView: View {
     /// Invoked when the tube is tapped.
     let onTap: () -> Void
 
+    /// Skip the completion settle's motion (overshoot + ripple) under Reduce Motion;
+    /// the tube's glow/scale flourish still reads the completion calmly (E14.6).
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    /// Rising-edge counter for the completion settle (E14.6): bumped each time the tube
+    /// flips into its complete flourish, so the final-ball overshoot + ripple fire once
+    /// per completion rather than replaying when the `flourishing` flag clears.
+    @State private var settleToken = 0
+
     /// The tube's settled visual state, derived purely from inputs.
     private var visualState: VisualState {
         if isHintSource { return .hintSource }
@@ -85,6 +94,10 @@ struct TubeView: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityLabel)
         .accessibilityAddTraits(.isButton)
+        // Fire the final-ball settle once on the rising edge of the complete flourish.
+        .onChange(of: flourishing) { _, nowFlourishing in
+            if nowFlourishing { settleToken += 1 }
+        }
     }
 
     // MARK: - Accessibility
@@ -150,6 +163,14 @@ struct TubeView: View {
                 // Lift the selected top ball ~10pt up over the tube mouth.
                 .offset(y: lifted ? -10 : 0)
                 .animation(AnimationConstants.ballLift, value: lifted)
+                // The final ball "locks" into place when the tube completes (E14.6):
+                // a small overshoot + a moss ripple, fired by `settleToken`. Attached to
+                // the top ball always (inert at rest); skipped under Reduce Motion.
+                .modifier(CompletionSettle(
+                    enabled: slot == topBallSlot && !reduceMotion,
+                    trigger: settleToken,
+                    ballSize: ballSize
+                ))
         } else {
             EmptyCell(size: ballSize)
         }
@@ -294,6 +315,70 @@ private struct EmptyCell: View {
                     .mask(Circle().stroke(lineWidth: 4))
             )
             .frame(width: size, height: size)
+    }
+}
+
+/// The "lock into place" finish on a tube's final ball when it completes (E14.6): a
+/// quick scale overshoot that settles back, plus a moss ripple radiating from the ball.
+/// Both fire once per `trigger` change (the tube's `settleToken`). Attached to the top
+/// ball unconditionally and inert at rest, so it observes the trigger without churning
+/// view identity; `enabled` is `false` for non-top balls and under Reduce Motion, where
+/// it passes the content through untouched.
+private struct CompletionSettle: ViewModifier {
+    let enabled: Bool
+    let trigger: Int
+    let ballSize: CGFloat
+
+    func body(content: Content) -> some View {
+        if enabled {
+            content
+                .keyframeAnimator(initialValue: 1.0, trigger: trigger) { view, scale in
+                    view.scaleEffect(scale)
+                } keyframes: { _ in
+                    // Snap up, then settle back with a touch of bounce — a decisive "lock".
+                    SpringKeyframe(1.16, duration: 0.14, spring: .snappy)
+                    SpringKeyframe(1.0, duration: 0.30, spring: .bouncy)
+                }
+                .overlay { CompletionRipple(trigger: trigger, ballSize: ballSize) }
+        } else {
+            content
+        }
+    }
+}
+
+/// A single moss ring that blooms outward from the completed ball and fades, once per
+/// `trigger` change. Inert (invisible) at rest; the keyframes run only when the trigger
+/// flips, so it sits quietly on the top ball until the tube completes.
+private struct CompletionRipple: View {
+    let trigger: Int
+    let ballSize: CGFloat
+
+    /// Animatable ripple state: ring scale and stroke opacity.
+    private struct RippleState {
+        var scale: CGFloat
+        var opacity: Double
+    }
+
+    var body: some View {
+        Circle()
+            .stroke(ZenColor.success, lineWidth: 2.5)
+            .frame(width: ballSize, height: ballSize)
+            .keyframeAnimator(
+                initialValue: RippleState(scale: 0.7, opacity: 0),
+                trigger: trigger
+            ) { view, state in
+                view.scaleEffect(state.scale).opacity(state.opacity)
+            } keyframes: { _ in
+                KeyframeTrack(\.scale) {
+                    CubicKeyframe(2.1, duration: 0.40)
+                }
+                KeyframeTrack(\.opacity) {
+                    // Flash in, then fade as the ring grows.
+                    CubicKeyframe(0.55, duration: 0.08)
+                    CubicKeyframe(0.0, duration: 0.32)
+                }
+            }
+            .allowsHitTesting(false)
     }
 }
 

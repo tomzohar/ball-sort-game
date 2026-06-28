@@ -615,14 +615,14 @@
         {
           "id": "E14.5",
           "title": "Win-moment particle payoff",
-          "status": "in_progress",
-          "note": "A3. WinOverlayView is just a staggered card cascade today. Add a particle/confetti burst behind the card so victory lands. Respect reduce-motion. Snapshot static frame + recording. IMPLEMENTED: WinParticleBurst view — a calm 22-dot bloom in the 6-stone river-stone palette that drifts outward from centre with a gentle gravity sag and fades once (AnimationConstants.winBurst, 0.9s ease-out), layered behind the win card in RootView's win branch (plays for real + replay wins). Deterministic (per-index angle/reach/size/colour, no randomness) so it's snapshot-stable; `settled` freezes a mid-bloom frame. Honours Reduce Motion by rendering nothing (card entrance carries the moment). Snapshot baseline recorded (WinParticleBurst.bloom.png); full app suite 182 green; lint clean. PENDING: device feel check by Tom (live burst on a real win)."
+          "status": "done",
+          "note": "A3. WinParticleBurst — a calm 22-dot bloom in the 6-stone river-stone palette that drifts outward from centre with a gentle gravity sag and fades once (AnimationConstants.winBurst, 0.9s ease-out), layered behind the win card in RootView's win branch (plays for real + replay wins). Deterministic (per-index angle/reach/size/colour, no randomness) so it's snapshot-stable; `settled` freezes a mid-bloom frame. Honours Reduce Motion by rendering nothing (card entrance carries the moment). Snapshot baseline recorded (WinParticleBurst.bloom.png). Shipped in PR #59 (merged)."
         },
         {
           "id": "E14.6",
           "title": "Tube-completion settle polish",
-          "status": "todo",
-          "note": "A4. Tube completion currently = scale pulse + moss glow + two-note tone (TubeView/BoardView). Add a tactile 'lock/settle' finish on the final ball (small overshoot + ripple) to make completion feel decisive. Extends E8."
+          "status": "in_progress",
+          "note": "A4. Tube completion currently = scale pulse + moss glow + two-note tone (TubeView/BoardView). Add a tactile 'lock/settle' finish on the final ball (small overshoot + ripple) to make completion feel decisive. Extends E8. IMPLEMENTED: TubeView gains a CompletionSettle modifier on the top ball — a scale overshoot (1.16, snappy→bouncy) plus a moss CompletionRipple ring that blooms outward and fades, both fired once per completion via a settleToken rising edge (onChange of `flourishing`). iOS-17 keyframeAnimator; attached to the top ball always but inert at rest (so existing snapshots are unchanged) and skipped under Reduce Motion. The existing whole-tube scale/glow flourish is kept. 189 app tests green; lint clean. PENDING: device feel check by Tom (overshoot+ripple on a real completion; tune amplitude/duration if too strong combined with the tube flourish)."
         },
         {
           "id": "E14.7",
