@@ -32,6 +32,7 @@ A native iOS **ball-sort puzzle** game, built up from the prototype at `~/Downlo
 - Persistence: resume in-progress level + stats survive relaunch.
 - Per-level run history + retry a past level as a non-progressing side excursion (E13, added 2026-06-27 at Tom's request).
 - Appearance preference: System / Light / Dark (E13).
+- **Gameplay depth (E14, accepted 2026-06-27):** richer game-feel (pour-arc + drag-to-pour, win/completion payoff) and difficulty/guidance (rising-difficulty fix, first-run tutorial, smarter hints, difficulty label). Chosen over a differentiating twist; scope-expansion accepted, **launch may slip** to get the feel right. No new rule mechanic — classic move rule unchanged.
 
 ## Deferred (post-v1)
 

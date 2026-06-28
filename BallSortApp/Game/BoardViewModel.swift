@@ -31,6 +31,14 @@ final class BoardViewModel {
     /// drop animation — or `nil` when the last interaction wasn't a move.
     private(set) var lastDrop: Int?
 
+    /// The most recent successful move, carrying its endpoints, the lifted ball's
+    /// color, and a monotonic `nonce` — drives the pour-arc flight (E14.3). The view
+    /// fires a one-shot animation whenever `nonce` changes; an identical from/to pair
+    /// on a later move still retriggers because the nonce differs. Stays `nil` until
+    /// the first move and is left untouched by undo/restart so neither replays a flight.
+    private(set) var lastMove: AnimatedMove?
+    private var moveNonce = 0
+
     /// Bumped each time a move is rejected as illegal — drives the source-tube
     /// shake animation (E8.3). Monotonic; the value itself is meaningless, only
     /// the change matters.
@@ -267,10 +275,16 @@ final class BoardViewModel {
         let move = Move(from: source, to: index)
         if gameState.isLegal(move), let next = gameState.apply(move) {
             let completedBefore = gameState.tubes.reduce(0) { $0 + ($1.isComplete ? 1 : 0) }
+            // The lifted ball is the source's top, read before the board mutates.
+            let movedColor = gameState.tubes[source].top
             history.append(gameState)
             gameState = next
             moveCount += 1
             lastDrop = index
+            if let movedColor {
+                moveNonce += 1
+                lastMove = AnimatedMove(from: source, to: index, color: movedColor, nonce: moveNonce)
+            }
             selectedTube = nil
             let completedAfter = gameState.tubes.reduce(0) { $0 + ($1.isComplete ? 1 : 0) }
             if gameState.isWon {
