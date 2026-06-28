@@ -1,6 +1,6 @@
 {
   "project": "Ball Sort Game",
-  "updated": "2026-06-27",
+  "updated": "2026-06-28",
   "statuses": [
     "todo",
     "in_progress",
@@ -609,8 +609,8 @@
         {
           "id": "E14.4",
           "title": "Drag-to-pour gesture",
-          "status": "todo",
-          "note": "A2. Tap-to-lift/tap-to-drop is the only interaction (BoardView/TubeView). Add a drag gesture (drag a source tube onto a destination) alongside taps, sharing the same legality + feedback path. Pairs with E14.3. Reject with the existing shake. Device recording required."
+          "status": "done",
+          "note": "A2. Tap-to-lift/tap-to-drop is the only interaction (BoardView/TubeView). Add a drag gesture (drag a source tube onto a destination) alongside taps, sharing the same legality + feedback path. Pairs with E14.3. Reject with the existing shake. Device recording required. IMPLEMENTED (TDD): extracted a private BoardViewModel.commitMove(_:next:) from tap()'s drop branch (existing tap tests unchanged), and added a self-contained pour(from:to:) intent both routes share — identical legality/feedback/pour-arc seam. A board-level DragGesture in BoardView (minimumDistance 12, board coordinate space) hit-tests source/dest off the already-captured tubeRects: first movement lifts the tube under the finger via tap() (lift haptic + selection glow + legal targets highlight), release over another tube pours, release on source/gap/empty cancels. nearestTube(toX:) gives a forgiving single-row drop. 7 new pour VM tests; full app suite 188 green; lint clean. Verified good on device (Tom) — taps and drags coexist, feel is clean. DONE."
         },
         {
           "id": "E14.5",
@@ -633,8 +633,8 @@
         {
           "id": "E14.8",
           "title": "Difficulty label on level intro",
-          "status": "todo",
-          "note": "B4. DifficultyGrader already computes a band (trivial..expert) that's barely surfaced. Show the grade on the level-intro/HUD so players can gauge the climb. Small App-layer surfacing; behavioral test."
+          "status": "done",
+          "note": "B4. DELIVERED BY E12.7. DifficultyBadgeView already renders 'Level N · Band' persistently atop the game screen (RootView.swift), color-coded along a calm trivial→expert ramp; BoardViewModel.difficultyBand serves the exact solver-derived grade once computed, falling back to curve.estimatedBand(forLevel:) meanwhile. The HUD-surfacing goal of B4 is satisfied. A distinct level-intro *announcement* moment (calling out the band as you enter a level) was considered and deferred — not worth a separate overlay; the persistent badge covers the 'gauge the climb' intent. No new code this task."
         }
       ]
     }

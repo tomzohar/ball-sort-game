@@ -36,6 +36,10 @@ struct BoardView: View {
     /// The destination tube whose just-landed top ball is held hidden during the flight.
     @State private var suppressedTube: Int?
 
+    /// The tube a drag-to-pour gesture lifted from, or `nil` when no drag is active
+    /// (E14.4). Set on the first drag movement; cleared when the drag ends.
+    @State private var dragSource: Int?
+
     /// Name of the coordinate space tube frames and the flying ball share.
     private static let boardSpace = "board"
 
@@ -103,6 +107,7 @@ struct BoardView: View {
                 }
             }
             .coordinateSpace(name: Self.boardSpace)
+            .gesture(pourDrag)
             .onPreferenceChange(TubeFramesKey.self) { tubeRects = $0 }
             .onChange(of: model.lastMove?.nonce) { _, _ in
                 startPourFlight(ballSize: ballSize, ballGap: ballGap, capacity: capacity)
@@ -110,6 +115,52 @@ struct BoardView: View {
         }
         .onChange(of: model.illegalMoveNonce) { _, _ in playShake() }
         .onChange(of: model.lastDrop) { _, _ in playFlourishIfTubeCompleted() }
+    }
+
+    // MARK: - Drag-to-pour (E14.4)
+
+    /// Drag a source tube onto a destination as an alternative to tap-lift / tap-drop.
+    /// The first movement lifts the tube under the finger (reusing `tap`, so it gets the
+    /// same selection highlight + lift haptic and all legal targets glow); releasing over
+    /// another tube pours via `model.pour`, which shares tap's legality, feedback, and
+    /// pour-arc animation. Releasing on the source, in a gap, or on an empty source just
+    /// drops the lift. A non-zero `minimumDistance` lets plain taps fall through to the
+    /// per-tube tap gesture untouched.
+    private var pourDrag: some Gesture {
+        DragGesture(minimumDistance: 12, coordinateSpace: .named(Self.boardSpace))
+            .onChanged { value in
+                guard dragSource == nil else { return }
+                // Begin a drag only from a non-empty tube directly under the finger.
+                guard let start = tubeContaining(value.startLocation),
+                      model.gameState.tubes.indices.contains(start),
+                      !model.gameState.tubes[start].isEmpty else { return }
+                dragSource = start
+                if model.selectedTube != start {
+                    withAnimation(AnimationConstants.ballLift) { model.tap(start) }
+                }
+            }
+            .onEnded { value in
+                defer { dragSource = nil }
+                guard let source = dragSource else { return }
+                // Forgiving drop target: the tube the finger is over, else the nearest column.
+                let dest = tubeContaining(value.location) ?? nearestTube(toX: value.location.x)
+                if let dest, dest != source {
+                    withAnimation(dropAnimation) { model.pour(from: source, to: dest) }
+                } else {
+                    model.cancelSelection()
+                }
+            }
+    }
+
+    /// The tube whose captured frame contains `point` (board coordinate space), if any.
+    private func tubeContaining(_ point: CGPoint) -> Int? {
+        tubeRects.first(where: { $0.value.contains(point) })?.key
+    }
+
+    /// The tube whose column is horizontally nearest `x` — a forgiving fallback so a
+    /// release just above/below a tube still lands on it (single-row board).
+    private func nearestTube(toX x: CGFloat) -> Int? {
+        tubeRects.min(by: { abs($0.value.midX - x) < abs($1.value.midX - x) })?.key
     }
 
     /// Captures a tube's outer frame in the board coordinate space for the pour flight.

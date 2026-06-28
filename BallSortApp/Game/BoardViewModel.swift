@@ -274,43 +274,7 @@ final class BoardViewModel {
 
         let move = Move(from: source, to: index)
         if gameState.isLegal(move), let next = gameState.apply(move) {
-            let completedBefore = gameState.tubes.reduce(0) { $0 + ($1.isComplete ? 1 : 0) }
-            // The lifted ball is the source's top, read before the board mutates.
-            let movedColor = gameState.tubes[source].top
-            history.append(gameState)
-            gameState = next
-            moveCount += 1
-            lastDrop = index
-            if let movedColor {
-                moveNonce += 1
-                lastMove = AnimatedMove(from: source, to: index, color: movedColor, nonce: moveNonce)
-            }
-            selectedTube = nil
-            let completedAfter = gameState.tubes.reduce(0) { $0 + ($1.isComplete ? 1 : 0) }
-            if gameState.isWon {
-                stopTimer()
-                if isReplaying {
-                    // A practice excursion: sharpen records only, don't advance the
-                    // curve or inflate the solved count / streak (E13).
-                    statsStore?.recordBests(moves: moveCount, seconds: elapsed)
-                } else {
-                    statsStore?.recordWin(moves: moveCount, seconds: elapsed)
-                }
-                // `initialState` is this level's starting board — snapshot it so the
-                // run can be replayed as the exact same puzzle (E13).
-                historyStore?.record(
-                    level: level,
-                    board: initialState,
-                    moves: moveCount,
-                    seconds: elapsed
-                )
-                feedback.play(.win)
-            } else if completedAfter > completedBefore {
-                feedback.play(.tubeComplete)
-            } else {
-                feedback.play(.drop)
-            }
-            persistProgress()
+            commitMove(move, next: next)
         } else {
             illegalMoveNonce += 1
             lastDrop = nil
@@ -319,6 +283,81 @@ final class BoardViewModel {
             // here means a distinct destination was tapped and the move was rejected.
             feedback.play(.illegalMove)
         }
+    }
+
+    /// Drag-to-pour (E14.4): pour the top ball of `source` onto `destination` as a
+    /// single self-contained gesture, independent of the tap selection toggle. It runs
+    /// the move through the same legality + feedback + animation seam as tap-to-drop
+    /// (`commitMove`), so a poured move is indistinguishable from a tapped one.
+    ///
+    /// A drag that ends on the same tube it started, on an empty source, or while a
+    /// level is generating just clears the lift — those are cancels, not rejections, so
+    /// they don't fire the illegal-move shake.
+    func pour(from source: Int, to destination: Int) {
+        guard !isGenerating else { return }
+        clearHint()
+        guard source != destination, !isEmptyTube(source) else {
+            cancelSelection()
+            return
+        }
+
+        let move = Move(from: source, to: destination)
+        if gameState.isLegal(move), let next = gameState.apply(move) {
+            commitMove(move, next: next)
+        } else {
+            // Keep the dragged-from tube selected so the existing shake — which reads
+            // `selectedTube` — bounces the source the ball falls back into.
+            selectedTube = source
+            illegalMoveNonce += 1
+            lastDrop = nil
+            feedback.play(.illegalMove)
+        }
+    }
+
+    /// Applies an already-validated legal `move` (with its precomputed `next` board) and
+    /// fires every consequence of a drop: history push, counters, the pour-arc seam
+    /// (`lastMove`), win / tube-complete bookkeeping, feedback, and persistence. Shared
+    /// by tap-to-drop and drag-to-pour (E14.4) so both routes behave identically.
+    private func commitMove(_ move: Move, next: GameState) {
+        let source = move.from
+        let destination = move.to
+        let completedBefore = gameState.tubes.reduce(0) { $0 + ($1.isComplete ? 1 : 0) }
+        // The lifted ball is the source's top, read before the board mutates.
+        let movedColor = gameState.tubes[source].top
+        history.append(gameState)
+        gameState = next
+        moveCount += 1
+        lastDrop = destination
+        if let movedColor {
+            moveNonce += 1
+            lastMove = AnimatedMove(from: source, to: destination, color: movedColor, nonce: moveNonce)
+        }
+        selectedTube = nil
+        let completedAfter = gameState.tubes.reduce(0) { $0 + ($1.isComplete ? 1 : 0) }
+        if gameState.isWon {
+            stopTimer()
+            if isReplaying {
+                // A practice excursion: sharpen records only, don't advance the
+                // curve or inflate the solved count / streak (E13).
+                statsStore?.recordBests(moves: moveCount, seconds: elapsed)
+            } else {
+                statsStore?.recordWin(moves: moveCount, seconds: elapsed)
+            }
+            // `initialState` is this level's starting board — snapshot it so the
+            // run can be replayed as the exact same puzzle (E13).
+            historyStore?.record(
+                level: level,
+                board: initialState,
+                moves: moveCount,
+                seconds: elapsed
+            )
+            feedback.play(.win)
+        } else if completedAfter > completedBefore {
+            feedback.play(.tubeComplete)
+        } else {
+            feedback.play(.drop)
+        }
+        persistProgress()
     }
 
     /// Drop the current selection without applying a move.
