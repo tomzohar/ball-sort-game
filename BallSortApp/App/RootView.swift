@@ -72,6 +72,9 @@ struct RootView: View {
                 generatingOverlay
             } else if model.isWon {
                 ZenColor.scrim.ignoresSafeArea()
+                // A calm river-stone bloom behind the card so victory lands (E14.5).
+                // Honours Reduce Motion internally (renders nothing when it's on).
+                WinParticleBurst()
                 // During a replay excursion there's no curve to advance, so the
                 // primary action returns to the player's real current level (E13).
                 WinOverlayView(

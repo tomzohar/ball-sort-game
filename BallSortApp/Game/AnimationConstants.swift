@@ -42,6 +42,12 @@ enum AnimationConstants {
     /// Per-element delay step for the win-overlay staggered entrance. Canvas: 80ms.
     static let winStagger: Double = 0.08
 
+    /// Win bloom (E14.5): river-stone particles drift outward from centre and fade
+    /// once, behind the win card. A single soft ease-out, a touch longer than the card
+    /// cascade so the bloom underlays the whole moment. Honours Reduce Motion (the
+    /// burst view renders nothing when it's on). TUNABLE feel knob.
+    static let winBurst: Animation = .easeOut(duration: 0.9)
+
     /// Generating: a single rake line sweeps the empty bed, looping. Canvas: ease-in-out ~1.6s.
     static let generatingSweep: Animation = .easeInOut(duration: 1.6).repeatForever(autoreverses: true)
 }
