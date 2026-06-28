@@ -627,8 +627,8 @@
         {
           "id": "E14.7",
           "title": "Smarter hints + hint feedback",
-          "status": "todo",
-          "note": "B3. Hints are highlight-only and the hint event is silent (no sound/haptic). Add an animated nudge toward source/dest and wire a hint GameEvent into the feedback service. Keep solver-derived (E6). VM tests for the new event."
+          "status": "in_progress",
+          "note": "B3. Hints are highlight-only and the hint event is silent (no sound/haptic). Add an animated nudge toward source/dest and wire a hint GameEvent into the feedback service. Keep solver-derived (E6). VM tests for the new event. IMPLEMENTED (TDD): new GameEvent.hint mapped in both players — SoundPlayer plays a gentle ascending E5→B5 'ti-ding', HapticsPlayer a soft impact; BoardViewModel.requestHint fires feedback.play(.hint) the moment a non-nil hint surfaces (silent when the solver finds none / board is won). 3 new VM tests (fires on hint, silent on won, silent on no-solution). Animated nudge: hinted source+target tubes breathe via a slow autoreversing scale pulse (AnimationConstants.hintPulse, 0.045 amplitude), started/stopped on isHinted, skipped under Reduce Motion, inert at rest so snapshots are unchanged. 192 app tests green; lint clean. PENDING: device feel check by Tom (hint cue + pulse on a real board)."
         },
         {
           "id": "E14.8",

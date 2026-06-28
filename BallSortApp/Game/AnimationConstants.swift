@@ -50,4 +50,9 @@ enum AnimationConstants {
 
     /// Generating: a single rake line sweeps the empty bed, looping. Canvas: ease-in-out ~1.6s.
     static let generatingSweep: Animation = .easeInOut(duration: 1.6).repeatForever(autoreverses: true)
+
+    /// Hint nudge (E14.7): the source/destination tubes breathe gently while a hint is
+    /// shown, drawing the eye until the player acts. A slow autoreversing pulse — calm,
+    /// never frantic. Honoured only when Reduce Motion is off.
+    static let hintPulse: Animation = .easeInOut(duration: 0.72).repeatForever(autoreverses: true)
 }

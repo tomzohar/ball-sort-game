@@ -22,6 +22,12 @@ final class HintViewModelTests: XCTestCase {
         }
     }
 
+    /// Records the feedback events fired, so we can assert the hint cue (E14.7).
+    private final class FeedbackSpy: GameFeedbackPlaying {
+        private(set) var events: [GameEvent] = []
+        func play(_ event: GameEvent) { events.append(event) }
+    }
+
     /// A solvable, not-won 2-color board (4 tubes, capacity 2).
     private func solvableState() -> GameState {
         GameState(
@@ -92,6 +98,51 @@ final class HintViewModelTests: XCTestCase {
         let move = try? XCTUnwrap(sut.hintMove)
         XCTAssertNotNil(move)
         if let move { XCTAssertTrue(sut.gameState.isLegal(move)) }
+    }
+
+    // MARK: - Hint feedback (E14.7)
+
+    func testRequestingHintPlaysHintCue() async {
+        let spy = FeedbackSpy()
+        let sut = BoardViewModel(
+            initialState: solvableState(),
+            solver: FakeSolver(first: Move(from: 0, to: 2)),
+            feedback: spy
+        )
+
+        sut.requestHint()
+        await sut.hintTask?.value
+
+        XCTAssertEqual(spy.events, [.hint])
+    }
+
+    func testRequestingHintOnWonBoardPlaysNoCue() async {
+        let spy = FeedbackSpy()
+        let sut = BoardViewModel(
+            initialState: wonState(),
+            solver: FakeSolver(first: Move(from: 0, to: 1)),
+            feedback: spy
+        )
+
+        sut.requestHint()
+        await sut.hintTask?.value
+
+        XCTAssertEqual(spy.events, [], "a won board can't be hinted, so nothing should fire")
+    }
+
+    func testHintWithNoSolutionPlaysNoCue() async {
+        let spy = FeedbackSpy()
+        let sut = BoardViewModel(
+            initialState: solvableState(),
+            solver: FakeSolver(first: nil), // solver finds no move
+            feedback: spy
+        )
+
+        sut.requestHint()
+        await sut.hintTask?.value
+
+        XCTAssertNil(sut.hintMove)
+        XCTAssertEqual(spy.events, [], "no surfaced move means no nudge cue")
     }
 
     // MARK: - Clearing

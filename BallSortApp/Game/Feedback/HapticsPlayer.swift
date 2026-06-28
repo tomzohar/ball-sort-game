@@ -8,6 +8,7 @@ import UIKit
 @MainActor
 final class HapticsPlayer: GameFeedbackPlaying {
     private lazy var lightImpact = makeImpact(.light)
+    private lazy var softImpact = makeImpact(.soft)
     private lazy var rigidImpact = makeImpact(.rigid)
     private lazy var heavyImpact = makeImpact(.heavy)
     private lazy var notification = makeNotification()
@@ -29,6 +30,9 @@ final class HapticsPlayer: GameFeedbackPlaying {
             notification.notificationOccurred(.error)
         case .win:
             notification.notificationOccurred(.success)
+        case .hint:
+            // A soft tap — a gentle "look here" that's lighter than a move's rigid drop.
+            softImpact.impactOccurred()
         }
     }
 
