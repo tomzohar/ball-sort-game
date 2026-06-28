@@ -603,8 +603,8 @@
         {
           "id": "E14.3",
           "title": "Pour-arc move animation",
-          "status": "todo",
-          "note": "A1. Today a moved ball springs straight to the destination (BoardView dropAnimation). Replace with a real arc travelling from source tube mouth to destination mouth \u2014 the signature ball-sort feel. Keep existing lift spring + tube-complete flourish. Snapshot the primitive + device recording."
+          "status": "done",
+          "note": "A1. Today a moved ball springs straight to the destination (BoardView dropAnimation). Replace with a real arc travelling from source tube mouth to destination mouth \u2014 the signature ball-sort feel. Keep existing lift spring + tube-complete flourish. Snapshot the primitive + device recording. SHIPPED: flying-ball overlay arcs from the source ball's actual slot to the landing slot (PourGeometry.topBallPoint, pure+unit-tested; PourArcEffect GeometryEffect for the true parabola; lastMove VM seam; dest top ball suppressed during flight). Verified good on device (Tom); launch-position bug fixed. 181 tests green."
         },
         {
           "id": "E14.4",
