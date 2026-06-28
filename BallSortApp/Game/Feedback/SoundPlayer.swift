@@ -61,7 +61,7 @@ final class SoundPlayer: GameFeedbackPlaying {
     /// The subset of `GameEvent`s that produce a tone (`.undo` is silent — haptics
     /// only — to avoid a distracting blip on every revert).
     private enum Event {
-        case lift, drop, tubeComplete, win, illegalMove
+        case lift, drop, tubeComplete, win, illegalMove, hint
 
         init?(_ event: GameEvent) {
             switch event {
@@ -70,6 +70,7 @@ final class SoundPlayer: GameFeedbackPlaying {
             case .tubeComplete: self = .tubeComplete
             case .win: self = .win
             case .illegalMove: self = .illegalMove
+            case .hint: self = .hint
             case .undo: return nil
             }
         }
@@ -110,6 +111,16 @@ final class SoundPlayer: GameFeedbackPlaying {
             )
         case .illegalMove:
             return tone(notes: [Note(frequency: 160, start: 0.0, duration: 0.14)], format: format, square: true)
+        case .hint:
+            // A gentle ascending "ti-ding" (E5 → B5), softer and higher than the move
+            // cues, so a hint reads as a friendly nudge rather than a result.
+            return tone(
+                notes: [
+                    Note(frequency: 659.25, start: 0.0, duration: 0.07),
+                    Note(frequency: 987.77, start: 0.06, duration: 0.11)
+                ],
+                format: format
+            )
         }
     }
 

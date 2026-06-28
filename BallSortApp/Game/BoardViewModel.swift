@@ -431,6 +431,9 @@ final class BoardViewModel {
             }
             self.isHinting = false
             self.hintMove = move
+            // Sound + soft haptic the moment the nudge surfaces, so the cue lands with
+            // the on-board highlight (E14.7). A no-solution hint stays silent.
+            if move != nil { self.feedback.play(.hint) }
         }
     }
 

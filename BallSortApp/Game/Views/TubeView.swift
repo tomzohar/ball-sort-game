@@ -53,6 +53,13 @@ struct TubeView: View {
     /// per completion rather than replaying when the `flourishing` flag clears.
     @State private var settleToken = 0
 
+    /// Breathing amount (0…1) for the hint nudge (E14.7): driven to 1 on a slow
+    /// autoreversing loop while this tube is the hint source/target, back to 0 otherwise.
+    @State private var hintPulse: CGFloat = 0
+
+    /// Whether this tube is part of the active hint (source or destination).
+    private var isHinted: Bool { isHintSource || isHintTarget }
+
     /// The tube's settled visual state, derived purely from inputs.
     private var visualState: VisualState {
         if isHintSource { return .hintSource }
@@ -82,6 +89,8 @@ struct TubeView: View {
         .background(frostedGlass)
         .overlay(rim)
         .scaleEffect(flourishing ? 1.06 : 1.0)
+        // Gentle breathing while this tube is hinted (E14.7); inert (1.0) at rest.
+        .scaleEffect(1 + 0.045 * hintPulse)
         // Resting elevation: a whisper of depth so the cylinder sits in the sand.
         .zenShadow(.rest)
         // State glow: accent (selection/target/hint) or success (complete/flourish).
@@ -97,6 +106,15 @@ struct TubeView: View {
         // Fire the final-ball settle once on the rising edge of the complete flourish.
         .onChange(of: flourishing) { _, nowFlourishing in
             if nowFlourishing { settleToken += 1 }
+        }
+        // Start/stop the hint breathing as this tube enters/leaves the active hint.
+        .onChange(of: isHinted) { _, hinted in
+            if hinted && !reduceMotion {
+                withAnimation(AnimationConstants.hintPulse) { hintPulse = 1 }
+            } else {
+                // A finite settle overrides the repeating pulse and eases back to rest.
+                withAnimation(.easeOut(duration: 0.2)) { hintPulse = 0 }
+            }
         }
     }
 

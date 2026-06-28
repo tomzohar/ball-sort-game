@@ -16,4 +16,7 @@ enum GameEvent: Equatable {
     case win
     /// The last move was reverted.
     case undo
+    /// The player asked for a hint and the solver surfaced one (E14.7) — a gentle
+    /// "here" cue accompanying the on-board nudge.
+    case hint
 }
