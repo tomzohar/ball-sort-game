@@ -131,12 +131,22 @@ struct BoardView: View {
               let sourceRect = tubeRects[move.from], let destRect = tubeRects[move.to],
               model.gameState.tubes.indices.contains(move.to) else { return }
 
+        // The source already lost the ball, so its pre-move top sat one higher in the
+        // count: launch from there so the ball lifts off exactly where it rested, not
+        // from the mouth. The destination's new top is its current count.
+        let sourceCountBeforeMove = model.gameState.tubes[move.from].count + 1
         let destCount = model.gameState.tubes[move.to].count
-        let launch = PourGeometry.mouthPoint(in: sourceRect, ballSize: ballSize)
-        let land = PourGeometry.landingPoint(
+        let launch = PourGeometry.topBallPoint(
+            in: sourceRect,
+            capacity: capacity,
+            count: sourceCountBeforeMove,
+            ballSize: ballSize,
+            ballGap: ballGap
+        )
+        let land = PourGeometry.topBallPoint(
             in: destRect,
             capacity: capacity,
-            countAfterMove: destCount,
+            count: destCount,
             ballSize: ballSize,
             ballGap: ballGap
         )

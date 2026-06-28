@@ -12,28 +12,28 @@ final class PourGeometryTests: XCTestCase {
     // A tube 100 wide at x∈[0,100], top at y=200, holding capacity-4 columns.
     private let tube = CGRect(x: 0, y: 200, width: 100, height: 400)
 
-    func testMouthPointIsTopSlotCentreRegardlessOfFill() {
-        let p = PourGeometry.mouthPoint(in: tube, ballSize: 50)
-        XCTAssertEqual(p.x, 50, accuracy: 0.001)            // tube centre x
-        XCTAssertEqual(p.y, 200 + pad + 25, accuracy: 0.001) // top + padding + ballSize/2
-    }
-
-    func testLandingPointForFirstBallSitsAtTheBottomSlot() {
-        // capacity 4, one ball after the move -> rests in the bottom slot (index 3 from top).
-        let p = PourGeometry.landingPoint(
-            in: tube, capacity: 4, countAfterMove: 1, ballSize: 50, ballGap: 10
+    func testTopBallForSingleBallSitsAtTheBottomSlot() {
+        // capacity 4, one ball -> rests in the bottom slot (index 3 from top).
+        let p = PourGeometry.topBallPoint(
+            in: tube, capacity: 4, count: 1, ballSize: 50, ballGap: 10
         )
-        XCTAssertEqual(p.x, 50, accuracy: 0.001)
+        XCTAssertEqual(p.x, 50, accuracy: 0.001)             // tube centre x
         XCTAssertEqual(p.y, 200 + pad + 3 * (50 + 10) + 25, accuracy: 0.001)
     }
 
-    func testLandingPointRisesAsTheTubeFills() {
-        // A fuller tube (3 balls) lands higher up than a near-empty one (1 ball).
-        let low = PourGeometry.landingPoint(in: tube, capacity: 4, countAfterMove: 1, ballSize: 50, ballGap: 10)
-        let high = PourGeometry.landingPoint(in: tube, capacity: 4, countAfterMove: 3, ballSize: 50, ballGap: 10)
-        XCTAssertLessThan(high.y, low.y, "more balls -> the new top rests higher (smaller y)")
+    func testTopBallRisesAsTheTubeFills() {
+        // A fuller tube (3 balls) has its top higher up than a near-empty one (1 ball).
+        let low = PourGeometry.topBallPoint(in: tube, capacity: 4, count: 1, ballSize: 50, ballGap: 10)
+        let high = PourGeometry.topBallPoint(in: tube, capacity: 4, count: 3, ballSize: 50, ballGap: 10)
+        XCTAssertLessThan(high.y, low.y, "more balls -> the top rests higher (smaller y)")
         // 3rd ball sits two slots above the bottom: index 1 from top.
         XCTAssertEqual(high.y, 200 + pad + 1 * (50 + 10) + 25, accuracy: 0.001)
+    }
+
+    func testTopBallForFullTubeSitsAtTheMouth() {
+        // A full tube's top ball is in the very top slot (index 0).
+        let p = PourGeometry.topBallPoint(in: tube, capacity: 4, count: 4, ballSize: 50, ballGap: 10)
+        XCTAssertEqual(p.y, 200 + pad + 25, accuracy: 0.001) // top slot centre
     }
 
     func testArcStartsAtLaunchAndEndsAtLanding() {

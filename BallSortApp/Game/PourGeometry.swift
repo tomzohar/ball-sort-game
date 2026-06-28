@@ -9,29 +9,24 @@ import CoreGraphics
 /// same coordinate space.
 enum PourGeometry {
 
-    /// Centre of a tube's mouth (its top slot) — where a lifted ball pours out from.
-    /// Independent of fill, so it reads as pouring from the rim regardless of depth.
-    static func mouthPoint(in tubeRect: CGRect, ballSize: CGFloat) -> CGPoint {
-        CGPoint(
-            x: tubeRect.midX,
-            y: tubeRect.minY + BoardLayout.tubeVerticalPadding + ballSize / 2
-        )
-    }
-
-    /// Centre of the slot a poured ball comes to rest in — the destination's new top
-    /// ball, at slot `capacity - countAfterMove` from the top (balls stack bottom-up,
-    /// so the filled region starts that many empty slots down).
+    /// Centre of the slot a tube's **top ball** occupies when the tube holds `count`
+    /// balls — at slot `capacity - count` from the top (balls stack bottom-up, so the
+    /// filled region starts that many empty slots down).
+    ///
+    /// Used for both ends of a pour: the source's top ball *before* the move (the
+    /// launch point, so the ball lifts off exactly where it sat — not from the mouth)
+    /// and the destination's top ball *after* it lands.
     ///
     /// - Parameters:
-    ///   - countAfterMove: the destination tube's ball count *after* the move lands.
-    static func landingPoint(
+    ///   - count: the tube's ball count at the moment of interest (≥ 1).
+    static func topBallPoint(
         in tubeRect: CGRect,
         capacity: Int,
-        countAfterMove: Int,
+        count: Int,
         ballSize: CGFloat,
         ballGap: CGFloat
     ) -> CGPoint {
-        let topSlot = max(0, capacity - max(1, countAfterMove))
+        let topSlot = max(0, capacity - max(1, count))
         let y = tubeRect.minY
             + BoardLayout.tubeVerticalPadding
             + CGFloat(topSlot) * (ballSize + ballGap)
