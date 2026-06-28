@@ -621,14 +621,14 @@
         {
           "id": "E14.6",
           "title": "Tube-completion settle polish",
-          "status": "in_progress",
+          "status": "done",
           "note": "A4. Tube completion currently = scale pulse + moss glow + two-note tone (TubeView/BoardView). Add a tactile 'lock/settle' finish on the final ball (small overshoot + ripple) to make completion feel decisive. Extends E8. IMPLEMENTED: TubeView gains a CompletionSettle modifier on the top ball — a scale overshoot (1.16, snappy→bouncy) plus a moss CompletionRipple ring that blooms outward and fades, both fired once per completion via a settleToken rising edge (onChange of `flourishing`). iOS-17 keyframeAnimator; attached to the top ball always but inert at rest (so existing snapshots are unchanged) and skipped under Reduce Motion. The existing whole-tube scale/glow flourish is kept. 189 app tests green; lint clean. PENDING: device feel check by Tom (overshoot+ripple on a real completion; tune amplitude/duration if too strong combined with the tube flourish)."
         },
         {
           "id": "E14.7",
           "title": "Smarter hints + hint feedback",
-          "status": "in_progress",
-          "note": "B3. Hints are highlight-only and the hint event is silent (no sound/haptic). Add an animated nudge toward source/dest and wire a hint GameEvent into the feedback service. Keep solver-derived (E6). VM tests for the new event. IMPLEMENTED (TDD): new GameEvent.hint mapped in both players — SoundPlayer plays a gentle ascending E5→B5 'ti-ding', HapticsPlayer a soft impact; BoardViewModel.requestHint fires feedback.play(.hint) the moment a non-nil hint surfaces (silent when the solver finds none / board is won). 3 new VM tests (fires on hint, silent on won, silent on no-solution). Animated nudge: hinted source+target tubes breathe via a slow autoreversing scale pulse (AnimationConstants.hintPulse, 0.045 amplitude), started/stopped on isHinted, skipped under Reduce Motion, inert at rest so snapshots are unchanged. 192 app tests green; lint clean. PENDING: device feel check by Tom (hint cue + pulse on a real board)."
+          "status": "done",
+          "note": "B3. Hints are highlight-only and the hint event is silent (no sound/haptic). Add an animated nudge toward source/dest and wire a hint GameEvent into the feedback service. Keep solver-derived (E6). VM tests for the new event. IMPLEMENTED (TDD): new GameEvent.hint mapped in both players — SoundPlayer plays a gentle ascending E5→B5 'ti-ding', HapticsPlayer a soft impact; BoardViewModel.requestHint fires feedback.play(.hint) the moment a non-nil hint surfaces (silent when the solver finds none / board is won). 3 new VM tests (fires on hint, silent on won, silent on no-solution). Animated nudge: hinted source+target tubes breathe via a slow autoreversing scale pulse (AnimationConstants.hintPulse, 0.045 amplitude), started/stopped on isHinted, skipped under Reduce Motion, inert at rest so snapshots are unchanged. 192 app tests green; lint clean. Shipped in PR #61 (merged)."
         },
         {
           "id": "E14.8",
