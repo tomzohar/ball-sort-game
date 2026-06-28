@@ -1,6 +1,6 @@
 {
   "project": "Ball Sort Game",
-  "updated": "2026-06-27",
+  "updated": "2026-06-28",
   "memories": [
     {
       "id": "m1",
@@ -142,7 +142,7 @@
       "title": "iOS dev-env gotchas (parallel builds, xcodegen scheme, snapshot record)",
       "type": "risk",
       "hook": "Don't fan out many local xcodebuilds; clean-regen for the app scheme; re-record snapshots via TEST_RUNNER env.",
-      "body": "(1) Fanning out ~10 parallel `xcodebuild test` runs (e.g. background worktree agents) melted this Mac (load ~400\u2013600) and the agents stalled before committing \u2014 cap concurrency, or have agents only edit+lint+commit and let GitHub CI build each PR, then do ONE serialized integration build at the end. (2) xcodegen does NOT emit a shared BallSortApp scheme; `xcodebuild test -scheme BallSortApp` won't autocreate it from a stale project \u2014 on 'scheme not found' run `rm -rf BallSort.xcodeproj && xcodegen generate`. (3) Re-record snapshot baselines with `TEST_RUNNER_SNAPSHOT_TESTING_RECORD=all xcodebuild test \u2026` (forwards the env to the test process) for plain assertSnapshot tests; tests pinned `withSnapshotTesting(record: .missing)` ignore it \u2014 flip those to .all, run, flip back. (4) Per-PR CI goes red for component-slice PRs over a shared visual foundation (each re-records only its own snapshots + CI sim \u2260 local sim) \u2014 reconcile all baselines in one pass. Also: interactive Simulator UI automation (taps to reach sheets/overlays for screenshots) is BLOCKED in the agent env \u2014 computer-use request_access and AppleScript/System Events both time out. Only `xcrun simctl io booted screenshot` of the current screen + `xcrun simctl ui booted appearance light|dark` work; to shoot a specific in-app screen, seed its JSON into the app container (Application Support/BallSort/<key>.json) before launch.",
+      "body": "(1) Fanning out ~10 parallel `xcodebuild test` runs (e.g. background worktree agents) melted this Mac (load ~400\u2013600) and the agents stalled before committing \u2014 cap concurrency, or have agents only edit+lint+commit and let GitHub CI build each PR, then do ONE serialized integration build at the end. (2) xcodegen does NOT emit a shared BallSortApp scheme; `xcodebuild test -scheme BallSortApp` won't autocreate it from a stale project \u2014 on 'scheme not found' run `rm -rf BallSort.xcodeproj && xcodegen generate`. (3) Re-record snapshot baselines with `TEST_RUNNER_SNAPSHOT_TESTING_RECORD=all xcodebuild test \u2026` (forwards the env to the test process) for plain assertSnapshot tests; tests pinned `withSnapshotTesting(record: .missing)` ignore it \u2014 flip those to .all, run, flip back. (4) Per-PR CI goes red for component-slice PRs over a shared visual foundation (each re-records only its own snapshots + CI sim \u2260 local sim) \u2014 reconcile all baselines in one pass. Also: interactive Simulator UI automation (taps to reach sheets/overlays for screenshots) is BLOCKED in the agent env \u2014 computer-use request_access and AppleScript/System Events both time out. Only `xcrun simctl io booted screenshot` of the current screen + `xcrun simctl ui booted appearance light|dark` work; to shoot a specific in-app screen, seed its JSON into the app container (Application Support/BallSort/<key>.json) before launch. (4) After merging files into a checkout/branch, re-run `xcodegen generate` or Xcode builds a STALE file list \u2014 e.g. 'cannot find TutorialOverlayView in scope' for source that exists on disk but isn't in the gitignored .xcodeproj (bit us after merging E14.2 into main without regenerating).",
       "created": "2026-06-27"
     },
     {
@@ -158,8 +158,22 @@
       "title": "E14 gameplay-depth direction: feel + guidance, not a twist",
       "type": "decision",
       "hook": "Improve the core loop's feel + guidance; differentiation stays the Zen skin.",
-      "body": "Tom (2026-06-27) wants gameplay improvement but chose game-FEEL + DIFFICULTY/GUIDANCE over adding a differentiating twist mechanic, and accepted scope expansion (launch may slip). Captured as epic E14, extending E8/E6/E3 with no rule change (GAME_RULES out-of-scope list untouched). Key finding driving B1: DifficultyCurve.swift PLATEAUS by ~level 9 (colors capped 5, empty tubes floored 1, capacity fixed 4, min-moves capped 24), contradicting PROJECT_BRIEF's 'infinite rising difficulty' promise \u2014 fix is the recommended first task (pure Core, full TDD). Other gaps: no first-run tutorial (players land cold on L1), move animation is a straight spring not a pour-arc, tap-only (no drag), hint event is silent, win is just a card cascade. Differentiation question stays RESOLVED by the Zen skin (m15); E14 is depth, not a hook.",
+      "body": "Tom (2026-06-27) chose game-FEEL + DIFFICULTY/GUIDANCE over a differentiating twist mechanic; scope-expansion accepted (launch may slip), recorded in PROJECT_BRIEF 'In v1'. Epic E14 extends E8/E6/E3 with NO rule change (GAME_RULES out-of-scope list untouched); differentiation stays the Zen skin (m15). SHIPPED: E14.1 (curve-plateau fix \u2014 see m21), E14.2 (skippable/replayable first-run tutorial, @AppStorage \"hasSeenTutorial\" gate + 'How to Play' in Settings), E14.3 (flying-ball pour-arc: pure unit-tested PourGeometry + PourArcEffect GeometryEffect for the true parabola + BoardViewModel.lastMove seam + in-flight suppression of the landed ball; device-verified). REMAINING: A2 drag-to-pour, A3 win particles, A4 tube-completion settle, B3 smarter hints (hint event still silent), B4 difficulty label. Per-task worktrees off main, merged to local main. Device testing via m22.",
       "created": "2026-06-27"
+    },
+    {
+      "id": "m21",
+      "type": "context",
+      "title": "Solver/generation cost scales with EMPTY-TUBE count, not board size (E14.1)",
+      "body": "Generation runs the solver up to 80x (rejection sampling to a minMoves floor), so its cost is dominated by the BFS branching factor = the number of EMPTY tubes, NOT board size. Probe (5 seeds each): a 5-colour x 6-capacity board grades ~164 and generates SUB-SECOND at ONE empty tube, but ~80s/level at TWO empty tubes; 6x6 at one empty is still <0.4s. So the E14.1 DifficultyCurve grows tube CAPACITY 4->5->6 (levels 11/16) only at/after the level where empties bottom out to 1, and raises the min-moves ceiling 24->48; colours stay <=5 (grader/solver feasibility). Net: the curve now rises through ~level 20 to genuine expert instead of flatlining at ~level 8. RULE OF THUMB: never widen empty-tube count in the deep game, and prefer capacity over colours to add difficulty.",
+      "created": "2026-06-28"
+    },
+    {
+      "id": "m22",
+      "type": "reference",
+      "title": "Install dev builds on Tom's iPhone (free personal team, no enrollment)",
+      "body": "Sideload to Tom's physical iPhone without Apple Developer enrollment, using his free personal team. Team ID 53Y58P7DKM, bundle com.tomzohar.ballsort, signing identity 'Apple Development: ttomz4291@gmail.com'. Build+sign via CLI override (kept OUT of project.yml so the gitignored .xcodeproj and feature branches stay clean): `xcodebuild build -scheme BallSortApp -destination 'platform=iOS,id=<UDID>' -allowProvisioningUpdates DEVELOPMENT_TEAM=53Y58P7DKM CODE_SIGN_STYLE=Automatic -derivedDataPath build` (auto-creates the provisioning profile). Install: `xcrun devicectl device install app --device <UDID> build/Build/Products/Debug-iphoneos/BallSortApp.app`; launch: `xcrun devicectl device process launch --device <UDID> com.tomzohar.ballsort`. FIRST launch needs on-phone trust (Settings > General > VPN & Device Management > Trust the developer); free profile EXPIRES ~7 days (rebuild+reinstall to refresh). UDID this session: 00008150-000C14123E01401C (may change per device/cable). Get UDID via `xcrun xctrace list devices`. Best for feel-tuning animations the agent env can't watch (m18).",
+      "created": "2026-06-28"
     }
   ]
 }
