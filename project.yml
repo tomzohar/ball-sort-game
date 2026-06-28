@@ -29,6 +29,13 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.tomzohar.ballsort
+        # Development signing for on-device testing via Tom's free personal team
+        # (cert "Apple Development: ttomz4291@gmail.com (CB2X3R9R5A)"). This is the
+        # 7-day dev-install path and is independent of the paid release signing that
+        # E11.2 will set up once Apple Developer enrollment (E11.1) is approved.
+        # Simulator builds ignore these (signing not required), so CI stays unaffected.
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: CB2X3R9R5A
         MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: "1"
         SWIFT_VERSION: "5.0"               # Swift 5 language mode for the app; can raise to 6 later. Core stays tools-6.
